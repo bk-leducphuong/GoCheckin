@@ -3,9 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from 'typeorm';
+import { Account } from '../../account/entities/account.entity';
 
 // Ensure logs directory exists
-const logsDir = path.join(__dirname, '../../logs');
+const logsDir = path.join(__dirname, '../../../logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
@@ -54,7 +55,7 @@ export const getDatabaseConfig = (
   username: configService.get('DATABASE_USER', 'postgres'),
   password: configService.get('DATABASE_PASSWORD', ''),
   database: configService.get('DATABASE_NAME', 'go_checkin'),
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'], // scans for all files ending in .entity.ts or entity.js
+  entities: [Account],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'], // looks for migration files in the migrations directory
   synchronize: configService.get('NODE_ENV') === 'development', // automatically updates database schema
   logging: true, // Enable logging for all environments
