@@ -19,7 +19,7 @@ export class AuthService {
     private readonly accountService: AccountService,
   ) {}
 
-  async validateLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
+  async login(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
     try {
       const user = await this.accountService.findByEmail(loginDto.email);
       const isValidPassword = await compare(loginDto.password, user.password);

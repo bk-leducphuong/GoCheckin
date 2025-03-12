@@ -11,7 +11,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   login(@Body() loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
-    return this.service.validateLogin(loginDto);
+    return this.service.login(loginDto);
   }
 
   @Post('register')
