@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './database/config/database.config';
+import { AccountModule } from './account/account.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,9 +17,13 @@ import { getDatabaseConfig } from './database/config/database.config';
       // use async configuration to wait for eviroment variables to load
       imports: [ConfigModule], // inject ConfigModule to use configuration
       inject: [ConfigService], // inject ConfigService to read enviroment variable
-      useFactory: (configService: ConfigService) =>
-        getDatabaseConfig(configService),
+      useFactory: (configService: ConfigService) => ({
+        ...getDatabaseConfig(configService),
+        autoLoadEntities: true,
+      }),
     }),
+    AuthModule,
+    AccountModule,
   ],
   controllers: [AppController],
   providers: [AppService],

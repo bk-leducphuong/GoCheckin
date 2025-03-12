@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
 import { AccountDto } from './dto/account.dto';
+import { CreateAccountDto } from './dto/create-account.dto';
 // import { UpdateAccountDto } from './dto/update-account.dto';
 // import * as bcrypt from 'bcrypt';
 
@@ -16,6 +17,11 @@ export class AccountService {
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
   ) {}
+
+  async create(createAccountDto: CreateAccountDto): Promise<Account> {
+    const newAccount = this.accountRepository.create(createAccountDto);
+    return this.accountRepository.save(newAccount);
+  }
 
   async getAccount(userId: string): Promise<AccountDto> {
     const account = await this.accountRepository.findOne({
@@ -40,6 +46,18 @@ export class AccountService {
       createdAt: account.createdAt,
       updatedAt: account.updatedAt,
     };
+  }
+
+  async findByEmail(email: string): Promise<Account> {
+    const account = await this.accountRepository.findOne({
+      where: { email },
+    });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    return account;
   }
 
   // async updateAccount(
