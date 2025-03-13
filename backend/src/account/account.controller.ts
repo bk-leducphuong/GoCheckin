@@ -1,24 +1,31 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Delete } from '@nestjs/common';
 import { AccountService } from './account.service';
-import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
-import { AccountDto } from './dto/account.dto';
-// import { UpdateAccountDto } from './dto/update-account.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
+import { UpdateAccountDto } from './dto/update-account.dto';
 
-@Controller('accounts')
+@Controller('account')
+@UseGuards(JwtAuthGuard) // Protect all routes in this controller
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  getAccount(@Param('id') userId: string): Promise<AccountDto> {
-    return this.accountService.getAccount(userId);
+  @Get()
+  async getAccount(@CurrentUser() user: JwtPayload) {
+    return this.accountService.getAccount(user.userId);
   }
 
-  // @Put()
-  // updateAccount(
-  //   @User('sub') userId: string,
-  //   @Body() updateDto: UpdateAccountDto,
-  // ): Promise<AccountDto> {
-  //   return this.accountService.updateAccount(userId, updateDto);
+  // // delete account
+  // @Delete()
+  // async deleteAccount(@CurrentUser() user: JwtPayload) {
+  //   return this.accountService.deleteAccount(user.userId);
   // }
+
+  @Put()
+  async updateAccount(
+    @CurrentUser() user: JwtPayload,
+    @Body() updateAccountDto: UpdateAccountDto,
+  ) {
+    return this.accountService.updateAccount(user.userId, updateAccountDto);
+  }
 }

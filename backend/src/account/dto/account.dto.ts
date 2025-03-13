@@ -10,7 +10,7 @@ import {
 
 export class AccountDto {
   @IsString()
-  id: string;
+  userId: string;
 
   @IsString()
   username: string;

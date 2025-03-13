@@ -1,6 +1,6 @@
 import {
   Injectable,
-  // UnauthorizedException,
+  UnauthorizedException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,8 +8,8 @@ import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
 import { AccountDto } from './dto/account.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
-// import { UpdateAccountDto } from './dto/update-account.dto';
-// import * as bcrypt from 'bcrypt';
+import { UpdateAccountDto } from './dto/update-account.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AccountService {
@@ -25,7 +25,7 @@ export class AccountService {
 
   async getAccount(userId: string): Promise<AccountDto> {
     const account = await this.accountRepository.findOne({
-      where: { id: userId },
+      where: { userId: userId },
     });
 
     if (!account) {
@@ -33,7 +33,7 @@ export class AccountService {
     }
 
     return {
-      id: account.id,
+      userId: account.userId,
       username: account.username,
       email: account.email,
       fullName: account.fullName,
@@ -60,58 +60,62 @@ export class AccountService {
     return account;
   }
 
-  // async updateAccount(
-  //   userId: string,
-  //   updateDto: UpdateAccountDto,
-  // ): Promise<AccountDto> {
-  //   const account = await this.accountRepository.findOne({
-  //     where: { id: userId },
-  //   });
+  async updateAccount(
+    userId: string,
+    updateDto: UpdateAccountDto,
+  ): Promise<AccountDto> {
+    const account = await this.accountRepository.findOne({
+      where: { userId: userId },
+    });
 
-  //   if (!account) {
-  //     throw new NotFoundException('Account not found');
-  //   }
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
 
-  //   if (updateDto.currentPassword && updateDto.newPassword) {
-  //     const isValidPassword = await bcrypt.compare(
-  //       updateDto.currentPassword,
-  //       account.password,
-  //     );
+    if (updateDto.currentPassword && updateDto.newPassword) {
+      const isValidPassword = await bcrypt.compare(
+        updateDto.currentPassword,
+        account.password,
+      );
 
-  //     if (!isValidPassword) {
-  //       throw new UnauthorizedException('Current password is incorrect');
-  //     }
+      if (!isValidPassword) {
+        throw new UnauthorizedException('Current password is incorrect');
+      }
 
-  //     updateDto.newPassword = await bcrypt.hash(updateDto.newPassword, 10);
-  //   }
+      updateDto.newPassword = await bcrypt.hash(updateDto.newPassword, 10);
+    }
 
-  //   const updateData: Partial<Account> = {};
-  //   if (updateDto.username) updateData.username = updateDto.username;
-  //   if (updateDto.email) updateData.email = updateDto.email;
-  //   if (updateDto.fullName) updateData.fullName = updateDto.fullName;
-  //   if (updateDto.phoneNumber) updateData.phoneNumber = updateDto.phoneNumber;
-  //   if (updateDto.companyName) updateData.companyName = updateDto.companyName;
-  //   if (updateDto.newPassword) updateData.password = updateDto.newPassword;
+    const updateData: Partial<Account> = {};
+    if (updateDto.username) updateData.username = updateDto.username;
+    if (updateDto.email) updateData.email = updateDto.email;
+    if (updateDto.fullName) updateData.fullName = updateDto.fullName;
+    if (updateDto.phoneNumber) updateData.phoneNumber = updateDto.phoneNumber;
+    if (updateDto.companyName) updateData.companyName = updateDto.companyName;
+    if (updateDto.newPassword) updateData.password = updateDto.newPassword;
 
-  //   await this.accountRepository.update(userId, updateData);
+    await this.accountRepository.update(userId, updateData);
 
-  //   const updatedAccount = await this.accountRepository.findOne({
-  //     where: { id: userId },
-  //   });
+    const updatedAccount = await this.accountRepository.findOne({
+      where: { userId: userId },
+    });
 
-  //   return {
-  //     id: updatedAccount.id,
-  //     username: updatedAccount.username,
-  //     email: updatedAccount.email,
-  //     fullName: updatedAccount.fullName,
-  //     phoneNumber: updatedAccount.phoneNumber,
-  //     active: updatedAccount.active,
-  //     role: updatedAccount.role,
-  //     companyName: updatedAccount.companyName,
-  //     lastLogin: updatedAccount.lastLogin,
-  //     enabled: updatedAccount.enabled,
-  //     createdAt: updatedAccount.createdAt,
-  //     updatedAt: updatedAccount.updatedAt,
-  //   };
-  // }
+    if (!updatedAccount) {
+      throw new NotFoundException('Updated account not found');
+    }
+
+    return {
+      userId: updatedAccount.userId,
+      username: updatedAccount.username,
+      email: updatedAccount.email,
+      fullName: updatedAccount.fullName,
+      phoneNumber: updatedAccount.phoneNumber,
+      active: updatedAccount.active,
+      role: updatedAccount.role,
+      companyName: updatedAccount.companyName,
+      lastLogin: updatedAccount.lastLogin,
+      enabled: updatedAccount.enabled,
+      createdAt: updatedAccount.createdAt,
+      updatedAt: updatedAccount.updatedAt,
+    };
+  }
 }

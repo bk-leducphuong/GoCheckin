@@ -15,7 +15,7 @@ export enum UserRole {
 @Entity('accounts')
 export class Account {
   @PrimaryGeneratedColumn('uuid', { name: 'user_id' })
-  id: string;
+  userId: string;
 
   @Column({ length: 100, unique: true })
   username: string;
