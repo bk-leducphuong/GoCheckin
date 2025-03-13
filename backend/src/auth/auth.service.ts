@@ -1,7 +1,6 @@
 import {
   Injectable,
   UnauthorizedException,
-  HttpStatus,
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
@@ -25,12 +24,7 @@ export class AuthService {
       const isValidPassword = await compare(loginDto.password, user.password);
 
       if (!isValidPassword) {
-        throw new UnauthorizedException({
-          status: HttpStatus.UNAUTHORIZED,
-          errors: {
-            password: 'Invalid password',
-          },
-        });
+        throw new UnauthorizedException('Invalid password');
       }
 
       return {
@@ -42,12 +36,7 @@ export class AuthService {
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
-        throw new UnauthorizedException({
-          status: HttpStatus.UNAUTHORIZED,
-          errors: {
-            email: 'User not found',
-          },
-        });
+        throw new UnauthorizedException('User not found');
       }
       throw error;
     }
@@ -59,12 +48,7 @@ export class AuthService {
       .findByEmail(registerDto.email)
       .catch(() => null);
     if (existingUser) {
-      throw new ConflictException({
-        status: HttpStatus.CONFLICT,
-        errors: {
-          email: 'Email already exists',
-        },
-      });
+      throw new ConflictException('User already exist');
     }
 
     // Hash password
