@@ -9,6 +9,10 @@ import {
 export class UpdateAccountDto {
   @IsOptional()
   @IsString()
+  userId?: string;
+
+  @IsOptional()
+  @IsString()
   @MinLength(2)
   username?: string;
 
