@@ -5,7 +5,6 @@ export const CurrentUser = createParamDecorator(
   (data: keyof JwtPayload | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user as JwtPayload;
-    console.log(user);
     // If a specific field is requested, return that field
     if (data) {
       return user?.[data];
