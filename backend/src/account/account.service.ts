@@ -118,4 +118,23 @@ export class AccountService {
       updatedAt: updatedAccount.updatedAt,
     };
   }
+
+  async deleteAccount(userId: string): Promise<void> {
+    const account = await this.accountRepository.findOne({
+      where: { userId },
+    });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    // Soft delete by disabling the account
+    await this.accountRepository.update(userId, {
+      active: false,
+      enabled: false,
+    });
+
+    // If you want to completely remove the account, use this instead:
+    // await this.accountRepository.remove(account);
+  }
 }

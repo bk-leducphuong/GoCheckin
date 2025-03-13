@@ -15,11 +15,11 @@ export class AccountController {
     return this.accountService.getAccount(user.userId);
   }
 
-  // // delete account
-  // @Delete()
-  // async deleteAccount(@CurrentUser() user: JwtPayload) {
-  //   return this.accountService.deleteAccount(user.userId);
-  // }
+  // delete account
+  @Delete()
+  async deleteAccount(@CurrentUser() user: JwtPayload) {
+    return this.accountService.deleteAccount(user.userId);
+  }
 
   @Put()
   async updateAccount(
