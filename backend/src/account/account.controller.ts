@@ -1,6 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { AccountService } from './account.service';
-// import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { AccountDto } from './dto/account.dto';
 // import { UpdateAccountDto } from './dto/update-account.dto';
 
@@ -9,6 +9,7 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
   getAccount(@Param('id') userId: string): Promise<AccountDto> {
     return this.accountService.getAccount(userId);
   }
