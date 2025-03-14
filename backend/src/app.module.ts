@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { getDatabaseConfig } from './database/config/database.config';
 import { AccountModule } from './account/account.module';
 import { AuthModule } from './auth/auth.module';
+import { EventModule } from './event/event.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
     }),
     AuthModule,
     AccountModule,
+    EventModule,
   ],
   controllers: [AppController],
   providers: [AppService],
