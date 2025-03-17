@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Tenant } from '../../tenant/entities/tenant.entity';
 
 export enum EventStatus {
   DRAFT = 'draft',
@@ -75,8 +78,7 @@ export class Event {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  // Add relationship with Tenant entity if you have one
-  // @ManyToOne(() => Tenant, tenant => tenant.events)
-  // @JoinColumn({ name: 'tenant_code', referencedColumnName: 'tenantCode' })
-  // tenant: Tenant;
+  @ManyToOne(() => Tenant, (tenant) => tenant.events)
+  @JoinColumn({ name: 'tenant_code', referencedColumnName: 'tenantCode' })
+  tenant: Tenant;
 }

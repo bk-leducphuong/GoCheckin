@@ -7,6 +7,7 @@ import { getDatabaseConfig } from './database/config/database.config';
 import { AccountModule } from './account/account.module';
 import { AuthModule } from './auth/auth.module';
 import { EventModule } from './event/event.module';
+import { TenantModule } from './tenant/tenant.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EventModule } from './event/event.module';
     AuthModule,
     AccountModule,
     EventModule,
+    TenantModule,
   ],
   controllers: [AppController],
   providers: [AppService],
