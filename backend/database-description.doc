@@ -1,0 +1,178 @@
+# Database Tables Analysis for Check-In System
+
+Based on the provided SQL code and project description, I'll explain each table in the database and how they relate to the check-in system's functionality.
+
+## Core Tables
+
+### 1. Tenants
+
+This table stores information about organizations that use the system (event organizers).
+
+- **Primary key**: `tenant_id` (UUID)
+- **Important fields**:
+  - `tenant_code`: Unique identifier for the tenant
+  - `tenant_name`: Name of the organization
+  - `contact_*`: Contact information for the tenant
+  - `logo`: Binary storage for the tenant's logo
+  - `registration_date` and `expiration_date`: Period of service
+
+This table represents the event organizers (referred to as "ban tổ chức" in the requirements) who will use the admin interface at admin.checkin.com.
+
+### 2. Accounts
+
+Stores user account information for all system users.
+
+- **Primary key**: `user_id` (UUID)
+- **Important fields**:
+  - `username` and `password`: Authentication credentials
+  - `role`: User role (admin, tenant, poc)
+  - `email` and `phone_number`: Contact information
+  - Security features: `failed_login_attempts`, `password_reset_token`
+
+This table handles all user accounts, including tenant administrators, tenant staff members, and POC (Point of Check-in) users across the system.
+
+### 3. Events
+
+Stores information about each event organized by tenants.
+
+- **Primary key**: `event_id` (UUID)
+- **Important fields**:
+  - `event_code`: Unique identifier for the event
+  - `tenant_code`: Foreign key to the tenant organizing the event
+  - `event_status`: Current status (draft, published, active, completed, cancelled)
+  - `start_time` and `end_time`: Event duration
+  - `floor_plan_img`: Binary storage for the event floor plan
+  - `venue_*`: Location information
+
+This table tracks all events and their details, allowing tenants to manage their events through the admin interface.
+
+### 4. Guests
+
+Stores information about event attendees.
+
+- **Primary key**: `guest_id` (UUID)
+- **Important fields**:
+  - `guest_code`: Unique identifier for the guest (the card number they use)
+  - Personal information: `first_name`, `last_name`, `email`, etc.
+  - `identity_type`: Type of ID document
+  - `guest_type`: Classification (regular, VIP, speaker, etc.)
+  - `front_img` and `back_img`: Binary storage for ID images
+
+This table stores information about all people who attend events, including their unique card identifiers used for check-in.
+
+### 5. Points of Check-in
+
+Represents physical check-in locations at events.
+
+- **Primary key**: `point_id` (UUID)
+- **Important fields**:
+  - `point_code`: Unique identifier for the check-in point
+  - `event_code`: Foreign key to the associated event
+  - `username`: User account responsible for this point
+  - `latitude` and `longitude`: Geographic coordinates
+  - `status`: Current operational status
+
+This table represents the check-in stations ("quầy checkin") mentioned in the requirements, where guests scan their cards.
+
+### 6. Devices
+
+Tracks hardware devices used at check-in points.
+
+- **Primary key**: `device_id` (UUID)
+- **Important fields**:
+  - `device_code`: Unique identifier for the device
+  - `point_code`: Foreign key to the associated check-in point
+  - `device_type`: Type of device
+  - `status`: Current operational status
+  - Technical details: `firmware_version`, `battery_level`, `ip_address`, etc.
+
+This table represents the card scanners ("máy quét thẻ") mentioned in the requirements.
+
+### 7. Transactions
+
+Records each check-in event.
+
+- **Primary key**: `tran_id` (UUID)
+- **Important fields**:
+  - `point_code`: Where the check-in occurred
+  - `guest_code`: Who checked in
+  - `device_code`: Which device was used
+  - `transaction_status`: Success or failure status
+  - `checkin_img1` and `checkin_img2`: Images captured during check-in
+  - `gender_analysis` and `age_analysis`: Computer vision analysis results
+  - `metadata`: Additional JSON data
+
+This table stores the actual check-in data, creating a record each time a guest scans their card at a check-in point.
+
+## Junction Tables
+
+### 1. Accounts to Tenants
+
+Links user accounts to the tenants they have access to.
+
+- **Composite primary key**: (`user_id`, `tenant_code`)
+- Supports the multi-tenant architecture where staff members can be associated with specific tenants
+
+### 2. Event Guests
+
+Links guests to the events they are registered for.
+
+- **Composite primary key**: (`event_code`, `guest_code`)
+- **Important fields**:
+  - `attendance_status`: Whether the guest has attended
+  - `check_in_time` and `check_out_time`: When the guest arrived and left
+  - `notes`: Additional information
+
+This table tracks which guests are registered for which events and their attendance status.
+
+## Support Tables
+
+### 1. Notifications
+
+Stores system notifications for users.
+
+- **Primary key**: `notification_id` (UUID)
+- **Important fields**:
+  - `notification_type`: Type of notification (info, warning, error, success)
+  - `recipient_id`: User who should receive the notification
+  - `is_read`: Whether the notification has been read
+
+This table helps implement the notification system for users.
+
+### 2. Audit Logs
+
+Tracks all system changes for security and compliance.
+
+- **Primary key**: `log_id` (UUID)
+- **Important fields**:
+  - `user_id`: User who made the change
+  - `action`: What was done
+  - `entity_type` and `entity_id`: What was changed
+  - `old_values` and `new_values`: The before and after states
+  - `ip_address` and `user_agent`: Technical details about the request
+
+This table maintains a comprehensive audit trail of all system changes.
+
+### 3. Analytics
+
+Stores pre-calculated metrics for reporting.
+
+- **Primary key**: `analytics_id` (UUID)
+- **Important fields**:
+  - `event_code`: Associated event
+  - `metric_name`: What is being measured
+  - `metric_value`: The measurement (in JSON format)
+  - `time_period`: The time frame for the metric
+
+This table supports the analytics and visualization features mentioned in the requirements.
+
+## Database Design Features
+
+1. **ENUM Types**: Used for better type safety (user roles, event statuses, etc.)
+2. **UUID Primary Keys**: Provides globally unique identifiers
+3. **Indexes**: Optimizes query performance for common access patterns
+4. **Triggers**: Automatically updates timestamps when records are modified
+5. **Binary Storage**: Stores images directly in the database
+6. **JSON Support**: Allows flexible data storage for metadata and analytics
+
+This database design effectively supports the requirements for both the POC interface (poc.checkin.com) and the tenant admin interface (admin.checkin.com), enabling check-in data collection, event management, and analytical reporting.
