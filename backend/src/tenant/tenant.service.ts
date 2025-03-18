@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
+import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 
 @Injectable()
@@ -11,48 +16,84 @@ export class TenantService {
     private tenantRepository: Repository<Tenant>,
   ) {}
 
-  async getAllTenants(): Promise<Tenant[]> {
+  async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
+    // Check if tenant with the same code already exists
+    const existingTenant = await this.tenantRepository.findOne({
+      where: { tenantCode: createTenantDto.tenantCode },
+    });
+
+    if (existingTenant) {
+      throw new ConflictException(
+        `Tenant with code ${createTenantDto.tenantCode} already exists`,
+      );
+    }
+
+    const newTenant = this.tenantRepository.create(createTenantDto);
+    return this.tenantRepository.save(newTenant);
+  }
+
+  async findAll(): Promise<Tenant[]> {
     return this.tenantRepository.find();
   }
 
-  async getTenant(tenantId: string): Promise<Tenant> {
+  async findOne(id: string): Promise<Tenant> {
     const tenant = await this.tenantRepository.findOne({
-      where: { tenantId },
+      where: { tenantId: id },
     });
+
     if (!tenant) {
-      throw new NotFoundException('Tenant not found');
+      throw new NotFoundException(`Tenant with ID ${id} not found`);
     }
+
     return tenant;
   }
 
-  async createTenant(tenantData: Partial<Tenant>): Promise<Tenant> {
-    const tenant = this.tenantRepository.create(tenantData);
-    return this.tenantRepository.save(tenant);
-  }
-
-  async updateTenant(
-    tenantId: string,
-    tenantData: UpdateTenantDto,
-  ): Promise<Tenant> {
-    await this.tenantRepository.update(tenantId, tenantData);
-    const updatedTenant = await this.tenantRepository.findOne({
-      where: { tenantId },
-    });
-    if (!updatedTenant) {
-      throw new NotFoundException('Tenant not found');
-    }
-    return updatedTenant;
-  }
-
-  async deleteTenant(tenantId: string) {
+  async findByCode(code: string): Promise<Tenant> {
     const tenant = await this.tenantRepository.findOne({
-      where: { tenantId },
+      where: { tenantCode: code },
     });
 
     if (!tenant) {
-      throw new NotFoundException('Tenant not found');
+      throw new NotFoundException(`Tenant with code ${code} not found`);
     }
 
-    await this.tenantRepository.delete(tenantId);
+    return tenant;
+  }
+
+  async update(id: string, updateTenantDto: UpdateTenantDto): Promise<Tenant> {
+    const tenant = await this.findOne(id);
+
+    // Update tenant properties
+    Object.assign(tenant, updateTenantDto);
+
+    return this.tenantRepository.save(tenant);
+  }
+
+  async updateByCode(
+    code: string,
+    updateTenantDto: UpdateTenantDto,
+  ): Promise<Tenant> {
+    const tenant = await this.findByCode(code);
+
+    // Update tenant properties
+    Object.assign(tenant, updateTenantDto);
+
+    return this.tenantRepository.save(tenant);
+  }
+
+  async remove(id: string): Promise<void> {
+    const tenant = await this.findOne(id);
+
+    // Soft delete - just set enabled to false
+    tenant.enabled = false;
+    await this.tenantRepository.save(tenant);
+  }
+
+  async removeByCode(code: string): Promise<void> {
+    const tenant = await this.findByCode(code);
+
+    // Soft delete - just set enabled to false
+    tenant.enabled = false;
+    await this.tenantRepository.save(tenant);
   }
 }
