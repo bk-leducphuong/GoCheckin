@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { GuestCheckin } from './guest-checkin.entity';
 
 export enum IdentityType {
   ID_CARD = 'id_card',
@@ -25,8 +27,14 @@ export class Guest {
   @PrimaryGeneratedColumn('uuid', { name: 'guest_id' })
   guestId: string;
 
-  @Column({ name: 'guest_code', type: 'varchar', length: 50, unique: true })
+  @Column({ name: 'guest_code', type: 'varchar', length: 50 })
   guestCode: string;
+
+  @Column({ name: 'event_code', type: 'varchar', length: 50 })
+  eventCode: string;
+
+  @Column({ name: 'point_code', type: 'varchar', length: 50 })
+  pointCode: string;
 
   @Column({
     name: 'guest_description',
@@ -78,4 +86,8 @@ export class Guest {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  // Relations
+  @OneToMany(() => GuestCheckin, (checkin) => checkin.guest)
+  checkins: GuestCheckin[];
 }

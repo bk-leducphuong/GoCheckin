@@ -13,8 +13,20 @@ import { IdentityType, GuestType } from '../entities/guest.entity';
 export class CreateGuestDto {
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ description: 'Unique code for the guest' })
+  @ApiProperty({ description: 'Code for the guest' })
   guestCode: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'Event code that the guest is associated with' })
+  eventCode: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Point of check-in code where the guest checked in',
+  })
+  pointCode: string;
 
   @IsString()
   @IsOptional()

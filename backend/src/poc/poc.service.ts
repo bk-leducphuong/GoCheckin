@@ -41,7 +41,7 @@ export class PocService {
 
   async findOne(id: string): Promise<PointOfCheckin> {
     const poc = await this.pocRepository.findOne({
-      where: { pointId: id, enabled: true },
+      where: { pocId: id, enabled: true },
       relations: ['account', 'event'],
     });
 

@@ -86,7 +86,9 @@ CREATE TABLE events (
 -- Guests table
 CREATE TABLE guests (
     guest_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    guest_code VARCHAR(50) NOT NULL UNIQUE,
+    guest_code VARCHAR(50) NOT NULL,
+    event_code VARCHAR(50) NOT NULL,
+    point_code VARCHAR(50) NOT NULL,
     guest_description VARCHAR(255),
     front_img BYTEA,
     back_img BYTEA,
@@ -100,26 +102,23 @@ CREATE TABLE guests (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Event Guests junction table
-CREATE TABLE event_guests (
+-- Create guest_checkins junction table
+CREATE TABLE guest_checkins (
+    checkin_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    guest_id UUID NOT NULL REFERENCES guests(guest_id),
+    poc_id UUID NOT NULL REFERENCES points_of_checkin(poc_id),
     event_code VARCHAR(50) NOT NULL,
-    guest_code VARCHAR(50) NOT NULL,
-    registration_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    attendance_status BOOLEAN DEFAULT FALSE,
-    check_in_time TIMESTAMP,
-    check_out_time TIMESTAMP,
-    notes TEXT,
-    PRIMARY KEY (event_code, guest_code),
-    FOREIGN KEY (event_code) REFERENCES events(event_code) ON DELETE CASCADE,
-    FOREIGN KEY (guest_code) REFERENCES guests(guest_code) ON DELETE CASCADE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    notes VARCHAR(255),
+    checkin_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    
+    CONSTRAINT unique_guest_poc_event_checkin UNIQUE(guest_id, poc_id, event_code)
 );
 
 -- Points of Checkin table
 CREATE TABLE points_of_checkin (
     point_id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    point_code VARCHAR(50) NOT NULL UNIQUE,
+    point_code VARCHAR(50) NOT NULL,
     point_name VARCHAR(255) NOT NULL,
     point_note TEXT,
     event_code VARCHAR(50) NOT NULL,
@@ -233,6 +232,10 @@ CREATE INDEX idx_notifications_unread ON notifications(recipient_id) WHERE is_re
 CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
 CREATE INDEX idx_event_guests_event ON event_guests(event_code);
 CREATE INDEX idx_analytics_event_metric ON analytics(event_code, metric_name, time_period);
+-- Create indexes for efficient querying
+CREATE INDEX idx_guest_checkins_guest_id ON guest_checkins(guest_id);
+CREATE INDEX idx_guest_checkins_poc_id ON guest_checkins(poc_id);
+CREATE INDEX idx_guest_checkins_event_code ON guest_checkins(event_code); 
 
 -- Create functions for automatic update of updated_at columns
 CREATE OR REPLACE FUNCTION update_modified_column()

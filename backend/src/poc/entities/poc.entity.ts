@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Event } from '../../event/entities/event.entity';
 import { Account } from '../../account/entities/account.entity';
+import { GuestCheckin } from '../../guest/entities/guest-checkin.entity';
 
 export enum PointStatus {
   ACTIVE = 'active',
@@ -18,8 +20,8 @@ export enum PointStatus {
 
 @Entity('points_of_checkin')
 export class PointOfCheckin {
-  @PrimaryGeneratedColumn('uuid', { name: 'point_id' })
-  pointId: string;
+  @PrimaryGeneratedColumn('uuid', { name: 'poc_id' })
+  pocId: string;
 
   @Column({ name: 'point_code', type: 'varchar', length: 50, unique: true })
   pointCode: string;
@@ -81,4 +83,7 @@ export class PointOfCheckin {
   @ManyToOne(() => Account)
   @JoinColumn({ name: 'username', referencedColumnName: 'username' })
   account: Account;
+
+  @OneToMany(() => GuestCheckin, (checkin) => checkin.pointOfCheckin)
+  checkins: GuestCheckin[];
 }
