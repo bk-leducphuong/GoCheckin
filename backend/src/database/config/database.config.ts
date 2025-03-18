@@ -7,6 +7,7 @@ import { Account } from '../../account/entities/account.entity';
 import { AccountTenant } from '../../account/entities/account-tenant.entity';
 import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Event } from '../../event/entities/event.entity';
+import { PointOfCheckin } from '../../poc/entities/poc.entity';
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../../logs');
@@ -58,7 +59,7 @@ export const getDatabaseConfig = (
   username: configService.get('DATABASE_USER', 'postgres'),
   password: configService.get('DATABASE_PASSWORD', ''),
   database: configService.get('DATABASE_NAME', 'go_checkin'),
-  entities: [Account, AccountTenant, Tenant, Event],
+  entities: [Account, AccountTenant, Tenant, Event, PointOfCheckin],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'], // looks for migration files in the migrations directory
   synchronize: configService.get('NODE_ENV') === 'development', // automatically updates database schema
   logging: true, // Enable logging for all environments
