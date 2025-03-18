@@ -30,6 +30,7 @@ export class AuthService {
       return {
         accessToken: this.jwtService.sign({
           userId: user.userId,
+          username: user.username,
           email: user.email,
           role: user.role,
         }),
@@ -64,6 +65,7 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign({
         userId: newUser.userId,
+        username: newUser.username,
         email: newUser.email,
         role: newUser.role,
       }),
