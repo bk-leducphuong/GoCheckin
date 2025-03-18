@@ -7,7 +7,6 @@ import {
   Param,
   Body,
   UseGuards,
-  Req,
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
@@ -107,7 +106,7 @@ export class TenantController {
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   @ApiOperation({ summary: 'Get tenant code from user JWT token' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Returns tenant code' })
-  getTenantCode(@CurrentUser user: JwtPayload) {
+  getTenantCode(@CurrentUser() user: JwtPayload) {
     const userId = user.userId;
     // Implementation depends on how user-tenant relationships are stored
     // This is a placeholder - actual implementation would retrieve the tenant code
