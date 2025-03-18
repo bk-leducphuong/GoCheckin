@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { EventModule } from './event/event.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PocModule } from './poc/poc.module';
+import { GuestModule } from './guest/guest.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PocModule } from './poc/poc.module';
     EventModule,
     TenantModule,
     PocModule,
+    GuestModule,
   ],
   controllers: [AppController],
   providers: [AppService],
