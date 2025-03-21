@@ -12,6 +12,14 @@ export class EventService {
     private readonly eventRepository: Repository<Event>,
   ) {}
 
+  async validateEventCode(eventCode: string): Promise<boolean> {
+    const event = await this.eventRepository.findOne({
+      where: { eventCode },
+    });
+
+    return !!event;
+  }
+
   async create(createEventDto: CreateEventDto): Promise<Event> {
     const event = this.eventRepository.create(createEventDto);
     return this.eventRepository.save(event);

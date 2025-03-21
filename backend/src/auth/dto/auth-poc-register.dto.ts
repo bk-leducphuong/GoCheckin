@@ -20,7 +20,7 @@ export class AuthPocRegisterDto {
 
   @ApiProperty({ example: 'password123', description: 'Password' })
   @IsString()
-  @MinLength(6)
+  @MinLength(5)
   password: string;
 
   @ApiProperty({ example: 'John Doe', description: 'Full name' })

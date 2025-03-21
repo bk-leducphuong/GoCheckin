@@ -13,12 +13,14 @@ import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
 import { compare, hash } from 'bcrypt';
 import { AccountService } from 'src/account/account.service';
 import { UserRole } from 'src/account/entities/account.entity';
+import { EventService } from 'src/event/event.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly accountService: AccountService,
+    private readonly eventService: EventService,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
@@ -141,7 +143,12 @@ export class AuthService {
     }
 
     // Validate event code here if needed
-    // Example: await this.eventService.validateEventCode(registerDto.eventCode);
+    const isEventCodeValid = await this.eventService.validateEventCode(
+      registerDto.eventCode,
+    );
+    if (!isEventCodeValid) {
+      throw new BadRequestException('Event code is not valid!');
+    }
 
     // Hash password
     const hashedPassword = await hash(registerDto.password, 10);
