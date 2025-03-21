@@ -1,20 +1,20 @@
 import {
   Entity,
-  Column,
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { Account } from './account.entity';
 import { Tenant } from '../../tenant/entities/tenant.entity';
 
 @Entity('account_tenants')
 export class AccountTenant {
-  @Column({ name: 'user_id' })
+  @PrimaryColumn({ name: 'user_id' })
   userId: string;
 
-  @Column({ name: 'tenant_code' })
+  @PrimaryColumn({ name: 'tenant_code' })
   tenantCode: string;
 
   @CreateDateColumn({ name: 'created_at' })
