@@ -9,7 +9,7 @@ import {
 import { Account } from './account.entity';
 import { Tenant } from '../../tenant/entities/tenant.entity';
 
-@Entity('account_tenants')
+@Entity('accounts_to_tenants')
 export class AccountTenant {
   @PrimaryColumn({ name: 'user_id' })
   userId: string;
