@@ -11,9 +11,14 @@ const api = axios.create({
 // Request interceptor for adding auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Only run on client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem(
+        process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'token'
+      );
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },

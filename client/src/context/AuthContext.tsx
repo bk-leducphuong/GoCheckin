@@ -1,3 +1,4 @@
+'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthService } from '../services/auth.service';
 import { User, UserRole, AdminRegisterData, PocRegisterData } from '@/types/auth';
