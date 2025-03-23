@@ -6,6 +6,7 @@ First, run the development server:
 
 ```bash
 npm run dev
+npx next dev --experimental-https
 # or
 yarn dev
 # or

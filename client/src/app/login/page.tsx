@@ -46,12 +46,13 @@ export default function LoginPage() {
       
       if (data.userType === 'admin') {
         await adminLogin(data.email, data.password);
+        router.push('/admin');
       } else {
         await pocLogin(data.email, data.password);
+        router.push('/dashboard');
       }
       
-      // Redirect to dashboard after successful login
-      router.push('/dashboard');
+      // Redirect is handled above based on user role
     } catch (error) {
       console.error('Login error:', error);
       setErrorMessage(
