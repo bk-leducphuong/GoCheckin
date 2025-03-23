@@ -14,6 +14,7 @@ import { compare, hash } from 'bcrypt';
 import { AccountService } from 'src/account/account.service';
 import { UserRole } from 'src/account/entities/account.entity';
 import { EventService } from 'src/event/event.service';
+import { TenantService } from 'src/tenant/tenant.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly accountService: AccountService,
     private readonly eventService: EventService,
+    private readonly tenantService: TenantService,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
@@ -102,6 +104,21 @@ export class AuthService {
         'Phone number is required for admin registration',
       );
     }
+
+    // Validate tenant code
+    const tenant = await this.tenantService.findByCodeOrName(
+      registerDto.tenantCode,
+      registerDto.tenantName,
+    );
+    if (tenant) {
+      throw new BadRequestException('Tenant already exists');
+    }
+
+    // Create tenant
+    await this.tenantService.createTenant({
+      tenantCode: registerDto.tenantCode,
+      tenantName: registerDto.tenantName,
+    });
 
     // Hash password
     const hashedPassword = await hash(registerDto.password, 10);

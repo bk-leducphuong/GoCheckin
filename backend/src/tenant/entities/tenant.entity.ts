@@ -19,7 +19,7 @@ export class Tenant {
   @Column({ name: 'tenant_name', type: 'varchar', length: 255 })
   tenantName: string;
 
-  @Column({ name: 'tenant_address', type: 'text' })
+  @Column({ name: 'tenant_address', type: 'text', nullable: true })
   tenantAddress: string;
 
   @Column({ name: 'website', type: 'varchar', length: 255, nullable: true })

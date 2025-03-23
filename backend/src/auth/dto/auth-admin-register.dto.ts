@@ -2,8 +2,8 @@ import {
   IsString,
   IsEmail,
   MinLength,
-  IsOptional,
   IsEnum,
+  IsNotEmpty,
 } from 'class-validator';
 import { UserRole } from '../../account/entities/account.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -40,7 +40,13 @@ export class AuthAdminRegisterDto {
   role: UserRole = UserRole.ADMIN; // Default to ADMIN
 
   @ApiProperty({ example: 'ACME Corp', description: 'Company name' })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  companyName?: string;
+  tenantName: string;
+
+  @ApiProperty({ example: 'ACME', description: 'Company code' })
+  @IsNotEmpty()
+  @MinLength(3)
+  @IsString()
+  tenantCode: string;
 }

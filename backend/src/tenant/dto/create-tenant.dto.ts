@@ -19,9 +19,9 @@ export class CreateTenantDto {
   tenantName: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'Tenant address' })
-  tenantAddress: string;
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'Tenant address' })
+  tenantAddress?: string;
 
   @IsString()
   @IsOptional()

@@ -16,6 +16,34 @@ export class TenantService {
     private tenantRepository: Repository<Tenant>,
   ) {}
 
+  async findByCodeOrName(code: string, name: string): Promise<Tenant | null> {
+    const tenant = await this.tenantRepository.findOne({
+      where: [{ tenantCode: code }, { tenantName: name }],
+    });
+
+    if (!tenant) {
+      return null;
+    }
+
+    return tenant;
+  }
+
+  async createTenant(createTenantDto: CreateTenantDto): Promise<Tenant> {
+    const existingTenant = await this.findByCodeOrName(
+      createTenantDto.tenantCode,
+      createTenantDto.tenantName,
+    );
+
+    if (existingTenant) {
+      throw new ConflictException(
+        `Tenant with code ${createTenantDto.tenantCode} already exists`,
+      );
+    }
+
+    const newTenant = this.tenantRepository.create(createTenantDto);
+    return this.tenantRepository.save(newTenant);
+  }
+
   async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
     // Check if tenant with the same code already exists
     const existingTenant = await this.tenantRepository.findOne({
