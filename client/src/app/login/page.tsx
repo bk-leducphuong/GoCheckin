@@ -49,7 +49,7 @@ export default function LoginPage() {
         router.push('/admin');
       } else {
         await pocLogin(data.email, data.password);
-        router.push('/dashboard');
+        router.push('/poc');
       }
       
       // Redirect is handled above based on user role
