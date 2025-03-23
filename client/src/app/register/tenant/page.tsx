@@ -19,7 +19,8 @@ const adminRegisterSchema = z.object({
   confirmPassword: z.string(),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   phoneNumber: z.string().min(6, 'Phone number is required'),
-  companyName: z.string().optional(),
+  organizationName: z.string(),
+  organizationCode: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
@@ -35,7 +36,8 @@ export default function TenantRegisterPage() {
   const { 
     register, 
     handleSubmit, 
-    formState: { errors, isSubmitting } 
+    formState: { errors, isSubmitting },
+    setValue
   } = useForm<AdminRegisterFormData>({
     resolver: zodResolver(adminRegisterSchema),
   });
@@ -52,7 +54,7 @@ export default function TenantRegisterPage() {
       await adminRegister(registerData as AdminRegisterData);
       
       // Redirect to dashboard after successful registration
-      router.push('/dashboard');
+      router.push('/admin');
     } catch (error) {
       console.error('Registration error:', error);
       setErrorMessage(
@@ -132,12 +134,32 @@ export default function TenantRegisterPage() {
             />
 
             <Input
-              label="Company Name (optional)"
+              label="Organization Name"
               type="text"
-              {...register('companyName')}
-              error={errors.companyName?.message}
-              placeholder="Your Company Ltd."
+              {...register('organizationName')}
+              error={errors.organizationName?.message}
+              placeholder="Your Organization Ltd."
             />
+
+            <div className="relative">
+              <Input
+                label="Organization Code"
+                type="text"
+                {...register('organizationCode')}
+                error={errors.organizationCode?.message}
+                placeholder="Your Organization Code"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const randomCode = `ORG-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+                  setValue('organizationCode', randomCode, { shouldValidate: true });
+                }}
+                className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              >
+                Generate
+              </button>
+            </div>
           </div>
 
           <Button type="submit" isLoading={isSubmitting} className="w-full">

@@ -28,7 +28,8 @@ export interface AdminRegisterData {
   password: string;
   fullName: string;
   phoneNumber: string;
-  companyName?: string;
+  organizationName: string;
+  organizationCode: string;
 }
 
 export interface PocRegisterData {
@@ -37,5 +38,6 @@ export interface PocRegisterData {
   password: string;
   fullName: string;
   eventCode: string;
-  companyName?: string;
+  organizationName?: string;
+  organizationCode?: string;
 } 
