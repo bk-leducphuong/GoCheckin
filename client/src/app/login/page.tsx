@@ -8,7 +8,8 @@ import { z } from 'zod';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/store/authStore';
+import { useShallow } from 'zustand/react/shallow'
 
 // Login validation schema
 const loginSchema = z.object({
@@ -24,12 +25,16 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { adminLogin, pocLogin } = useAuth();
+  const { adminLogin, pocLogin, isLoading } = useAuthStore(useShallow(state => ({
+    adminLogin: state.adminLogin,
+    pocLogin: state.pocLogin,
+    isLoading: state.isLoading,
+  })));
   
   const { 
     register, 
     handleSubmit, 
-    formState: { errors, isSubmitting },
+    formState: { errors },
     watch 
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -51,8 +56,6 @@ export default function LoginPage() {
         await pocLogin(data.email, data.password);
         router.push('/poc');
       }
-      
-      // Redirect is handled above based on user role
     } catch (error) {
       console.error('Login error:', error);
       setErrorMessage(
@@ -123,7 +126,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button type="submit" isLoading={isSubmitting} className="w-full">
+          <Button type="submit" isLoading={isLoading} className="w-full">
             {selectedUserType === 'admin' ? 'Login as Admin' : 'Login as POC'}
           </Button>
 

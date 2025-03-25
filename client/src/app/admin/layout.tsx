@@ -2,19 +2,25 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import Sidebar from '@/components/admin/Sidebar';
 import { UserRole } from '@/types/auth';
+import { useAuthStore } from '@/store/authStore';
+import { useShallow } from 'zustand/react/shallow'
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuthStore(useShallow(state => ({
+    user: state.user,
+    isAuthenticated: state.isAuthenticated,
+    isLoading: state.isLoading
+  })));
   const router = useRouter();
 
   useEffect(() => {
+    // console.log('user', user);
     // Redirect if not authenticated or not an admin
     if (!isLoading && (!isAuthenticated || user?.role !== UserRole.ADMIN)) {
       router.push('/login');

@@ -1,9 +1,9 @@
 // Auth types
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  POC = 'POC',
-  USER = 'USER'
+  ADMIN = 'admin',
+  POC = 'poc',
+  USER = 'user'
 }
 
 export interface User {
@@ -20,6 +20,7 @@ export interface LoginCredentials {
 
 export interface AuthResponse {
   accessToken: string;
+  user: User;
 }
 
 export interface AdminRegisterData {

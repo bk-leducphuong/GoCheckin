@@ -8,7 +8,7 @@ import { z } from 'zod';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/store/authStore';
 import { AdminRegisterData } from '@/types/auth';
 
 // Admin registration validation schema
@@ -31,12 +31,12 @@ type AdminRegisterFormData = z.infer<typeof adminRegisterSchema>;
 export default function TenantRegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { adminRegister } = useAuth();
+  const { adminRegister, isLoading } = useAuthStore();
   
   const { 
     register, 
     handleSubmit, 
-    formState: { errors, isSubmitting },
+    formState: { errors },
     setValue
   } = useForm<AdminRegisterFormData>({
     resolver: zodResolver(adminRegisterSchema),
@@ -52,8 +52,6 @@ export default function TenantRegisterPage() {
       void confirmPassword;
       
       await adminRegister(registerData as AdminRegisterData);
-      
-      // Redirect to dashboard after successful registration
       router.push('/admin');
     } catch (error) {
       console.error('Registration error:', error);
@@ -162,7 +160,7 @@ export default function TenantRegisterPage() {
             </div>
           </div>
 
-          <Button type="submit" isLoading={isSubmitting} className="w-full">
+          <Button type="submit" isLoading={isLoading} className="w-full">
             Register
           </Button>
 

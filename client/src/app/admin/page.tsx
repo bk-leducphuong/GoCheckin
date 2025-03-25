@@ -1,17 +1,19 @@
 'use client';
 
 import React from 'react';
-import { useAuth } from '@/context/AuthContext';
-
+import { useAuthStore } from '@/store/authStore';
+import { useShallow } from 'zustand/react/shallow'
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user } = useAuthStore(useShallow(state => ({
+    user: state.user
+  })));
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500">
-          Welcome back, {user?.fullName || user?.username || 'Admin'}!
+          Welcome back, { user?.username || 'Admin'}!
         </p>
       </div>
 

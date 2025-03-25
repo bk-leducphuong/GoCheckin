@@ -9,11 +9,12 @@ export const AuthService = {
   adminLogin: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
       const response = await api.post('/auth/admin/login', credentials);
+      const responseData = response.data.data;
       // Store token in localStorage
-      if (response.data.accessToken) {
-        localStorage.setItem(TOKEN_NAME, response.data.accessToken);
+      if (responseData.accessToken) {
+        localStorage.setItem(TOKEN_NAME, responseData.accessToken);
       }
-      return response.data;
+      return responseData;
     } catch (error) {
       console.error('Admin login error:', error);
       throw error;
@@ -23,11 +24,12 @@ export const AuthService = {
   adminRegister: async (data: AdminRegisterData): Promise<AuthResponse> => {
     try {
       const response = await api.post('/auth/admin/register', data);
+      const responseData = response.data.data;
       // Store token in localStorage
-      if (response.data.accessToken) {
-        localStorage.setItem(TOKEN_NAME, response.data.accessToken);
+      if (responseData.accessToken) {
+        localStorage.setItem(TOKEN_NAME, responseData.accessToken);
       }
-      return response.data;
+      return responseData;
     } catch (error) {
       console.error('Admin registration error:', error);
       throw error;
@@ -38,11 +40,12 @@ export const AuthService = {
   pocLogin: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
       const response = await api.post('/auth/poc/login', credentials);
+      const responseData = response.data.data;
       // Store token in localStorage
-      if (response.data.accessToken) {
-        localStorage.setItem(TOKEN_NAME, response.data.accessToken);
+      if (responseData.accessToken) {
+        localStorage.setItem(TOKEN_NAME, responseData.accessToken);
       }
-      return response.data;
+      return responseData;
     } catch (error) {
       console.error('POC login error:', error);
       throw error;
@@ -52,11 +55,12 @@ export const AuthService = {
   pocRegister: async (data: PocRegisterData): Promise<AuthResponse> => {
     try {
       const response = await api.post('/auth/poc/register', data);
+      const responseData = response.data.data;
       // Store token in localStorage
-      if (response.data.accessToken) {
-        localStorage.setItem(TOKEN_NAME, response.data.accessToken);
+      if (responseData.accessToken) {
+        localStorage.setItem(TOKEN_NAME, responseData.accessToken);
       }
-      return response.data;
+      return responseData;
     } catch (error) {
       console.error('POC registration error:', error);
       throw error;

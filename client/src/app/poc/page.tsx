@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-
+import { useAuthStore } from '@/store/authStore';
+import { useShallow } from 'zustand/react/shallow';
 // Placeholder data for guest list
 const MOCK_GUESTS = [
   { id: 1, name: 'John Smith', email: 'john@example.com', code: 'G001', status: 'Checked In', checkInTime: '10:30 AM' },
@@ -13,7 +13,9 @@ const MOCK_GUESTS = [
 ];
 
 export default function POCDashboard() {
-  const { user } = useAuth();
+  const { user } = useAuthStore(useShallow(state => ({
+    user: state.user,
+  })));
   const [searchQuery, setSearchQuery] = useState('');
   const [guestCode, setGuestCode] = useState('');
   const [note, setNote] = useState('');

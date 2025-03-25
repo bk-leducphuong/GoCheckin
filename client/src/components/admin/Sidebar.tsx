@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/store/authStore';
+import { useShallow } from 'zustand/react/shallow'
 
 interface NavItem {
   name: string;
@@ -15,7 +16,9 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout } = useAuthStore(useShallow(state => ({
+    logout: state.logout
+  })));
   
   const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'GoCheckin';
 
