@@ -9,6 +9,8 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { GuestService } from './guest.service';
 import { CreateGuestDto } from './dto/create-guest.dto';
@@ -21,6 +23,7 @@ import { UserRole } from '../account/entities/account.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Guest } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('guests')
 @Controller('guests/:eventCode/:pointCode')
@@ -51,6 +54,21 @@ export class GuestController {
     return this.guestService.checkin(eventCode, pointCode, pocId, checkinDto);
   }
 
+  @Post('checkin/upload-image')
+  @Roles(UserRole.POC)
+  @ApiOperation({
+    summary: 'Upload an im  age for a guest check-in',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Image uploaded successfully',
+    type: String,
+  })
+  @UseInterceptors(FileInterceptor('image'))
+  uploadImage(@UploadedFile() image: Express.Multer.File): string {
+    return this.guestService.uploadImage(image);
+  }
+
   @Get('checkins/:guestId')
   @Roles(UserRole.ADMIN, UserRole.POC)
   @ApiOperation({ summary: 'Get all check-ins for a specific guest' })
@@ -70,7 +88,9 @@ export class GuestController {
 
   @Get('poc-checkins')
   @Roles(UserRole.ADMIN, UserRole.POC)
-  @ApiOperation({ summary: 'Get all check-ins at a specific point of check-in' })
+  @ApiOperation({
+    summary: 'Get all check-ins at a specific point of check-in',
+  })
   @ApiParam({ name: 'eventCode', description: 'Event code' })
   @ApiParam({ name: 'pointCode', description: 'Point of check-in code' })
   @ApiResponse({

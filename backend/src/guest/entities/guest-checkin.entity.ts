@@ -17,6 +17,9 @@ export class GuestCheckin {
   @Column({ name: 'guest_id', type: 'uuid' })
   guestId: string;
 
+  @Column({ name: 'guest_code', type: 'varchar', length: 50 })
+  guestCode: string;
+
   @Column({ name: 'poc_id', type: 'uuid' })
   pocId: string;
 
@@ -26,7 +29,10 @@ export class GuestCheckin {
   @Column({ name: 'notes', type: 'varchar', length: 255, nullable: true })
   notes?: string;
 
-  @CreateDateColumn({ name: 'checkin_time' })
+  @CreateDateColumn({
+    name: 'checkin_time',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   checkinTime: Date;
 
   @Column({ type: 'boolean', default: true })

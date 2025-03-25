@@ -12,40 +12,16 @@ import { IdentityType, GuestType } from '../entities/guest.entity';
 
 export class CreateGuestDto {
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'Code for the guest' })
-  guestCode: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'Event code that the guest is associated with' })
-  eventCode: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    description: 'Point of check-in code where the guest checked in',
-  })
-  pointCode: string;
-
-  @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ description: 'Description of the guest' })
-  guestDescription?: string;
-
-  @IsOptional()
-  @ApiPropertyOptional({ description: 'Front image of the guest ID' })
-  frontImg?: Buffer;
-
-  @IsOptional()
-  @ApiPropertyOptional({ description: 'Back image of the guest ID' })
-  backImg?: Buffer;
+  @ApiPropertyOptional({ description: 'Image URL of the guest' })
+  imageUrl?: string;
 
   @IsEnum(IdentityType)
   @IsNotEmpty()
   @ApiProperty({
     description: 'Type of identity document',
     enum: IdentityType,
+    default: IdentityType.ID_CARD,
   })
   identityType: IdentityType;
 

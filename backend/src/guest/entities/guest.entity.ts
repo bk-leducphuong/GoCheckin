@@ -27,33 +27,14 @@ export class Guest {
   @PrimaryGeneratedColumn('uuid', { name: 'guest_id' })
   guestId: string;
 
-  @Column({ name: 'guest_code', type: 'varchar', length: 50 })
-  guestCode: string;
-
-  @Column({ name: 'event_code', type: 'varchar', length: 50 })
-  eventCode: string;
-
-  @Column({ name: 'point_code', type: 'varchar', length: 50 })
-  pointCode: string;
-
-  @Column({
-    name: 'guest_description',
-    type: 'varchar',
-    length: 255,
-    nullable: true,
-  })
-  guestDescription: string;
-
-  @Column({ name: 'front_img', type: 'bytea', nullable: true })
-  frontImg: Buffer;
-
-  @Column({ name: 'back_img', type: 'bytea', nullable: true })
-  backImg: Buffer;
+  @Column({ name: 'image_url', type: 'varchar', length: 255, nullable: true })
+  imageUrl: string;
 
   @Column({
     name: 'identity_type',
     type: 'enum',
     enum: IdentityType,
+    default: IdentityType.ID_CARD,
   })
   identityType: IdentityType;
 

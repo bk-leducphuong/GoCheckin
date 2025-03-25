@@ -19,4 +19,9 @@ export class CheckinDto {
   @IsOptional()
   @ApiPropertyOptional({ description: 'Additional notes about the check-in' })
   notes?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'Image of the guest' })
+  imageUrl?: string;
 }

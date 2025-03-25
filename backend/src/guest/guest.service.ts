@@ -6,77 +6,72 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Guest } from './entities/guest.entity';
+import { Guest, IdentityType } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
 import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
 import { CheckinDto } from './dto/checkin.dto';
+import { join } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 
 @Injectable()
 export class GuestService {
+  private readonly uploadPath = join(process.cwd(), 'uploads');
+
   constructor(
     @InjectRepository(Guest)
     private guestRepository: Repository<Guest>,
     @InjectRepository(GuestCheckin)
     private guestCheckinRepository: Repository<GuestCheckin>,
-  ) {}
+  ) {
+    // Create uploads directory if it doesn't exist
+    if (!existsSync(this.uploadPath)) {
+      mkdirSync(this.uploadPath);
+    }
+  }
 
   async create(createGuestDto: CreateGuestDto): Promise<Guest> {
-    // Check if guest with the same code already exists for the given event
-    const existingGuest = await this.guestRepository.findOne({
-      where: {
-        guestCode: createGuestDto.guestCode,
-        eventCode: createGuestDto.eventCode,
-      },
-    });
-
-    if (existingGuest) {
-      throw new ConflictException(
-        `Guest with code ${createGuestDto.guestCode} already exists for this event`,
-      );
-    }
-
     const newGuest = this.guestRepository.create(createGuestDto);
     return this.guestRepository.save(newGuest);
   }
 
   async checkin(
     eventCode: string,
-    pointCode: string,
-    pocId: string,
     checkinDto: CheckinDto,
   ): Promise<GuestCheckin> {
-    // Find the guest by code and event
-    const guest = await this.guestRepository.findOne({
-      where: {
-        guestCode: checkinDto.guestCode,
-        eventCode,
-        enabled: true,
-      },
+    // Check if guest has already checked in
+    const existingCheckin = await this.guestCheckinRepository.findOne({
+      where: { guestCode: checkinDto.guestCode, eventCode, active: true },
     });
 
-    if (!guest) {
-      throw new NotFoundException(
-        `Guest with code ${checkinDto.guestCode} not found for this event`,
+    if (existingCheckin) {
+      throw new ConflictException(
+        `Guest with code ${checkinDto.guestCode} has already checked in for this event`,
       );
     }
+
+    // Create a new guest record
+    const guest = await this.create({
+      imageUrl: checkinDto.imageUrl || '',
+      identityType: IdentityType.ID_CARD,
+    });
 
     // Create a new checkin record
     const checkin = this.guestCheckinRepository.create({
       guestId: guest.guestId,
-      pocId: checkinDto.pocId || pocId, // Use provided pocId or the one from route params
+      guestCode: checkinDto.guestCode,
+      pocId: checkinDto.pocId,
       eventCode,
       notes: checkinDto.notes,
     });
 
     // Save the checkin record
     const savedCheckin = await this.guestCheckinRepository.save(checkin);
-
-    // Update the guest's last point of check-in for backward compatibility
-    guest.pointCode = pointCode;
-    await this.guestRepository.save(guest);
-
     return savedCheckin;
+  }
+
+  uploadImage(image: Express.Multer.File): string {
+    return image.path;
   }
 
   async getGuestCheckins(guestId: string): Promise<GuestCheckin[]> {
