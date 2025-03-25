@@ -47,6 +47,12 @@ export class AuthService {
           email: user.email,
           role: user.role,
         }),
+        user: {
+          userId: user.userId,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -78,6 +84,12 @@ export class AuthService {
           email: user.email,
           role: user.role,
         }),
+        user: {
+          userId: user.userId,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -138,6 +150,12 @@ export class AuthService {
         email: newUser.email,
         role: newUser.role,
       }),
+      user: {
+        userId: newUser.userId,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      },
     };
   }
 
@@ -185,6 +203,12 @@ export class AuthService {
         email: newUser.email,
         role: newUser.role,
       }),
+      user: {
+        userId: newUser.userId,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      },
     };
   }
 }
