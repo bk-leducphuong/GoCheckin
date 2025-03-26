@@ -1,7 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Event, EventStatus } from './entities/event.entity';
+import { Event } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 
@@ -21,8 +25,16 @@ export class EventService {
   }
 
   async create(createEventDto: CreateEventDto): Promise<Event> {
-    const event = this.eventRepository.create(createEventDto);
-    return this.eventRepository.save(event);
+    // check if event code is already in use
+    const event = await this.eventRepository.findOne({
+      where: { eventCode: createEventDto.eventCode },
+    });
+    if (event) {
+      throw new BadRequestException('Event code already in use');
+    }
+
+    const newEvent = this.eventRepository.create(createEventDto);
+    return this.eventRepository.save(newEvent);
   }
 
   async findAll(status?: string, tenantCode?: string): Promise<Event[]> {
