@@ -35,6 +35,13 @@ export class AuthPocRegisterDto {
   @IsString()
   eventCode: string; // Required for POC
 
+  @ApiProperty({
+    example: 'POINT123',
+    description: 'Point of checkin code (required for POC)',
+  })
+  @IsString()
+  pointCode: string; // Required for POC
+
   @ApiProperty({ example: 'POC', description: 'User role' })
   @IsEnum(UserRole)
   role: UserRole = UserRole.POC; // Default to POC

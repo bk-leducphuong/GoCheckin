@@ -32,6 +32,11 @@ export class PocService {
     return this.pocRepository.save(newPoc);
   }
 
+  async validatePointCode(pointCode: string): Promise<boolean> {
+    const poc = await this.findByCode(pointCode);
+    return !!poc;
+  }
+
   async findAllByEvent(eventCode: string): Promise<PointOfCheckin[]> {
     return this.pocRepository.find({
       where: { eventCode, enabled: true },

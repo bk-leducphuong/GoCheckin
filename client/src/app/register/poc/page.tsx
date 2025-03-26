@@ -8,8 +8,9 @@ import { z } from 'zod';
 import Link from 'next/link';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { useAuth } from '@/context/AuthContext';
 import { PocRegisterData } from '@/types/auth';
+import { useAuthStore } from '@/store/authStore';
+import { useShallow } from 'zustand/react/shallow';
 
 // POC registration validation schema
 const pocRegisterSchema = z.object({
@@ -19,6 +20,7 @@ const pocRegisterSchema = z.object({
   confirmPassword: z.string(),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   eventCode: z.string().min(3, 'Event code is required'),
+  pointCode: z.string().min(3, 'Point of checkin code is required'),
   companyName: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -30,7 +32,9 @@ type PocRegisterFormData = z.infer<typeof pocRegisterSchema>;
 export default function PocRegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { pocRegister } = useAuth();
+  const { pocRegister } = useAuthStore(useShallow(state => ({
+    pocRegister: state.pocRegister,
+  })));
   
   const { 
     register, 
@@ -129,6 +133,14 @@ export default function PocRegisterPage() {
               {...register('eventCode')}
               error={errors.eventCode?.message}
               placeholder="EVENT123"
+            />
+
+            <Input
+              label="Point of checkin Code"
+              type="text"
+              {...register('pointCode')}
+              error={errors.pointCode?.message}
+              placeholder="POINT123"
             />
 
             <Input

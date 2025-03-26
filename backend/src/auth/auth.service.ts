@@ -15,7 +15,7 @@ import { AccountService } from 'src/account/account.service';
 import { UserRole } from 'src/account/entities/account.entity';
 import { EventService } from 'src/event/event.service';
 import { TenantService } from 'src/tenant/tenant.service';
-
+import { PocService } from 'src/poc/poc.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -23,6 +23,7 @@ export class AuthService {
     private readonly accountService: AccountService,
     private readonly eventService: EventService,
     private readonly tenantService: TenantService,
+    private readonly pocService: PocService,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
@@ -185,6 +186,14 @@ export class AuthService {
       throw new BadRequestException('Event code is not valid!');
     }
 
+    // Validate point of checkin code here if needed
+    const isPointCodeValid = await this.pocService.validatePointCode(
+      registerDto.pointCode,
+    );
+    if (!isPointCodeValid) {
+      throw new BadRequestException('Point of checkin code is not valid!');
+    }
+
     // Hash password
     const hashedPassword = await hash(registerDto.password, 10);
 
@@ -209,6 +218,8 @@ export class AuthService {
         email: newUser.email,
         role: newUser.role,
       },
+      eventCode: registerDto.eventCode,
+      pointCode: registerDto.pointCode,
     };
   }
 }

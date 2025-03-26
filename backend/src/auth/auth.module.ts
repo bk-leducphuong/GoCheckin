@@ -8,12 +8,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AccountModule } from '../account/account.module';
 import { EventModule } from 'src/event/event.module';
 import { TenantModule } from 'src/tenant/tenant.module';
+import { PocModule } from 'src/poc/poc.module';
 @Module({
   imports: [
     AccountModule,
     EventModule,
     TenantModule,
     PassportModule,
+    PocModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

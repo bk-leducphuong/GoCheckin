@@ -5,6 +5,8 @@ interface User {
   username: string;
   email: string;
   role: string;
+  eventCode?: string;
+  pointCode?: string;
 }
 
 export class AuthLoginResponseDto {
@@ -13,4 +15,10 @@ export class AuthLoginResponseDto {
 
   @IsObject()
   user: User;
+
+  @IsString()
+  eventCode?: string;
+
+  @IsString()
+  pointCode?: string;
 }
