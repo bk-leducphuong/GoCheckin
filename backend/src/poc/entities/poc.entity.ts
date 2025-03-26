@@ -35,8 +35,8 @@ export class PointOfCheckin {
   @Column({ name: 'event_code', type: 'varchar', length: 50 })
   eventCode: string;
 
-  @Column({ name: 'username', type: 'varchar', length: 100 })
-  username: string;
+  @Column({ name: 'user_id', type: 'varchar', length: 100 })
+  userId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
   latitude: number;
@@ -81,7 +81,7 @@ export class PointOfCheckin {
   event: Event;
 
   @ManyToOne(() => Account)
-  @JoinColumn({ name: 'username', referencedColumnName: 'username' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
   account: Account;
 
   @OneToMany(() => GuestCheckin, (checkin) => checkin.pointOfCheckin)
