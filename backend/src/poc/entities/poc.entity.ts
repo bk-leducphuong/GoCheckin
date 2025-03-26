@@ -35,7 +35,7 @@ export class PointOfCheckin {
   @Column({ name: 'event_code', type: 'varchar', length: 50 })
   eventCode: string;
 
-  @Column({ name: 'user_id', type: 'varchar', length: 100 })
+  @Column({ name: 'user_id', type: 'varchar', nullable: true })
   userId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })

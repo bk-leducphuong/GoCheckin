@@ -7,13 +7,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PointOfCheckin } from './entities/poc.entity';
 import { CreatePocDto } from './dto/create-poc.dto';
-import { UpdatePocDto } from './dto/update-poc.dto';
+// import { UpdatePocDto } from './dto/update-poc.dto';
+import { EventService } from 'src/event/event.service';
 
 @Injectable()
 export class PocService {
   constructor(
     @InjectRepository(PointOfCheckin)
     private pocRepository: Repository<PointOfCheckin>,
+    private eventService: EventService,
   ) {}
 
   async create(createPocDto: CreatePocDto): Promise<PointOfCheckin> {
@@ -25,6 +27,15 @@ export class PocService {
     if (existingPoc) {
       throw new ConflictException(
         `Point of Check-in with code ${createPocDto.pointCode} already exists`,
+      );
+    }
+
+    const isEventCodeValid = await this.eventService.validateEventCode(
+      createPocDto.eventCode,
+    );
+    if (!isEventCodeValid) {
+      throw new NotFoundException(
+        `Event with code ${createPocDto.eventCode} not found`,
       );
     }
 
@@ -72,17 +83,16 @@ export class PocService {
     return poc;
   }
 
-  async update(
-    id: string,
-    updatePocDto: UpdatePocDto,
-  ): Promise<PointOfCheckin> {
-    const poc = await this.findOne(id);
+  // async update(
+  //   updatePocDto: UpdatePocDto,
+  // ): Promise<PointOfCheckin> {
+  //   const poc = await this.findOne(id);
 
-    // Update POC properties
-    Object.assign(poc, updatePocDto);
+  //   // Update POC properties
+  //   Object.assign(poc, updatePocDto);
 
-    return this.pocRepository.save(poc);
-  }
+  //   return this.pocRepository.save(poc);
+  // }
 
   async remove(id: string): Promise<void> {
     const poc = await this.findOne(id);
@@ -90,12 +100,5 @@ export class PocService {
     // Soft delete - just set enabled to false
     poc.enabled = false;
     await this.pocRepository.save(poc);
-  }
-
-  async findAllByUsername(username: string): Promise<PointOfCheckin[]> {
-    return this.pocRepository.find({
-      where: { username, enabled: true },
-      relations: ['event'],
-    });
   }
 }

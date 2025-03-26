@@ -30,9 +30,11 @@ export class CreatePocDto {
   eventCode: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'Username of the staff managing this point' })
-  username: string;
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: 'UserId of the staff managing this point',
+  })
+  userId?: string;
 
   @IsString()
   @IsOptional()
