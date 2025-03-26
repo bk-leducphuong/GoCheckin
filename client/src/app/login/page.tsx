@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,7 @@ import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow'
+import { UserRole } from '@/types/auth';
 
 // Login validation schema
 const loginSchema = z.object({
@@ -25,10 +26,12 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { adminLogin, pocLogin, isLoading } = useAuthStore(useShallow(state => ({
+  const { adminLogin, pocLogin, isLoading, user, isAuthenticated } = useAuthStore(useShallow(state => ({
     adminLogin: state.adminLogin,
     pocLogin: state.pocLogin,
     isLoading: state.isLoading,
+    user: state.user,
+    isAuthenticated: state.isAuthenticated,
   })));
   
   const { 
@@ -42,6 +45,14 @@ export default function LoginPage() {
       userType: 'admin',
     },
   });
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === UserRole.ADMIN) {
+      router.push('/admin');
+    } else if (isAuthenticated && user?.role === UserRole.POC) {
+      router.push('/poc');
+    }
+  }, [isAuthenticated, user, router]);
 
   const selectedUserType = watch('userType');
 
