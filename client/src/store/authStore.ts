@@ -5,6 +5,7 @@ import { User, AdminRegisterData, PocRegisterData } from "@/types/auth";
 
 interface AuthState {
   user: User | null;
+  pocId: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -20,6 +21,7 @@ export const useAuthStore = create<AuthState>()(
     persist(
       (set) => ({
         user: null,
+        pocId: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
@@ -49,6 +51,7 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.pocLogin({ email, password });
             set({
               user: response.user,
+              pocId: response.pocId,
               isAuthenticated: true,
               isLoading: false,
             });
@@ -88,6 +91,7 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.pocRegister(data);
             set({
               user: response.user,
+              pocId: response.pocId,
               isAuthenticated: true,
               isLoading: false,
             });
@@ -103,13 +107,13 @@ export const useAuthStore = create<AuthState>()(
         },
 
         logout: () => {
-          set({ user: null, isAuthenticated: false, error: null });
+          set({ user: null, pocId: null, isAuthenticated: false, error: null });
         },
       }),
       {
         name: "auth-storage",
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+        partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated, pocId: state.pocId }),
         onRehydrateStorage: () => (state) => {
           console.log('hydration complete', state);
         },

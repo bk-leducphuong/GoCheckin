@@ -9,6 +9,7 @@ import { PointOfCheckin } from './entities/poc.entity';
 import { CreatePocDto } from './dto/create-poc.dto';
 // import { UpdatePocDto } from './dto/update-poc.dto';
 import { EventService } from 'src/event/event.service';
+import { UpdatePocDto } from './dto/update-poc.dto';
 
 @Injectable()
 export class PocService {
@@ -43,56 +44,82 @@ export class PocService {
     return this.pocRepository.save(newPoc);
   }
 
-  async validatePointCode(pointCode: string): Promise<boolean> {
-    const poc = await this.findByCode(pointCode);
+  async validatePointCode(
+    eventCode: string,
+    pointCode: string,
+  ): Promise<boolean> {
+    const poc = await this.getPocByCode(eventCode, pointCode);
     return !!poc;
   }
 
-  async findAllByEvent(eventCode: string): Promise<PointOfCheckin[]> {
+  async getAllPocs(eventCode: string): Promise<PointOfCheckin[]> {
     return this.pocRepository.find({
       where: { eventCode, enabled: true },
       relations: ['account'],
     });
   }
 
-  async findOne(id: string): Promise<PointOfCheckin> {
+  async findOne(pocId: string): Promise<PointOfCheckin> {
     const poc = await this.pocRepository.findOne({
-      where: { pocId: id, enabled: true },
-      relations: ['account', 'event'],
-    });
-
-    if (!poc) {
-      throw new NotFoundException(`Point of Check-in with ID ${id} not found`);
-    }
-
-    return poc;
-  }
-
-  async findByCode(code: string): Promise<PointOfCheckin> {
-    const poc = await this.pocRepository.findOne({
-      where: { pointCode: code, enabled: true },
+      where: { pocId, enabled: true },
       relations: ['account', 'event'],
     });
 
     if (!poc) {
       throw new NotFoundException(
-        `Point of Check-in with code ${code} not found`,
+        `Point of Check-in with ID ${pocId} not found`,
       );
     }
 
     return poc;
   }
 
-  // async update(
-  //   updatePocDto: UpdatePocDto,
-  // ): Promise<PointOfCheckin> {
-  //   const poc = await this.findOne(id);
+  async getPocByCode(
+    eventCode: string,
+    pointCode: string,
+  ): Promise<PointOfCheckin> {
+    const poc = await this.pocRepository.findOne({
+      where: { eventCode, pointCode, enabled: true },
+      relations: ['account', 'event'],
+    });
 
-  //   // Update POC properties
-  //   Object.assign(poc, updatePocDto);
+    if (!poc) {
+      throw new NotFoundException(
+        `Point of Check-in with code ${pointCode} not found`,
+      );
+    }
 
-  //   return this.pocRepository.save(poc);
-  // }
+    return poc;
+  }
+
+  async getPocByUserId(userId: string): Promise<PointOfCheckin> {
+    const poc = await this.pocRepository.findOne({
+      where: { userId, enabled: true },
+    });
+
+    if (!poc) {
+      throw new NotFoundException(
+        `Point of Check-in with user ID ${userId} not found`,
+      );
+    }
+    return poc;
+  }
+
+  async update(
+    pocId: string,
+    updatePocDto: UpdatePocDto,
+  ): Promise<PointOfCheckin> {
+    const poc = await this.findOne(pocId);
+    if (!poc) {
+      throw new NotFoundException(
+        `Point of Check-in with ID ${pocId} not found`,
+      );
+    }
+    // Update POC properties
+    Object.assign(poc, updatePocDto);
+
+    return this.pocRepository.save(poc);
+  }
 
   async remove(id: string): Promise<void> {
     const poc = await this.findOne(id);

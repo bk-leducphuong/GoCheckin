@@ -1,12 +1,11 @@
-import { IsObject, IsString } from 'class-validator';
+import { IsObject, IsString, IsOptional } from 'class-validator';
 
 interface User {
   userId: string;
   username: string;
   email: string;
   role: string;
-  eventCode?: string;
-  pointCode?: string;
+  pocId?: string;
 }
 
 export class AuthLoginResponseDto {
@@ -17,8 +16,6 @@ export class AuthLoginResponseDto {
   user: User;
 
   @IsString()
-  eventCode?: string;
-
-  @IsString()
-  pointCode?: string;
+  @IsOptional()
+  pocId?: string;
 }

@@ -20,9 +20,9 @@ export class UpdatePocDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({
-    description: 'Username of the staff managing this point',
+    description: 'UserId of the staff managing this point',
   })
-  username?: string;
+  userId?: string;
 
   @IsString()
   @IsOptional()

@@ -2,7 +2,7 @@ import {
   Controller,
   Get,
   Post,
-  // Put,
+  Put,
   Delete,
   Param,
   Body,
@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { PocService } from './poc.service';
 import { CreatePocDto } from './dto/create-poc.dto';
-// import { UpdatePocDto } from './dto/update-poc.dto';
+import { UpdatePocDto } from './dto/update-poc.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -27,16 +27,16 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 export class PocController {
   constructor(private readonly pocService: PocService) {}
 
-  @Get()
+  @Get(':eventCode')
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   @ApiOperation({ summary: 'Get all points of check-in for an event' })
-  @ApiParam({ name: 'eventId', description: 'Event ID or code' })
+  @ApiParam({ name: 'eventCode', description: 'Event code' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all points of check-in for the event',
   })
-  async getAllPocs(@Param('eventId') eventId: string) {
-    return this.pocService.findAllByEvent(eventId);
+  async getAllPocs(@Param('eventCode') eventCode: string) {
+    return this.pocService.getAllPocs(eventCode);
   }
 
   @Post()
@@ -66,21 +66,24 @@ export class PocController {
     return this.pocService.findOne(pocId);
   }
 
-  // @Put(':pocId')
-  // @Roles(UserRole.ADMIN)
-  // @ApiOperation({ summary: 'Update a point of check-in' })
-  // @ApiParam({ name: 'pocId', description: 'Point of check-in ID or code' })
-  // @ApiResponse({
-  //   status: HttpStatus.OK,
-  //   description: 'Point of check-in updated successfully',
-  // })
-  // @ApiResponse({
-  //   status: HttpStatus.NOT_FOUND,
-  //   description: 'Point of check-in not found',
-  // })
-  // async updatePoc(@Body() updatePocDto: UpdatePocDto) {
-  //   return this.pocService.update(updatePocDto);
-  // }
+  @Put(':pocId')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Update a point of check-in' })
+  @ApiParam({ name: 'pocId', description: 'Point of check-in ID or code' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Point of check-in updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Point of check-in not found',
+  })
+  async updatePoc(
+    @Param('pocId') pocId: string,
+    @Body() updatePocDto: UpdatePocDto,
+  ) {
+    return this.pocService.update(pocId, updatePocDto);
+  }
 
   @Delete(':pocId')
   @Roles(UserRole.ADMIN)

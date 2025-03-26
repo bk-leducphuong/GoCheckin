@@ -21,6 +21,7 @@ export interface LoginCredentials {
 export interface AuthResponse {
   accessToken: string;
   user: User;
+  pocId?: string;
 }
 
 export interface AdminRegisterData {

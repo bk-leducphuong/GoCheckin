@@ -56,7 +56,7 @@ export default function PocRegisterPage() {
       await pocRegister(registerData as PocRegisterData);
       
       // Redirect to dashboard after successful registration
-      router.push('/dashboard');
+      router.push('/poc');
     } catch (error) {
       console.error('Registration error:', error);
       setErrorMessage(

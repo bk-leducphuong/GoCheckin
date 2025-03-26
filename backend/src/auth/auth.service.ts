@@ -78,6 +78,12 @@ export class AuthService {
         throw new UnauthorizedException('Invalid password');
       }
 
+      // Get eventcode and point code
+      const poc = await this.pocService.getPocByUserId(user.userId);
+      if (!poc) {
+        throw new UnauthorizedException('User is not a POC');
+      }
+
       return {
         accessToken: this.jwtService.sign({
           userId: user.userId,
@@ -91,6 +97,7 @@ export class AuthService {
           email: user.email,
           role: user.role,
         },
+        pocId: poc.pocId,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -171,13 +178,6 @@ export class AuthService {
       throw new ConflictException('User already exists');
     }
 
-    // Validate POC-specific requirements
-    if (!registerDto.eventCode) {
-      throw new BadRequestException(
-        'Event code is required for POC registration',
-      );
-    }
-
     // Validate event code here if needed
     const isEventCodeValid = await this.eventService.validateEventCode(
       registerDto.eventCode,
@@ -188,6 +188,7 @@ export class AuthService {
 
     // Validate point of checkin code here if needed
     const isPointCodeValid = await this.pocService.validatePointCode(
+      registerDto.eventCode,
       registerDto.pointCode,
     );
     if (!isPointCodeValid) {
@@ -204,6 +205,15 @@ export class AuthService {
       password: hashedPassword,
     });
 
+    // Update POC
+    const poc = await this.pocService.getPocByCode(
+      registerDto.eventCode,
+      registerDto.pointCode,
+    );
+    await this.pocService.update(poc.pocId, {
+      userId: newUser.userId,
+    });
+
     // Generate JWT token
     return {
       accessToken: this.jwtService.sign({
@@ -218,8 +228,7 @@ export class AuthService {
         email: newUser.email,
         role: newUser.role,
       },
-      eventCode: registerDto.eventCode,
-      pointCode: registerDto.pointCode,
+      pocId: poc.pocId,
     };
   }
 }
