@@ -31,43 +31,68 @@ export class GuestService {
   }
 
   async create(createGuestDto: CreateGuestDto): Promise<Guest> {
-    const newGuest = this.guestRepository.create(createGuestDto);
-    return this.guestRepository.save(newGuest);
+    try {
+      // Check if guest already exists
+      const existingGuest = await this.guestRepository.findOne({
+        where: {
+          guestCode: createGuestDto.guestCode,
+          eventCode: createGuestDto.eventCode,
+        },
+      });
+
+      if (existingGuest) {
+        return existingGuest;
+      }
+
+      // Create a new guest record
+      const newGuest = this.guestRepository.create(createGuestDto);
+      return this.guestRepository.save(newGuest);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
-  async checkin(
-    eventCode: string,
-    checkinDto: CheckinDto,
-  ): Promise<GuestCheckin> {
-    // Check if guest has already checked in
-    const existingCheckin = await this.guestCheckinRepository.findOne({
-      where: { guestCode: checkinDto.guestCode, eventCode, active: true },
-    });
+  async checkin(checkinDto: CheckinDto): Promise<GuestCheckin> {
+    try {
+      // Check if guest has already checked in
+      const existingCheckin = await this.guestCheckinRepository.findOne({
+        where: {
+          guestCode: checkinDto.guestCode,
+          pocId: checkinDto.pocId,
+          active: true,
+        },
+      });
 
-    if (existingCheckin) {
-      throw new ConflictException(
-        `Guest with code ${checkinDto.guestCode} has already checked in for this event`,
-      );
+      if (existingCheckin) {
+        throw new ConflictException(
+          `Guest with code ${checkinDto.guestCode} has already checked in for this event`,
+        );
+      }
+
+      const guest = await this.create({
+        guestCode: checkinDto.guestCode,
+        eventCode: checkinDto.eventCode,
+        identityType: IdentityType.ID_CARD,
+        imageUrl: checkinDto.imageUrl,
+        description: checkinDto.notes,
+      });
+
+      // Create a new checkin record
+      const checkin = this.guestCheckinRepository.create({
+        guestId: guest.guestId,
+        guestCode: checkinDto.guestCode,
+        eventCode: checkinDto.eventCode,
+        pocId: checkinDto.pocId,
+      });
+
+      // Save the checkin record
+      const savedCheckin = await this.guestCheckinRepository.save(checkin);
+      return savedCheckin;
+    } catch (error) {
+      console.error('Error checking in guest: ', error);
+      throw error;
     }
-
-    // Create a new guest record
-    const guest = await this.create({
-      imageUrl: checkinDto.imageUrl || '',
-      identityType: IdentityType.ID_CARD,
-    });
-
-    // Create a new checkin record
-    const checkin = this.guestCheckinRepository.create({
-      guestId: guest.guestId,
-      guestCode: checkinDto.guestCode,
-      pocId: checkinDto.pocId,
-      eventCode,
-      notes: checkinDto.notes,
-    });
-
-    // Save the checkin record
-    const savedCheckin = await this.guestCheckinRepository.save(checkin);
-    return savedCheckin;
   }
 
   uploadImage(image: Express.Multer.File): string {

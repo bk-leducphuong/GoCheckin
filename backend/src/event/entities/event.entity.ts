@@ -6,8 +6,10 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Tenant } from '../../tenant/entities/tenant.entity';
+import { Guest } from '../../guest/entities/guest.entity';
 
 export enum EventStatus {
   DRAFT = 'draft',
@@ -81,4 +83,7 @@ export class Event {
   @ManyToOne(() => Tenant, (tenant) => tenant.events)
   @JoinColumn({ name: 'tenant_code', referencedColumnName: 'tenantCode' })
   tenant: Tenant;
+
+  @OneToMany(() => Guest, (guest) => guest.event)
+  guests: Guest[];
 }

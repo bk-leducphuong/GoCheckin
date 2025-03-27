@@ -26,9 +26,6 @@ export class GuestCheckin {
   @Column({ name: 'event_code', type: 'varchar', length: 50 })
   eventCode: string;
 
-  @Column({ name: 'notes', type: 'varchar', length: 255, nullable: true })
-  notes?: string;
-
   @CreateDateColumn({
     name: 'checkin_time',
     default: () => 'CURRENT_TIMESTAMP',

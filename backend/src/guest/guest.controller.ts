@@ -13,7 +13,6 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { GuestService } from './guest.service';
-import { CreateGuestDto } from './dto/create-guest.dto';
 import { UpdateGuestDto } from './dto/update-guest.dto';
 import { CheckinDto } from './dto/checkin.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -26,7 +25,7 @@ import { GuestCheckin } from './entities/guest-checkin.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('guests')
-@Controller('guests/:eventCode')
+@Controller('guests')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GuestController {
   constructor(private readonly guestService: GuestService) {}
@@ -34,7 +33,6 @@ export class GuestController {
   @Post('checkin')
   @Roles(UserRole.POC)
   @ApiOperation({ summary: 'Check in a guest at a point of check-in' })
-  @ApiParam({ name: 'eventCode', description: 'Event code' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Guest checked in successfully',
@@ -44,11 +42,8 @@ export class GuestController {
     status: HttpStatus.NOT_FOUND,
     description: 'Guest not found',
   })
-  async checkinGuest(
-    @Param('pocId') pocId: string,
-    @Body() checkinDto: CheckinDto,
-  ): Promise<GuestCheckin> {
-    return this.guestService.checkin(pocId, checkinDto);
+  async checkinGuest(@Body() checkinDto: CheckinDto): Promise<GuestCheckin> {
+    return this.guestService.checkin(checkinDto);
   }
 
   @Post('checkin/upload-image')
@@ -100,20 +95,6 @@ export class GuestController {
     @Param('pocId') pocId: string,
   ): Promise<GuestCheckin[]> {
     return this.guestService.getPocCheckins(pocId, eventCode);
-  }
-
-  @Post()
-  @Roles(UserRole.ADMIN, UserRole.POC)
-  @ApiOperation({ summary: 'Create a new guest' })
-  @ApiParam({ name: 'eventCode', description: 'Event code' })
-  @ApiParam({ name: 'pointCode', description: 'Point of check-in code' })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Guest created successfully',
-    type: Guest,
-  })
-  async createGuest(@Body() createGuestDto: CreateGuestDto): Promise<Guest> {
-    return this.guestService.create(createGuestDto);
   }
 
   @Get()

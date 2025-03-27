@@ -12,9 +12,24 @@ import { IdentityType, GuestType } from '../entities/guest.entity';
 
 export class CreateGuestDto {
   @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'Guest code' })
+  guestCode: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ description: 'Event code' })
+  eventCode: string;
+
+  @IsString()
   @IsOptional()
   @ApiPropertyOptional({ description: 'Image URL of the guest' })
   imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'Description of the guest' })
+  description?: string;
 
   @IsEnum(IdentityType)
   @IsNotEmpty()

@@ -8,12 +8,15 @@ export class CheckinDto {
   guestCode: string;
 
   @IsUUID()
-  @IsOptional()
-  @ApiPropertyOptional({
-    description:
-      'Point of check-in ID. If not provided, will use the current point from route params.',
+  @ApiProperty({
+    description: 'Point of check-in ID',
   })
-  pocId?: string;
+  pocId: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({ description: 'Event code' })
+  eventCode: string;
 
   @IsString()
   @IsOptional()
