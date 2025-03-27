@@ -6,6 +6,7 @@ interface User {
   email: string;
   role: string;
   pocId?: string;
+  eventCode?: string;
 }
 
 export class AuthLoginResponseDto {
@@ -18,4 +19,8 @@ export class AuthLoginResponseDto {
   @IsString()
   @IsOptional()
   pocId?: string;
+
+  @IsString()
+  @IsOptional()
+  eventCode?: string;
 }

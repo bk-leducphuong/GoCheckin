@@ -6,9 +6,11 @@ import { useShallow } from "zustand/react/shallow";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
+import { CheckInService } from '@/services/checkin.service';
+import { GuestCheckIn } from '@/types/checkin';
+
 // Placeholder data for guest list
 const MOCK_GUESTS = [
   {
@@ -75,7 +77,6 @@ export default function POCDashboard() {
   const [guestImage, setGuestImage] = useState<string | null>(null);
   const [guests, setGuests] = useState(MOCK_GUESTS);
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
 
   const {
@@ -84,6 +85,8 @@ export default function POCDashboard() {
   } = useForm<CheckInFormData>({
     resolver: zodResolver(checkInSchema),
   });
+
+  const checkInService = CheckInService.getInstance();
 
   // Filter guests based on search query
   const filteredGuests = guests.filter(
@@ -96,23 +99,36 @@ export default function POCDashboard() {
   const onSubmit = async (data: CheckInFormData) => {
     try {
       setIsLoading(true);
-      setErrorMessage(null);
 
-      // Here you would typically send the data to your backend
-      // For now, we'll just simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const checkInData: GuestCheckIn = {
+        ...data,
+        guestCode,
+        notes: note || undefined,
+      };
 
-      // Reset form and show success message
-      reset();
-      setGuestImage(null);
-      alert("Guest checked in successfully!");
+      const imageResponse = await checkInService.uploadGuestImage(guestImage);
+
+      const response = await checkInService.checkInGuest(checkInData);
+
+      if (response.success) {
+        // Reset form and show success message
+        reset();
+        setGuestImage(null);
+        setGuestCode('');
+        setNote('');
+        alert('Guest checked in successfully!');
+        
+        // Refresh guest list
+        const guestListResponse = await checkInService.getGuestList();
+        if (guestListResponse.success && guestListResponse.data) {
+          setGuests(Array.isArray(guestListResponse.data) ? guestListResponse.data : []);
+        }
+      } else {
+        throw new Error(response.message || 'Failed to check in guest');
+      }
     } catch (error) {
-      console.error("Check-in error:", error);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to check in guest. Please try again."
-      );
+      console.error('Check-in error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to check in guest. Please try again.');
     } finally {
       setIsLoading(false);
     }

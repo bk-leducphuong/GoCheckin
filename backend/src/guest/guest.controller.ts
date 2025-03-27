@@ -26,7 +26,7 @@ import { GuestCheckin } from './entities/guest-checkin.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('guests')
-@Controller('guests/:eventCode/:pointCode')
+@Controller('guests/:eventCode')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GuestController {
   constructor(private readonly guestService: GuestService) {}
@@ -35,7 +35,6 @@ export class GuestController {
   @Roles(UserRole.POC)
   @ApiOperation({ summary: 'Check in a guest at a point of check-in' })
   @ApiParam({ name: 'eventCode', description: 'Event code' })
-  @ApiParam({ name: 'pointCode', description: 'Point of check-in code' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Guest checked in successfully',
@@ -46,12 +45,10 @@ export class GuestController {
     description: 'Guest not found',
   })
   async checkinGuest(
-    @Param('eventCode') eventCode: string,
-    @Param('pointCode') pointCode: string,
     @Param('pocId') pocId: string,
     @Body() checkinDto: CheckinDto,
   ): Promise<GuestCheckin> {
-    return this.guestService.checkin(eventCode, pointCode, pocId, checkinDto);
+    return this.guestService.checkin(pocId, checkinDto);
   }
 
   @Post('checkin/upload-image')
@@ -115,14 +112,7 @@ export class GuestController {
     description: 'Guest created successfully',
     type: Guest,
   })
-  async createGuest(
-    @Param('eventCode') eventCode: string,
-    @Param('pointCode') pointCode: string,
-    @Body() createGuestDto: CreateGuestDto,
-  ): Promise<Guest> {
-    // Ensure the DTO contains the correct event and point codes
-    createGuestDto.eventCode = eventCode;
-    createGuestDto.pointCode = pointCode;
+  async createGuest(@Body() createGuestDto: CreateGuestDto): Promise<Guest> {
     return this.guestService.create(createGuestDto);
   }
 
@@ -138,11 +128,8 @@ export class GuestController {
     description: 'Returns all guests for the event and point of check-in',
     type: [Guest],
   })
-  async getAllGuestsByEventAndPoint(
-    @Param('eventCode') eventCode: string,
-    @Param('pointCode') pointCode: string,
-  ): Promise<Guest[]> {
-    return this.guestService.findAllByEventAndPoint(eventCode, pointCode);
+  async getAllGuestsByEventAndPoint(): Promise<Guest[]> {
+    return this.guestService.findAllByEventAndPoint();
   }
 
   @Get('all')
@@ -157,10 +144,8 @@ export class GuestController {
     description: 'Returns all guests for the event',
     type: [Guest],
   })
-  async getAllGuestsByEvent(
-    @Param('eventCode') eventCode: string,
-  ): Promise<Guest[]> {
-    return this.guestService.findAllByEvent(eventCode);
+  async getAllGuestsByEvent(): Promise<Guest[]> {
+    return this.guestService.findAllByEvent();
   }
 
   @Get(':guestCode')
@@ -178,11 +163,8 @@ export class GuestController {
     status: HttpStatus.NOT_FOUND,
     description: 'Guest not found',
   })
-  async getGuestDetails(
-    @Param('eventCode') eventCode: string,
-    @Param('guestCode') guestCode: string,
-  ): Promise<Guest> {
-    return this.guestService.findByCodeAndEvent(guestCode, eventCode);
+  async getGuestDetails(@Param('guestCode') guestCode: string): Promise<Guest> {
+    return this.guestService.findByCodeAndEvent(guestCode);
   }
 
   @Get('id/:guestId')
@@ -245,42 +227,39 @@ export class GuestController {
     return this.guestService.remove(guestId);
   }
 
-  @Delete()
-  @Roles(UserRole.ADMIN)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary:
-      'Delete all guests for a specific event and point of check-in (soft delete)',
-  })
-  @ApiParam({ name: 'eventCode', description: 'Event code' })
-  @ApiParam({ name: 'pointCode', description: 'Point of check-in code' })
-  @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description:
-      'All guests for the event and point of check-in deleted successfully',
-  })
-  async deleteAllGuestsByEventAndPoint(
-    @Param('eventCode') eventCode: string,
-    @Param('pointCode') pointCode: string,
-  ): Promise<void> {
-    return this.guestService.removeAllByEventAndPoint(eventCode, pointCode);
-  }
+  // @Delete()
+  // @Roles(UserRole.ADMIN)
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // @ApiOperation({
+  //   summary:
+  //     'Delete all guests for a specific event and point of check-in (soft delete)',
+  // })
+  // @ApiParam({ name: 'eventCode', description: 'Event code' })
+  // @ApiParam({ name: 'pointCode', description: 'Point of check-in code' })
+  // @ApiResponse({
+  //   status: HttpStatus.NO_CONTENT,
+  //   description:
+  //     'All guests for the event and point of check-in deleted successfully',
+  // })
+  // async deleteAllGuestsByEventAndPoint(): Promise<void> {
+  //   return this.guestService.removeAllByEventAndPoint();
+  // }
 
-  @Delete('all')
-  @Roles(UserRole.ADMIN)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary:
-      'Delete all guests for a specific event across all points of check-in (soft delete)',
-  })
-  @ApiParam({ name: 'eventCode', description: 'Event code' })
-  @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'All guests for the event deleted successfully',
-  })
-  async deleteAllGuestsByEvent(
-    @Param('eventCode') eventCode: string,
-  ): Promise<void> {
-    return this.guestService.removeAllByEvent(eventCode);
-  }
+  // @Delete('all')
+  // @Roles(UserRole.ADMIN)
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // @ApiOperation({
+  //   summary:
+  //     'Delete all guests for a specific event across all points of check-in (soft delete)',
+  // })
+  // @ApiParam({ name: 'eventCode', description: 'Event code' })
+  // @ApiResponse({
+  //   status: HttpStatus.NO_CONTENT,
+  //   description: 'All guests for the event deleted successfully',
+  // })
+  // async deleteAllGuestsByEvent(
+  //   @Param('eventCode') eventCode: string,
+  // ): Promise<void> {
+  //   return this.guestService.removeAllByEvent(eventCode);
+  // }
 }

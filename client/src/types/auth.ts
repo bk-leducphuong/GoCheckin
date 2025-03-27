@@ -22,6 +22,7 @@ export interface AuthResponse {
   accessToken: string;
   user: User;
   pocId?: string;
+  eventCode?: string;
 }
 
 export interface AdminRegisterData {

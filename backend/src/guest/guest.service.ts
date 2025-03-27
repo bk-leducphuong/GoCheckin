@@ -95,23 +95,17 @@ export class GuestService {
     });
   }
 
-  async findAllByEventAndPoint(
-    eventCode: string,
-    pointCode: string,
-  ): Promise<Guest[]> {
+  async findAllByEventAndPoint(): Promise<Guest[]> {
     return this.guestRepository.find({
       where: {
-        eventCode,
-        pointCode,
         enabled: true,
       },
     });
   }
 
-  async findAllByEvent(eventCode: string): Promise<Guest[]> {
+  async findAllByEvent(): Promise<Guest[]> {
     return this.guestRepository.find({
       where: {
-        eventCode,
         enabled: true,
       },
     });
@@ -130,14 +124,9 @@ export class GuestService {
     return guest;
   }
 
-  async findByCodeAndEvent(
-    guestCode: string,
-    eventCode: string,
-  ): Promise<Guest> {
+  async findByCodeAndEvent(guestCode: string): Promise<Guest> {
     const guest = await this.guestRepository.findOne({
       where: {
-        guestCode,
-        eventCode,
         enabled: true,
       },
       relations: ['checkins', 'checkins.pointOfCheckin'],
@@ -175,22 +164,16 @@ export class GuestService {
     );
   }
 
-  async removeAllByEventAndPoint(
-    eventCode: string,
-    pointCode: string,
-  ): Promise<void> {
-    // Soft delete all guests for this event at this point
-    await this.guestRepository.update(
-      { eventCode, pointCode },
-      { enabled: false },
-    );
-  }
+  // async removeAllByEventAndPoint(): Promise<void> {
+  //   // Soft delete all guests for this event at this point
+  //   await this.guestRepository.update({ enabled: false });
+  // }
 
-  async removeAllByEvent(eventCode: string): Promise<void> {
-    // Soft delete all guests for this event
-    await this.guestRepository.update({ eventCode }, { enabled: false });
+  // async removeAllByEvent(eventCode: string): Promise<void> {
+  //   // Soft delete all guests for this event
+  //   await this.guestRepository.update({ eventCode }, { enabled: false });
 
-    // Also mark all check-ins for this event as inactive
-    await this.guestCheckinRepository.update({ eventCode }, { active: false });
-  }
+  //   // Also mark all check-ins for this event as inactive
+  //   await this.guestCheckinRepository.update({ eventCode }, { active: false });
+  // }
 }

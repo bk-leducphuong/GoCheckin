@@ -6,6 +6,7 @@ import { User, AdminRegisterData, PocRegisterData } from "@/types/auth";
 interface AuthState {
   user: User | null;
   pocId: string | null;
+  eventCode: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -22,6 +23,7 @@ export const useAuthStore = create<AuthState>()(
       (set) => ({
         user: null,
         pocId: null,
+        eventCode: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
@@ -52,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               user: response.user,
               pocId: response.pocId,
+              eventCode: response.eventCode,
               isAuthenticated: true,
               isLoading: false,
             });
@@ -92,6 +95,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               user: response.user,
               pocId: response.pocId,
+              eventCode: response.eventCode,
               isAuthenticated: true,
               isLoading: false,
             });
@@ -107,13 +111,13 @@ export const useAuthStore = create<AuthState>()(
         },
 
         logout: () => {
-          set({ user: null, pocId: null, isAuthenticated: false, error: null });
+          set({ user: null, pocId: null, eventCode: null, isAuthenticated: false, error: null });
         },
       }),
       {
         name: "auth-storage",
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated, pocId: state.pocId }),
+        partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated, pocId: state.pocId, eventCode: state.eventCode }),
         onRehydrateStorage: () => (state) => {
           console.log('hydration complete', state);
         },

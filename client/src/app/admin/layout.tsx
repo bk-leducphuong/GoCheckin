@@ -20,8 +20,6 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // console.log('user', user);
-    // Redirect if not authenticated or not an admin
     if (!isLoading && (!isAuthenticated || user?.role !== UserRole.ADMIN)) {
       router.push('/login');
     }
@@ -35,7 +33,6 @@ export default function AdminLayout({
     );
   }
 
-  // Don't render anything if not authenticated or not an admin
   if (!isAuthenticated || user?.role !== UserRole.ADMIN) {
     return null;
   }

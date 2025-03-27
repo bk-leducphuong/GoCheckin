@@ -98,6 +98,7 @@ export class AuthService {
           role: user.role,
         },
         pocId: poc.pocId,
+        eventCode: poc.eventCode,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -229,6 +230,7 @@ export class AuthService {
         role: newUser.role,
       },
       pocId: poc.pocId,
+      eventCode: poc.eventCode,
     };
   }
 }
