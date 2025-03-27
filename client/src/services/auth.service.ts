@@ -8,7 +8,11 @@ export const AuthService = {
   // Admin Authentication
   adminLogin: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      const response = await api.post('/auth/admin/login', credentials);
+      const response = await api.post('/auth/admin/login', credentials, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       const responseData = response.data.data;
       // Store token in localStorage
       if (responseData.accessToken) {
@@ -23,7 +27,11 @@ export const AuthService = {
 
   adminRegister: async (data: AdminRegisterData): Promise<AuthResponse> => {
     try {
-      const response = await api.post('/auth/admin/register', data);
+      const response = await api.post('/auth/admin/register', data, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       const responseData = response.data.data;
       // Store token in localStorage
       if (responseData.accessToken) {
@@ -39,7 +47,11 @@ export const AuthService = {
   // POC Authentication
   pocLogin: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      const response = await api.post('/auth/poc/login', credentials);
+      const response = await api.post('/auth/poc/login', credentials, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       const responseData = response.data.data;
       // Store token in localStorage
       if (responseData.accessToken) {
@@ -54,7 +66,11 @@ export const AuthService = {
 
   pocRegister: async (data: PocRegisterData): Promise<AuthResponse> => {
     try {
-      const response = await api.post('/auth/poc/register', data);
+      const response = await api.post('/auth/poc/register', data, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       const responseData = response.data.data;
       // Store token in localStorage
       if (responseData.accessToken) {
