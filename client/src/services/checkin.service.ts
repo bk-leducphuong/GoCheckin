@@ -1,64 +1,59 @@
-import { GuestCheckIn, CheckInResponse } from '@/types/checkin';
-import { API_BASE_URL } from '@/config/env';
+import { GuestCheckIn, CheckInResponse, GuestCheckinData } from "@/types/checkin";
+import api from "./api";
 
-export class CheckInService {
-  private static instance: CheckInService;
-  private baseUrl: string;
-
-  private constructor() {
-    this.baseUrl = `${API_BASE_URL}/api/checkin`;
-  }
-
-  public static getInstance(): CheckInService {
-    if (!CheckInService.instance) {
-      CheckInService.instance = new CheckInService();
-    }
-    return CheckInService.instance;
-  }
-
-  async uploadGuestImage(guestImage: string): Promise<string> {
-    const response = await fetch()
-  }
-
-  async checkInGuest(data: GuestCheckIn): Promise<CheckInResponse> {
-    try {
+// CheckIn Service for handling check-in operations
+export const CheckInService = {
+  uploadGuestImage: async (guestImage: string | null): Promise<string> => {
+    if (!guestImage) return '';
     
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
+    try {
+      // Convert base64 to blob if needed
+      const formData = new FormData();
+      
+      // If it's a data URL, extract the base64 part
+      if (guestImage.startsWith('data:')) {
+        const base64Data = guestImage.split(',')[1];
+        const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(res => res.blob());
+        formData.append('image', blob, 'guest-image.jpg');
+      } else {
+        // It's a string value, just send it as is
+        formData.append('guestImage', guestImage);
+      }
+
+      const response = await api.post('/guests/checkin/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data.data;
+    } catch (error) {
+      console.error('Upload image error:', error);
+      throw error;
+    }
+  },
+
+  checkinGuest: async (checkinDto: GuestCheckIn): Promise<CheckInResponse> => {
+    try {
+      const response = await api.post('/guests/checkin', checkinDto, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to check in guest');
-      }
-
-      return await response.json();
+      return response.data.data;
     } catch (error) {
       console.error('Check-in error:', error);
       throw error;
     }
-  }
+  },
 
-  async getGuestList(): Promise<CheckInResponse> {
+  getGuestList: async (eventCode: string, pocId: string): Promise<{ success: boolean; message: string; data: GuestCheckinData[] }> => {
     try {
-      const response = await fetch(this.baseUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch guest list');
-      }
-
-      return await response.json();
+      const response = await api.get(`/guests/poc-checkins?eventCode=${eventCode}&pocId=${pocId}`);
+      return response.data.data;
     } catch (error) {
       console.error('Get guest list error:', error);
       throw error;
     }
-  }
-}
+  },
+};

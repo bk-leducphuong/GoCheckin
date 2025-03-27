@@ -8,8 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
-import { CheckInService } from '@/services/checkin.service';
-import { GuestCheckIn } from '@/types/checkin';
+import { CheckInService } from "@/services/checkin.service";
+import { GuestCheckIn, GuestCheckinData } from "@/types/checkin";
 
 // Placeholder data for guest list
 const MOCK_GUESTS = [
@@ -57,20 +57,31 @@ const MOCK_GUESTS = [
 
 // Guest check-in validation schema
 const checkInSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phoneNumber: z.string().min(6, "Phone number is required"),
-  purpose: z.string().min(5, "Please enter the purpose of visit"),
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phoneNumber: z.string().optional(),
+  purpose: z.string().optional(),
 });
 
 type CheckInFormData = z.infer<typeof checkInSchema>;
 
 export default function POCDashboard() {
-  const { user } = useAuthStore(
+  const {
+    user,
+    pocId,
+    eventCode: storeEventCode,
+  } = useAuthStore(
     useShallow((state) => ({
       user: state.user,
+      pocId: state.pocId,
+      eventCode: state.eventCode,
     }))
   );
+
+  // Use stored values or fallbacks
+  const activeEventCode = storeEventCode || "EVENT001";
+  const activePocId = pocId || "POC001";
+
   const [searchQuery, setSearchQuery] = useState("");
   const [guestCode, setGuestCode] = useState("");
   const [note, setNote] = useState("");
@@ -80,13 +91,13 @@ export default function POCDashboard() {
   const [showCamera, setShowCamera] = useState(false);
 
   const {
+    register,
     handleSubmit,
     reset,
+    formState: { errors },
   } = useForm<CheckInFormData>({
     resolver: zodResolver(checkInSchema),
   });
-
-  const checkInService = CheckInService.getInstance();
 
   // Filter guests based on search query
   const filteredGuests = guests.filter(
@@ -100,35 +111,58 @@ export default function POCDashboard() {
     try {
       setIsLoading(true);
 
+      // First upload the image if available
+      let imageUrl;
+      if (guestImage) {
+        imageUrl = await CheckInService.uploadGuestImage(guestImage);
+      }
+
+      // Prepare the check-in data
       const checkInData: GuestCheckIn = {
-        ...data,
         guestCode,
+        eventCode: activeEventCode,
+        pocId: activePocId,
         notes: note || undefined,
+        imageUrl,
       };
 
-      const imageResponse = await checkInService.uploadGuestImage(guestImage);
+      // Call the check-in service
+      await CheckInService.checkinGuest(checkInData);
 
-      const response = await checkInService.checkInGuest(checkInData);
+      // Reset form and show success message
+      reset();
+      setGuestImage(null);
+      setGuestCode("");
+      setNote("");
+      alert("Guest checked in successfully!");
 
-      if (response.success) {
-        // Reset form and show success message
-        reset();
-        setGuestImage(null);
-        setGuestCode('');
-        setNote('');
-        alert('Guest checked in successfully!');
-        
-        // Refresh guest list
-        const guestListResponse = await checkInService.getGuestList();
-        if (guestListResponse.success && guestListResponse.data) {
-          setGuests(Array.isArray(guestListResponse.data) ? guestListResponse.data : []);
-        }
-      } else {
-        throw new Error(response.message || 'Failed to check in guest');
-      }
+      // Refresh guest list
+      // try {
+      //   const guestListResponse = await CheckInService.getGuestList(activeEventCode, activePocId);
+      //   if (guestListResponse.success && guestListResponse.data) {
+      //     // Convert API response to the format expected by the component
+      //     const formattedGuests = Array.isArray(guestListResponse.data)
+      //       ? guestListResponse.data.map((item: GuestCheckinData) => ({
+      //           id: item.id,
+      //           name: item.guest?.name || 'Unknown',
+      //           email: item.guest?.email || 'Unknown',
+      //           code: item.guest?.guestCode || 'Unknown',
+      //           status: item.status,
+      //           checkInTime: new Date(item.checkInTime).toLocaleTimeString(),
+      //         }))
+      //       : [];
+      //     setGuests(formattedGuests);
+      //   }
+      // } catch (listError) {
+      //   console.error('Failed to refresh guest list:', listError);
+      // }
     } catch (error) {
-      console.error('Check-in error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to check in guest. Please try again.');
+      console.error("Check-in error:", error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to check in guest. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -266,6 +300,77 @@ export default function POCDashboard() {
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col space-y-4">
+            {/* Guest Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Guest Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  {...register("name")}
+                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="John Doe"
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email (Optional)
+                </label>
+                <input
+                  type="email"
+                  {...register("email")}
+                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="john@example.com"
+                />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number (Optional)
+                </label>
+                <input
+                  type="tel"
+                  {...register("phoneNumber")}
+                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="+1234567890"
+                />
+                {errors.phoneNumber && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.phoneNumber.message}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Purpose of Visit (Optional)
+                </label>
+                <input
+                  type="text"
+                  {...register("purpose")}
+                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Meeting"
+                />
+                {errors.purpose && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.purpose.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* Guest Code Input */}
             <div>
               <label
@@ -281,6 +386,7 @@ export default function POCDashboard() {
                 onChange={(e) => setGuestCode(e.target.value)}
                 className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 placeholder="Enter guest code (e.g. G001)"
+                required
               />
             </div>
 
