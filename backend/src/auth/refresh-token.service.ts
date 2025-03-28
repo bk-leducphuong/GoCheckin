@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { Token } from './entities/token.entity';
+import { RefreshToken } from './entities/token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class RefreshTokenService {
   constructor(
-    @InjectRepository(Token)
-    private tokenRepositoty: Repository<Token>,
+    @InjectRepository(RefreshToken)
+    private tokenRepositoty: Repository<RefreshToken>,
     private jwtService: JwtService,
-    private config: ConfigService,
+    private configService: ConfigService,
   ) {}
 
-  async createRefreshToken(userId: string) {
+  async createRefreshToken(userId: string): Promise<string> {
     const refreshToken = this.jwtService.sign(
       { userId },
       {
-        secret: this.config.get('JWT_REFRESH_SECRET'),
-        expiresIn: '7d', // Refresh token expires in 7 days
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'), // Refresh token expires in 7 days
       },
     );
 
@@ -52,11 +52,11 @@ export class RefreshTokenService {
     return refreshToken;
   }
 
-  async validateRefreshToken(token: string) {
+  async validateRefreshToken(token: string): Promise<any> {
     try {
       // Verify the token
       const payload = this.jwtService.verify(token, {
-        secret: this.config.get('JWT_REFRESH_SECRET'),
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
       // Check if token exists in database and is not expired

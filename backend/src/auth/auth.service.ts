@@ -16,7 +16,6 @@ import { UserRole } from 'src/account/entities/account.entity';
 import { EventService } from 'src/event/event.service';
 import { TenantService } from 'src/tenant/tenant.service';
 import { PocService } from 'src/poc/poc.service';
-import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from './refresh-token.service';
 
@@ -28,7 +27,6 @@ export class AuthService {
     private readonly eventService: EventService,
     private readonly tenantService: TenantService,
     private readonly pocService: PocService,
-    private prisma: PrismaService,
     private config: ConfigService,
     private refreshTokenService: RefreshTokenService,
   ) {}
@@ -48,13 +46,16 @@ export class AuthService {
         throw new UnauthorizedException('Invalid password');
       }
 
+      // Create refresh token
+      const refreshToken = await this.refreshTokenService.createRefreshToken(
+        user.userId,
+      );
+
       return {
         accessToken: this.jwtService.sign({
           userId: user.userId,
-          username: user.username,
-          email: user.email,
-          role: user.role,
         }),
+        refreshToken: refreshToken,
         user: {
           userId: user.userId,
           username: user.username,
@@ -91,13 +92,16 @@ export class AuthService {
         throw new UnauthorizedException('User is not a POC');
       }
 
+      // Create refresh token
+      const refreshToken = await this.refreshTokenService.createRefreshToken(
+        user.userId,
+      );
+
       return {
         accessToken: this.jwtService.sign({
           userId: user.userId,
-          username: user.username,
-          email: user.email,
-          role: user.role,
         }),
+        refreshToken: refreshToken,
         user: {
           userId: user.userId,
           username: user.username,
@@ -158,14 +162,17 @@ export class AuthService {
       password: hashedPassword,
     });
 
+    // Create refresh token
+    const refreshToken = await this.refreshTokenService.createRefreshToken(
+      newUser.userId,
+    );
+
     // Generate JWT token
     return {
       accessToken: this.jwtService.sign({
         userId: newUser.userId,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
       }),
+      refreshToken: refreshToken,
       user: {
         userId: newUser.userId,
         username: newUser.username,
@@ -222,6 +229,11 @@ export class AuthService {
       userId: newUser.userId,
     });
 
+    // Create refresh token
+    const refreshToken = await this.refreshTokenService.createRefreshToken(
+      newUser.userId,
+    );
+
     // Generate JWT token
     return {
       accessToken: this.jwtService.sign({
@@ -230,6 +242,7 @@ export class AuthService {
         email: newUser.email,
         role: newUser.role,
       }),
+      refreshToken: refreshToken,
       user: {
         userId: newUser.userId,
         username: newUser.username,
@@ -248,32 +261,6 @@ export class AuthService {
       return result;
     }
     return null;
-  }
-
-  async login(user: any, deviceInfo: string) {
-    const payload = { email: user.email, sub: user.id, role: user.role };
-    
-    // Generate access token
-    const accessToken = this.jwtService.sign(payload, {
-      secret: this.config.get('JWT_SECRET'),
-      expiresIn: '15m', // Access token expires in 15 minutes
-    });
-
-    // Generate refresh token
-    const refreshToken = await this.refreshTokenService.createRefreshToken(
-      user.id,
-      deviceInfo,
-    );
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-      },
-    };
   }
 
   async refreshTokens(refreshToken: string) {

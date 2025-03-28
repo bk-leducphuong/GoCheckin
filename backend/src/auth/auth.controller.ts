@@ -64,20 +64,12 @@ export class AuthController {
   }
 
   @Post('refresh')
-  @UseGuards(RefreshTokenGuard)
   async refreshTokens(@CurrentUser() user: any, @Body('refreshToken') refreshToken: string) {
     return this.service.refreshTokens(refreshToken);
   }
 
   @Post('logout')
-  @UseGuards(RefreshTokenGuard)
   async logout(@Body('refreshToken') refreshToken: string) {
     return this.service.logout(refreshToken);
-  }
-
-  @Post('logout-all')
-  @UseGuards(RefreshTokenGuard)
-  async logoutAll(@CurrentUser() user: any) {
-    return this.service.logoutAll(user.id);
   }
 }

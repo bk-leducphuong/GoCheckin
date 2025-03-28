@@ -8,7 +8,7 @@ import {
 import { Account } from '../../account/entities/account.entity';
 
 @Entity('refresh_tokens')
-export class Token {
+export class RefreshToken {
   @Column({ name: 'user_id' })
   userId: string;
 

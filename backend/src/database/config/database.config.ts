@@ -9,7 +9,7 @@ import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Event } from '../../event/entities/event.entity';
 import { PointOfCheckin } from '../../poc/entities/poc.entity';
 import { Guest } from '../../guest/entities/guest.entity';
-import { Token } from 'src/auth/entities/token.entity';
+import { RefreshToken } from 'src/auth/entities/token.entity';
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../../logs');
@@ -68,7 +68,7 @@ export const getDatabaseConfig = (
     Event,
     PointOfCheckin,
     Guest,
-    Token,
+    RefreshToken,
   ],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'], // looks for migration files in the migrations directory
   synchronize: configService.get('NODE_ENV') === 'development', // automatically updates database schema

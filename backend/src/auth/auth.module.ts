@@ -10,7 +10,7 @@ import { EventModule } from 'src/event/event.module';
 import { TenantModule } from 'src/tenant/tenant.module';
 import { PocModule } from 'src/poc/poc.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Token } from './entities/token.entity';
+import { RefreshToken } from './entities/token.entity';
 @Module({
   imports: [
     AccountModule,
@@ -28,7 +28,7 @@ import { Token } from './entities/token.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Token]),
+    TypeOrmModule.forFeature([RefreshToken]),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
