@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import Sidebar from '@/components/admin/Sidebar';
-import { UserRole } from '@/types/auth';
 import { useAuthStore } from '@/store/authStore';
 import { useShallow } from 'zustand/react/shallow'
 
@@ -12,18 +10,9 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAuthenticated, isLoading } = useAuthStore(useShallow(state => ({
-    user: state.user,
-    isAuthenticated: state.isAuthenticated,
+  const { isLoading } = useAuthStore(useShallow(state => ({
     isLoading: state.isLoading
   })));
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== UserRole.ADMIN)) {
-      router.push('/login');
-    }
-  }, [isLoading, isAuthenticated, user, router]);
 
   if (isLoading) {
     return (
@@ -31,10 +20,6 @@ export default function AdminLayout({
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
-  }
-
-  if (!isAuthenticated || user?.role !== UserRole.ADMIN) {
-    return null;
   }
 
   return (
