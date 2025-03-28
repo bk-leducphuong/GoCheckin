@@ -1,36 +1,38 @@
 import axios from 'axios';
+import { API_URL } from '@/config';
 import { useAuthStore } from '@/store/authStore';
 
-// Create a base axios instance with default configuration
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// Request interceptor for adding auth token
-api.interceptors.request.use(
+// Request interceptor
+axiosInstance.interceptors.request.use(
   (config) => {
-    // Only run on client side
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem(
-        process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'token'
-      );
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    const { accessToken } = useAuthStore.getState();
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor for handling errors
-api.interceptors.response.use(
+// Response interceptor
+axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    // Handle authentication errors or token expiration
+
+    // If the error is 401 and we haven't tried to refresh the token yet
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Implement refresh token logic here if needed
+      originalRequest._retry = true;
+
       try {
         // Attempt to refresh the token
         await useAuthStore.getState().refreshAccessToken();
@@ -48,9 +50,9 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
 
-export default api; 
+export default axiosInstance; 

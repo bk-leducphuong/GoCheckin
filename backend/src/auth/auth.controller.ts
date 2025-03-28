@@ -1,10 +1,12 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, UseGuards, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthAdminRegisterDto } from './dto/auth-admin-register.dto';
 import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
 import { AuthLoginResponseDto } from './dto/login-response.dto';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -59,5 +61,23 @@ export class AuthController {
     @Body() registerDto: AuthPocRegisterDto,
   ): Promise<AuthLoginResponseDto> {
     return this.service.registerPoc(registerDto);
+  }
+
+  @Post('refresh')
+  @UseGuards(RefreshTokenGuard)
+  async refreshTokens(@CurrentUser() user: any, @Body('refreshToken') refreshToken: string) {
+    return this.service.refreshTokens(refreshToken);
+  }
+
+  @Post('logout')
+  @UseGuards(RefreshTokenGuard)
+  async logout(@Body('refreshToken') refreshToken: string) {
+    return this.service.logout(refreshToken);
+  }
+
+  @Post('logout-all')
+  @UseGuards(RefreshTokenGuard)
+  async logoutAll(@CurrentUser() user: any) {
+    return this.service.logoutAll(user.id);
   }
 }

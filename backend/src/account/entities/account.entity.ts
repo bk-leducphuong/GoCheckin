@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
 } from 'typeorm';
+import { Token } from '../../auth/entities/token.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -52,4 +54,7 @@ export class Account {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @ManyToMany(() => Token, (token) => token.user)
+  refreshTokens: Token[];
 }

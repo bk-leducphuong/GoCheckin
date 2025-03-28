@@ -16,6 +16,10 @@ import { UserRole } from 'src/account/entities/account.entity';
 import { EventService } from 'src/event/event.service';
 import { TenantService } from 'src/tenant/tenant.service';
 import { PocService } from 'src/poc/poc.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
+import { RefreshTokenService } from './refresh-token.service';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -24,6 +28,9 @@ export class AuthService {
     private readonly eventService: EventService,
     private readonly tenantService: TenantService,
     private readonly pocService: PocService,
+    private prisma: PrismaService,
+    private config: ConfigService,
+    private refreshTokenService: RefreshTokenService,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
@@ -232,5 +239,87 @@ export class AuthService {
       pocId: poc.pocId,
       eventCode: poc.eventCode,
     };
+  }
+
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (user && (await compare(password, user.password))) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
+  }
+
+  async login(user: any, deviceInfo: string) {
+    const payload = { email: user.email, sub: user.id, role: user.role };
+    
+    // Generate access token
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.config.get('JWT_SECRET'),
+      expiresIn: '15m', // Access token expires in 15 minutes
+    });
+
+    // Generate refresh token
+    const refreshToken = await this.refreshTokenService.createRefreshToken(
+      user.id,
+      deviceInfo,
+    );
+
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+    };
+  }
+
+  async refreshTokens(refreshToken: string) {
+    const payload = await this.refreshTokenService.validateRefreshToken(refreshToken);
+    
+    if (!payload) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Generate new access token
+    const accessToken = this.jwtService.sign(
+      { email: user.email, sub: user.id, role: user.role },
+      {
+        secret: this.config.get('JWT_SECRET'),
+        expiresIn: '15m',
+      },
+    );
+
+    // Generate new refresh token
+    const newRefreshToken = await this.refreshTokenService.createRefreshToken(
+      user.id,
+      'Refreshed',
+    );
+
+    // Revoke old refresh token
+    await this.refreshTokenService.revokeRefreshToken(refreshToken);
+
+    return {
+      access_token: accessToken,
+      refresh_token: newRefreshToken,
+    };
+  }
+
+  async logout(refreshToken: string) {
+    await this.refreshTokenService.revokeRefreshToken(refreshToken);
+  }
+
+  async logoutAll(userId: string) {
+    await this.refreshTokenService.revokeAllUserTokens(userId);
   }
 }
