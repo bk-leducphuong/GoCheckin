@@ -1,75 +1,74 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RefreshToken } from './entities/token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Token } from './entities/token.entity';
+import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class RefreshTokenService {
   constructor(
-    @InjectRepository(RefreshToken)
-    private tokenRepositoty: Repository<RefreshToken>,
     private jwtService: JwtService,
     private configService: ConfigService,
+    @InjectRepository(Token)
+    private tokenRepository: Repository<Token>,
   ) {}
 
-  async createRefreshToken(userId: string): Promise<string> {
+  /**
+   * Generate a new refresh token for a user
+   */
+  async generateRefreshToken(
+    userId: string,
+    deviceInfo: string = 'unknown',
+  ): Promise<string> {
+    // Generate JWT refresh token
     const refreshToken = this.jwtService.sign(
       { userId },
       {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'), // Refresh token expires in 7 days
+        expiresIn:
+          this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d',
       },
     );
 
-    // Check if token already exists
-    const existingToken = await this.tokenRepositoty.findOne({
-      where: {
-        userId: userId,
-      },
-    });
+    // Calculate expiration date
+    const expiresIn =
+      this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
+    const expiresAt = this.calculateExpirationDate(expiresIn);
 
-    if (existingToken) {
-      await this.tokenRepositoty.update(
-        {
-          userId: userId,
-        },
-        {
-          refreshToken: refreshToken,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        },
-      );
-    } else {
-      const newToken = this.tokenRepositoty.create({
-        refreshToken: refreshToken,
-        userId,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      });
-      await this.tokenRepositoty.save(newToken);
-    }
+    // Save the refresh token to the database
+    await this.tokenRepository.save({
+      userId,
+      refreshToken,
+      deviceInfo,
+      expiresAt,
+      isRevoked: false,
+    });
 
     return refreshToken;
   }
 
-  async validateRefreshToken(token: string): Promise<any> {
+  /**
+   * Validate a refresh token
+   */
+  async validateRefreshToken(refreshToken: string): Promise<JwtPayload | null> {
     try {
       // Verify the token
-      const payload = this.jwtService.verify(token, {
+      const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
 
-      // Check if token exists in database and is not expired
-      const storedToken = await this.tokenRepositoty.findOne({
+      // Check if token exists in database and is not expired or revoked
+      const tokenEntity = await this.tokenRepository.findOne({
         where: {
-          refreshToken: token,
-          expiresAt: {
-            gt: new Date(),
-          },
+          refreshToken,
+          isRevoked: false,
+          expiresAt: this.typeormDateGreaterThan(new Date()),
         },
       });
 
-      if (!storedToken) {
+      if (!tokenEntity) {
         return null;
       }
 
@@ -79,15 +78,83 @@ export class RefreshTokenService {
     }
   }
 
-  async revokeRefreshToken(token: string) {
-    await this.tokenRepositoty.delete({
-      where: { refreshToken: token },
+  /**
+   * Revoke a refresh token
+   */
+  async revokeRefreshToken(refreshToken: string): Promise<void> {
+    await this.tokenRepository.update({ refreshToken }, { isRevoked: true });
+  }
+
+  /**
+   * Revoke all refresh tokens for a user
+   */
+  async revokeAllUserTokens(userId: string): Promise<void> {
+    await this.tokenRepository.update({ userId }, { isRevoked: true });
+  }
+
+  /**
+   * Clean up expired tokens
+   */
+  async cleanupExpiredTokens(): Promise<void> {
+    await this.tokenRepository.delete({
+      expiresAt: this.typeormDateLessThan(new Date()),
     });
   }
 
-  async revokeAllUserTokens(userId: string) {
-    await this.tokenRepositoty.delete({
-      where: { userId },
+  /**
+   * Get all active refresh tokens for a user
+   */
+  async getUserTokens(userId: string): Promise<Token[]> {
+    return this.tokenRepository.find({
+      where: {
+        userId,
+        isRevoked: false,
+        expiresAt: this.typeormDateGreaterThan(new Date()),
+      },
     });
+  }
+
+  /**
+   * Helper method to calculate expiration date from string like "7d", "30m", etc.
+   */
+  private calculateExpirationDate(expiresIn: string): Date {
+    const now = new Date();
+    const milliseconds = this.parseExpiresIn(expiresIn);
+    return new Date(now.getTime() + milliseconds);
+  }
+
+  /**
+   * Helper method to parse expiration string to milliseconds
+   */
+  private parseExpiresIn(expiresIn: string): number {
+    const unit = expiresIn.charAt(expiresIn.length - 1);
+    const value = parseInt(expiresIn.slice(0, -1), 10);
+
+    switch (unit) {
+      case 's':
+        return value * 1000; // seconds to milliseconds
+      case 'm':
+        return value * 60 * 1000; // minutes to milliseconds
+      case 'h':
+        return value * 60 * 60 * 1000; // hours to milliseconds
+      case 'd':
+        return value * 24 * 60 * 60 * 1000; // days to milliseconds
+      default:
+        return value;
+    }
+  }
+
+  /**
+   * Helper for TypeORM date comparison (greater than)
+   */
+  private typeormDateGreaterThan(date: Date) {
+    return { $gt: date } as any;
+  }
+
+  /**
+   * Helper for TypeORM date comparison (less than)
+   */
+  private typeormDateLessThan(date: Date) {
+    return { $lt: date } as any;
   }
 }

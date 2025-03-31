@@ -60,6 +60,18 @@ export class AccountService {
     return account;
   }
 
+  async findById(userId: string): Promise<Account> {
+    const account = await this.accountRepository.findOne({
+      where: { userId },
+    });
+
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+
+    return account;
+  }
+
   async updateAccount(
     userId: string,
     updateDto: UpdateAccountDto,

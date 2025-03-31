@@ -10,7 +10,11 @@ import { EventModule } from 'src/event/event.module';
 import { TenantModule } from 'src/tenant/tenant.module';
 import { PocModule } from 'src/poc/poc.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { RefreshToken } from './entities/token.entity';
+import { Token } from './entities/token.entity';
+import { RefreshTokenService } from './refresh-token.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
+
 @Module({
   imports: [
     AccountModule,
@@ -23,15 +27,22 @@ import { RefreshToken } from './entities/token.entity';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '1h',
+          expiresIn:
+            configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
         },
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([RefreshToken]),
+    TypeOrmModule.forFeature([Token]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    RefreshTokenService,
+    JwtAuthGuard,
+    RefreshTokenGuard,
+  ],
+  exports: [AuthService, RefreshTokenService],
 })
 export class AuthModule {}

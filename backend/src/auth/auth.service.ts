@@ -47,7 +47,7 @@ export class AuthService {
       }
 
       // Create refresh token
-      const refreshToken = await this.refreshTokenService.createRefreshToken(
+      const refreshToken = await this.refreshTokenService.generateRefreshToken(
         user.userId,
       );
 
@@ -64,6 +64,7 @@ export class AuthService {
         },
       };
     } catch (error) {
+      console.log(error);
       if (error instanceof NotFoundException) {
         throw new UnauthorizedException('User not found');
       }
@@ -93,7 +94,7 @@ export class AuthService {
       }
 
       // Create refresh token
-      const refreshToken = await this.refreshTokenService.createRefreshToken(
+      const refreshToken = await this.refreshTokenService.generateRefreshToken(
         user.userId,
       );
 
@@ -163,7 +164,7 @@ export class AuthService {
     });
 
     // Create refresh token
-    const refreshToken = await this.refreshTokenService.createRefreshToken(
+    const refreshToken = await this.refreshTokenService.generateRefreshToken(
       newUser.userId,
     );
 
@@ -230,7 +231,7 @@ export class AuthService {
     });
 
     // Create refresh token
-    const refreshToken = await this.refreshTokenService.createRefreshToken(
+    const refreshToken = await this.refreshTokenService.generateRefreshToken(
       newUser.userId,
     );
 
@@ -255,7 +256,7 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const user = await this.accountService.findByEmail(email);
     if (user && (await compare(password, user.password))) {
       const { password, ...result } = user;
       return result;
@@ -264,49 +265,103 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string) {
-    const payload = await this.refreshTokenService.validateRefreshToken(refreshToken);
-    
+    // Validate refresh token
+    const payload =
+      await this.refreshTokenService.validateRefreshToken(refreshToken);
+
     if (!payload) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.userId },
-    });
+    // Get user information
+    const user = await this.accountService.findById(payload.userId);
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
+    // Revoke old refresh token
+    await this.refreshTokenService.revokeRefreshToken(refreshToken);
+
     // Generate new access token
     const accessToken = this.jwtService.sign(
-      { email: user.email, sub: user.id, role: user.role },
       {
-        secret: this.config.get('JWT_SECRET'),
-        expiresIn: '15m',
+        userId: user.userId,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+      {
+        secret: this.config.get<string>('JWT_SECRET'),
+        expiresIn: this.config.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
       },
     );
 
     // Generate new refresh token
-    const newRefreshToken = await this.refreshTokenService.createRefreshToken(
-      user.id,
-      'Refreshed',
+    const newRefreshToken = await this.refreshTokenService.generateRefreshToken(
+      user.userId,
+      'Refresh Token',
     );
 
-    // Revoke old refresh token
-    await this.refreshTokenService.revokeRefreshToken(refreshToken);
+    // Get additional data for POC users
+    let pocData = {};
 
+    if (user.role === UserRole.POC) {
+      const poc = await this.pocService.getPocByUserId(user.userId);
+      if (poc) {
+        pocData = {
+          pocId: poc.pocId,
+          eventCode: poc.eventCode,
+        };
+      }
+    }
+
+    // Return new tokens and user info
     return {
-      access_token: accessToken,
-      refresh_token: newRefreshToken,
+      accessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        userId: user.userId,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+      ...pocData,
     };
   }
 
-  async logout(refreshToken: string) {
+  async logout(refreshToken: string): Promise<{ success: boolean }> {
     await this.refreshTokenService.revokeRefreshToken(refreshToken);
+    return { success: true };
   }
 
-  async logoutAll(userId: string) {
+  async logoutAll(userId: string): Promise<{ success: boolean }> {
     await this.refreshTokenService.revokeAllUserTokens(userId);
+    return { success: true };
+  }
+
+  async getUserSessions(userId: string): Promise<any[]> {
+    const tokens = await this.refreshTokenService.getUserTokens(userId);
+    return tokens.map((token) => ({
+      id: token.id,
+      deviceInfo: token.deviceInfo,
+      createdAt: token.createdAt,
+      expiresAt: token.expiresAt,
+    }));
+  }
+
+  async revokeSession(
+    userId: string,
+    tokenId: string,
+  ): Promise<{ success: boolean }> {
+    const token = await this.refreshTokenService.getUserTokens(userId);
+    const validToken = token.find((t) => t.id === tokenId);
+
+    if (!validToken) {
+      throw new NotFoundException('Session not found');
+    }
+
+    await this.refreshTokenService.revokeRefreshToken(validToken.refreshToken);
+    return { success: true };
   }
 }

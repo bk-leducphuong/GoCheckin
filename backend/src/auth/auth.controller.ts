@@ -1,5 +1,20 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, UseGuards, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Get,
+  Delete,
+  Param,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthAdminRegisterDto } from './dto/auth-admin-register.dto';
@@ -7,6 +22,8 @@ import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
 import { AuthLoginResponseDto } from './dto/login-response.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -63,13 +80,109 @@ export class AuthController {
     return this.service.registerPoc(registerDto);
   }
 
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({
+    status: 200,
+    description: 'New access token generated',
+    type: AuthLoginResponseDto,
+  })
   @Post('refresh')
-  async refreshTokens(@CurrentUser() user: any, @Body('refreshToken') refreshToken: string) {
+  @UseGuards(RefreshTokenGuard)
+  async refreshTokens(@Body('refreshToken') refreshToken: string) {
     return this.service.refreshTokens(refreshToken);
   }
 
+  @ApiOperation({ summary: 'Logout (revoke refresh token)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully logged out',
+    schema: {
+      properties: {
+        success: {
+          type: 'boolean',
+          example: true,
+        },
+      },
+    },
+  })
   @Post('logout')
   async logout(@Body('refreshToken') refreshToken: string) {
     return this.service.logout(refreshToken);
+  }
+
+  @ApiOperation({ summary: 'Logout from all devices' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully logged out from all devices',
+    schema: {
+      properties: {
+        success: {
+          type: 'boolean',
+          example: true,
+        },
+      },
+    },
+  })
+  @Post('logout-all')
+  @UseGuards(JwtAuthGuard)
+  async logoutAll(@CurrentUser() user: JwtPayload) {
+    return this.service.logoutAll(user.userId);
+  }
+
+  @ApiOperation({ summary: 'Verify token validity' })
+  @ApiResponse({
+    status: 200,
+    description: 'Token is valid',
+    schema: {
+      properties: {
+        valid: {
+          type: 'boolean',
+          example: true,
+        },
+        user: {
+          type: 'object',
+        },
+      },
+    },
+  })
+  @Post('verify')
+  @UseGuards(JwtAuthGuard)
+  verifyToken(@CurrentUser() user: JwtPayload) {
+    return { valid: true, user };
+  }
+
+  @ApiOperation({ summary: 'Get all active sessions for current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of active sessions',
+  })
+  @ApiBearerAuth()
+  @Get('sessions')
+  @UseGuards(JwtAuthGuard)
+  async getSessions(@CurrentUser() user: JwtPayload) {
+    return this.service.getUserSessions(user.userId);
+  }
+
+  @ApiOperation({ summary: 'Revoke a specific session' })
+  @ApiResponse({
+    status: 200,
+    description: 'Session successfully revoked',
+    schema: {
+      properties: {
+        success: {
+          type: 'boolean',
+          example: true,
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @Delete('sessions/:id')
+  @UseGuards(JwtAuthGuard)
+  async revokeSession(
+    @CurrentUser() user: JwtPayload,
+    @Param('id') tokenId: string,
+  ) {
+    return this.service.revokeSession(user.userId, tokenId);
   }
 }

@@ -26,81 +26,81 @@ import { UpdateEventDto } from './dto/update-event.dto';
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
-  @Get()
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
-  async getEvents(
-    @CurrentUser() user: JwtPayload,
-    @Query('status') status?: string,
-    @Query('tenantCode') tenantCode?: string,
-  ) {
-    // Admin can see all events, tenants can only see their own events
-    if (
-      user.role === UserRole.TENANT &&
-      (!tenantCode || tenantCode !== user.tenantCode)
-    ) {
-      tenantCode = user.tenantCode; // Force tenant to only see their events
-    }
-    return this.eventService.findAll(status, tenantCode);
-  }
+  // @Get()
+  // @Roles(UserRole.ADMIN, UserRole.TENANT)
+  // async getEvents(
+  //   @CurrentUser() user: JwtPayload,
+  //   @Query('status') status?: string,
+  //   @Query('tenantCode') tenantCode?: string,
+  // ) {
+  //   // Admin can see all events, tenants can only see their own events
+  //   if (
+  //     user.role === UserRole.TENANT &&
+  //     (!tenantCode || tenantCode !== user.tenantCode)
+  //   ) {
+  //     tenantCode = user.tenantCode; // Force tenant to only see their events
+  //   }
+  //   return this.eventService.findAll(status, tenantCode);
+  // }
 
-  @Post()
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
-  async createEvent(
-    @CurrentUser() user: JwtPayload,
-    @Body() createEventDto: CreateEventDto,
-  ) {
-    // Tenants can only create events for their own tenant code
-    if (
-      user.role === UserRole.TENANT &&
-      createEventDto.tenantCode !== user.tenantCode
-    ) {
-      throw new UnauthorizedException(
-        'You can only create events for your own tenant',
-      );
-    }
-    return this.eventService.create(createEventDto);
-  }
+  // @Post()
+  // @Roles(UserRole.ADMIN, UserRole.TENANT)
+  // async createEvent(
+  //   @CurrentUser() user: JwtPayload,
+  //   @Body() createEventDto: CreateEventDto,
+  // ) {
+  //   // Tenants can only create events for their own tenant code
+  //   if (
+  //     user.role === UserRole.TENANT &&
+  //     createEventDto.tenantCode !== user.tenantCode
+  //   ) {
+  //     throw new UnauthorizedException(
+  //       'You can only create events for your own tenant',
+  //     );
+  //   }
+  //   return this.eventService.create(createEventDto);
+  // }
 
-  @Get(':eventId')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
-  async getEventById(
-    @CurrentUser() user: JwtPayload,
-    @Param('eventId', ParseUUIDPipe) eventId: string,
-  ) {
-    const event = await this.eventService.findOne(eventId);
-    // Tenants can only view their own events
-    if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
-      throw new UnauthorizedException('You can only view your own events');
-    }
-    return event;
-  }
+  // @Get(':eventId')
+  // @Roles(UserRole.ADMIN, UserRole.TENANT)
+  // async getEventById(
+  //   @CurrentUser() user: JwtPayload,
+  //   @Param('eventId', ParseUUIDPipe) eventId: string,
+  // ) {
+  //   const event = await this.eventService.findOne(eventId);
+  //   // Tenants can only view their own events
+  //   if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
+  //     throw new UnauthorizedException('You can only view your own events');
+  //   }
+  //   return event;
+  // }
 
-  @Put(':eventId')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
-  async updateEvent(
-    @CurrentUser() user: JwtPayload,
-    @Param('eventId', ParseUUIDPipe) eventId: string,
-    @Body() updateEventDto: UpdateEventDto,
-  ) {
-    const event = await this.eventService.findOne(eventId);
-    // Tenants can only update their own events
-    if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
-      throw new UnauthorizedException('You can only update your own events');
-    }
-    return this.eventService.update(eventId, updateEventDto);
-  }
+  // @Put(':eventId')
+  // @Roles(UserRole.ADMIN, UserRole.TENANT)
+  // async updateEvent(
+  //   @CurrentUser() user: JwtPayload,
+  //   @Param('eventId', ParseUUIDPipe) eventId: string,
+  //   @Body() updateEventDto: UpdateEventDto,
+  // ) {
+  //   const event = await this.eventService.findOne(eventId);
+  //   // Tenants can only update their own events
+  //   if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
+  //     throw new UnauthorizedException('You can only update your own events');
+  //   }
+  //   return this.eventService.update(eventId, updateEventDto);
+  // }
 
-  @Delete(':eventId')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
-  async deleteEvent(
-    @CurrentUser() user: JwtPayload,
-    @Param('eventId', ParseUUIDPipe) eventId: string,
-  ) {
-    const event = await this.eventService.findOne(eventId);
-    // Tenants can only delete their own events
-    if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
-      throw new UnauthorizedException('You can only delete your own events');
-    }
-    return this.eventService.remove(eventId);
-  }
+  // @Delete(':eventId')
+  // @Roles(UserRole.ADMIN, UserRole.TENANT)
+  // async deleteEvent(
+  //   @CurrentUser() user: JwtPayload,
+  //   @Param('eventId', ParseUUIDPipe) eventId: string,
+  // ) {
+  //   const event = await this.eventService.findOne(eventId);
+  //   // Tenants can only delete their own events
+  //   if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
+  //     throw new UnauthorizedException('You can only delete your own events');
+  //   }
+  //   return this.eventService.remove(eventId);
+  // }
 }
