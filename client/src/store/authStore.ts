@@ -7,6 +7,8 @@ interface AuthState {
   user: User | null;
   pocId: string | null;
   eventCode: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -14,16 +16,21 @@ interface AuthState {
   pocLogin: (email: string, password: string) => Promise<User>;
   adminRegister: (data: AdminRegisterData) => Promise<User>;
   pocRegister: (data: PocRegisterData) => Promise<User>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  clearAuth: () => void;
+  setTokens: (accessToken: string, refreshToken: string) => void;
+  refreshAccessToken: () => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         user: null,
         pocId: null,
         eventCode: null,
+        accessToken: null,
+        refreshToken: null,
         isAuthenticated: false,
         isLoading: false,
         error: null,
@@ -32,11 +39,17 @@ export const useAuthStore = create<AuthState>()(
           try {
             set({ isLoading: true, error: null });
             const response = await AuthService.adminLogin({ email, password });
-            set({
+
+            const newState = {
               user: response.user,
+              accessToken: response.accessToken,
+              refreshToken: response.refreshToken,
               isAuthenticated: true,
               isLoading: false,
-            });
+            };
+
+            set(newState);
+
             return response.user;
           } catch (error) {
             set({
@@ -51,13 +64,19 @@ export const useAuthStore = create<AuthState>()(
           try {
             set({ isLoading: true, error: null });
             const response = await AuthService.pocLogin({ email, password });
-            set({
+
+            const newState = {
               user: response.user,
               pocId: response.pocId,
               eventCode: response.eventCode,
+              accessToken: response.accessToken,
+              refreshToken: response.refreshToken,
               isAuthenticated: true,
               isLoading: false,
-            });
+            };
+
+            set(newState);
+
             return response.user;
           } catch (error) {
             set({
@@ -72,11 +91,17 @@ export const useAuthStore = create<AuthState>()(
           try {
             set({ isLoading: true, error: null });
             const response = await AuthService.adminRegister(data);
-            set({
+
+            const newState = {
               user: response.user,
+              accessToken: response.accessToken,
+              refreshToken: response.refreshToken,
               isAuthenticated: true,
               isLoading: false,
-            });
+            };
+
+            set(newState);
+
             return response.user;
           } catch (error) {
             set({
@@ -92,13 +117,19 @@ export const useAuthStore = create<AuthState>()(
           try {
             set({ isLoading: true, error: null });
             const response = await AuthService.pocRegister(data);
-            set({
+
+            const newState = {
               user: response.user,
               pocId: response.pocId,
               eventCode: response.eventCode,
+              accessToken: response.accessToken,
+              refreshToken: response.refreshToken,
               isAuthenticated: true,
               isLoading: false,
-            });
+            };
+
+            set(newState);
+
             return response.user;
           } catch (error) {
             set({
@@ -110,22 +141,86 @@ export const useAuthStore = create<AuthState>()(
           }
         },
 
-        logout: () => {
-          set({ user: null, pocId: null, eventCode: null, isAuthenticated: false, error: null });
+        logout: async () => {
+          const { refreshToken } = get();
+          if (refreshToken) {
+            try {
+              // Call the logout endpoint via AuthService
+              await AuthService.logout(refreshToken);
+            } catch (error) {
+              console.error("Logout error:", error);
+            }
+          }
+          // Clear the auth state regardless of API call success
+          get().clearAuth();
+        },
+
+        clearAuth: () => {
+          set({
+            user: null,
+            pocId: null,
+            eventCode: null,
+            accessToken: null,
+            refreshToken: null,
+            isAuthenticated: false,
+            error: null,
+          });
+        },
+
+        setTokens: (accessToken: string, refreshToken: string) => {
+          set({ accessToken, refreshToken });
+        },
+
+        refreshAccessToken: async () => {
+          const { refreshToken } = get();
+          if (!refreshToken) {
+            get().clearAuth();
+            return false;
+          }
+
+          try {
+            const response = await AuthService.refreshToken(refreshToken);
+
+            const updatedState = {
+              accessToken: response.accessToken,
+              refreshToken: response.refreshToken,
+              user: response.user || get().user,
+            };
+
+            set(updatedState);
+
+            return true;
+          } catch (error) {
+            console.error("Token refresh error:", error);
+            get().clearAuth();
+            return false;
+          }
         },
       }),
       {
         name: "auth-storage",
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated, pocId: state.pocId, eventCode: state.eventCode }),
+        partialize: (state) => ({
+          user: state.user,
+          pocId: state.pocId,
+          eventCode: state.eventCode,
+          accessToken: state.accessToken,
+          refreshToken: state.refreshToken,
+          isAuthenticated: state.isAuthenticated,
+        }),
         onRehydrateStorage: () => (state) => {
-          console.log('hydration complete', state);
+          if (state) {
+            console.log("Auth state hydration complete");
+          } else {
+            console.error("Failed to rehydrate auth state");
+          }
         },
+        version: 1, // increment this when the storage structure changes
       }
     ),
     {
-      name: 'Auth Store',
-      enabled: process.env.NODE_ENV === 'development',
+      name: "Auth Store",
+      enabled: process.env.NODE_ENV === "development",
     }
   )
 );

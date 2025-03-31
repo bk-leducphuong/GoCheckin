@@ -1,17 +1,23 @@
-'use client';
+"use client";
 
-import AuthGuard from '@/middleware/AuthGuard';
+import AuthCheck from "@/components/auth/AuthCheck";
+import { UserRole } from "@/types/auth";
 
-export default function PocLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PocLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthGuard allowedRoles={['poc']}>
-      <div className="min-h-screen bg-gray-100">
-        {children}
-      </div>
-    </AuthGuard>
+    <AuthCheck
+      allowedRoles={[UserRole.POC]}
+      redirectTo="/login"
+      fallback={
+        <div className="flex items-center justify-center min-h-screen flex-col">
+          <div className="text-2xl font-bold mb-4">Access Denied</div>
+          <div className="text-gray-600">
+            You don&apos;t have permission to access this page.
+          </div>
+        </div>
+      }
+    >
+      <div className="min-h-screen bg-gray-100">{children}</div>
+    </AuthCheck>
   );
-} 
+}

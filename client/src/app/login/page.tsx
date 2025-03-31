@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Link from 'next/link';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
-import { useAuthStore } from '@/store/authStore';
-import { useShallow } from 'zustand/react/shallow'
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import { useAuthStore } from "@/store/authStore";
+import { useShallow } from "zustand/react/shallow";
 
 // Login validation schema
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-  userType: z.enum(['admin', 'poc'], {
-    required_error: 'Please select a user type',
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+  userType: z.enum(["admin", "poc"], {
+    required_error: "Please select a user type",
   }),
 });
 
@@ -25,43 +25,46 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { adminLogin, pocLogin, isLoading } = useAuthStore(useShallow(state => ({
-    adminLogin: state.adminLogin,
-    pocLogin: state.pocLogin,
-    isLoading: state.isLoading,
-  })));
-  
-  const { 
-    register, 
-    handleSubmit, 
+  const { adminLogin, pocLogin, isLoading, user } = useAuthStore(
+    useShallow((state) => ({
+      user: state.user,
+      adminLogin: state.adminLogin,
+      pocLogin: state.pocLogin,
+      isLoading: state.isLoading,
+    }))
+  );
+
+  const {
+    register,
+    handleSubmit,
     formState: { errors },
-    watch 
+    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      userType: 'admin',
+      userType: "admin",
     },
   });
 
-  const selectedUserType = watch('userType');
+  const selectedUserType = watch("userType");
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       setErrorMessage(null);
-      
-      if (data.userType === 'admin') {
+
+      if (data.userType === "admin") {
         await adminLogin(data.email, data.password);
-        router.push('/admin');
+        router.push("/admin");
       } else {
         await pocLogin(data.email, data.password);
-        router.push('/poc');
+        router.push("/poc");
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       setErrorMessage(
-        error instanceof Error 
-          ? error.message 
-          : 'Login failed. Please check your credentials and try again.'
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please check your credentials and try again."
       );
     }
   };
@@ -89,30 +92,32 @@ export default function LoginPage() {
                 <input
                   type="radio"
                   value="admin"
-                  {...register('userType')}
+                  {...register("userType")}
                   className="h-4 w-4 text-blue-600"
                 />
                 <span className="text-sm font-medium text-gray-700">Admin</span>
               </label>
-              
+
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
                   value="poc"
-                  {...register('userType')}
+                  {...register("userType")}
                   className="h-4 w-4 text-blue-600"
                 />
                 <span className="text-sm font-medium text-gray-700">POC</span>
               </label>
             </div>
             {errors.userType && (
-              <p className="mt-1 text-sm text-red-600">{errors.userType.message}</p>
+              <p className="mt-1 text-sm text-red-600">
+                {errors.userType.message}
+              </p>
             )}
 
             <Input
               label="Email"
               type="email"
-              {...register('email')}
+              {...register("email")}
               error={errors.email?.message}
               placeholder="your@email.com"
             />
@@ -120,25 +125,31 @@ export default function LoginPage() {
             <Input
               label="Password"
               type="password"
-              {...register('password')}
+              {...register("password")}
               error={errors.password?.message}
               placeholder="********"
             />
           </div>
 
           <Button type="submit" isLoading={isLoading} className="w-full">
-            {selectedUserType === 'admin' ? 'Login as Admin' : 'Login as POC'}
+            {selectedUserType === "admin" ? "Login as Admin" : "Login as POC"}
           </Button>
 
           <div className="text-center mt-4">
             <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{' '}
-              {selectedUserType === 'admin' ? (
-                <Link href="/register/tenant" className="text-blue-600 hover:underline">
+              Don&apos;t have an account?{" "}
+              {selectedUserType === "admin" ? (
+                <Link
+                  href="/register/tenant"
+                  className="text-blue-600 hover:underline"
+                >
                   Register as Admin
                 </Link>
               ) : (
-                <Link href="/register/poc" className="text-blue-600 hover:underline">
+                <Link
+                  href="/register/poc"
+                  className="text-blue-600 hover:underline"
+                >
                   Register as POC
                 </Link>
               )}
@@ -148,4 +159,4 @@ export default function LoginPage() {
       </div>
     </div>
   );
-} 
+}
