@@ -88,22 +88,9 @@ api.interceptors.response.use(
       
       try {
         const authStore = useAuthStore.getState();
-        const refreshToken = authStore.refreshToken;
+        authStore.refreshAccessToken();
         
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-        
-        // Need to use direct axios to avoid circular dependency
-        const response = await axios.post(`${API_URL}/auth/refresh`, {
-          refreshToken,
-        });
-        
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-        
-        // Update tokens in the store
-        authStore.setTokens(accessToken, newRefreshToken);
-        
+        const accessToken = authStore.accessToken; // Get the new access token
         // Update authorization header for the original request
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
