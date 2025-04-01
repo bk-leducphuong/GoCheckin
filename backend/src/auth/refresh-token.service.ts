@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Token } from './entities/token.entity';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
+import { LessThan, MoreThan } from 'typeorm';
 
 @Injectable()
 export class RefreshTokenService {
@@ -71,7 +72,7 @@ export class RefreshTokenService {
         where: {
           refreshToken,
           isRevoked: false,
-          expiresAt: this.typeormDateGreaterThan(new Date()),
+          expiresAt: MoreThan(new Date()),
         },
       });
 
@@ -79,8 +80,9 @@ export class RefreshTokenService {
         return null;
       }
 
-      return payload;
+      return payload as JwtPayload;
     } catch (error) {
+      console.error('Error validating refresh token:', error);
       return null;
     }
   }
@@ -89,23 +91,37 @@ export class RefreshTokenService {
    * Revoke a refresh token
    */
   async revokeRefreshToken(refreshToken: string): Promise<void> {
-    await this.tokenRepository.update({ refreshToken }, { isRevoked: true });
+    try {
+      await this.tokenRepository.update({ refreshToken }, { isRevoked: true });
+    } catch (error) {
+      console.error('Error revoking refresh token:', error);
+      throw new UnauthorizedException('Failed to revoke token');
+    }
   }
 
   /**
    * Revoke all refresh tokens for a user
    */
   async revokeAllUserTokens(userId: string): Promise<void> {
-    await this.tokenRepository.update({ userId }, { isRevoked: true });
+    try {
+      await this.tokenRepository.update({ userId }, { isRevoked: true });
+    } catch (error) {
+      console.error('Error revoking all tokens for user:', error);
+      throw new UnauthorizedException('Failed to revoke tokens');
+    }
   }
 
   /**
    * Clean up expired tokens
    */
   async cleanupExpiredTokens(): Promise<void> {
-    await this.tokenRepository.delete({
-      expiresAt: this.typeormDateLessThan(new Date()),
-    });
+    try {
+      await this.tokenRepository.delete({
+        expiresAt: LessThan(new Date()),
+      });
+    } catch (error) {
+      console.error('Error cleaning up expired tokens:', error);
+    }
   }
 
   /**
@@ -116,7 +132,7 @@ export class RefreshTokenService {
       where: {
         userId,
         isRevoked: false,
-        expiresAt: this.typeormDateGreaterThan(new Date()),
+        expiresAt: MoreThan(new Date()),
       },
     });
   }
@@ -149,19 +165,5 @@ export class RefreshTokenService {
       default:
         return value;
     }
-  }
-
-  /**
-   * Helper for TypeORM date comparison (greater than)
-   */
-  private typeormDateGreaterThan(date: Date) {
-    return { $gt: date } as any;
-  }
-
-  /**
-   * Helper for TypeORM date comparison (less than)
-   */
-  private typeormDateLessThan(date: Date) {
-    return { $lt: date } as any;
   }
 }
