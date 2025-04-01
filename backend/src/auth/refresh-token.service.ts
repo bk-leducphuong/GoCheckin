@@ -22,6 +22,13 @@ export class RefreshTokenService {
     userId: string,
     deviceInfo: string = 'unknown',
   ): Promise<string> {
+    // Clean up expired tokens
+    await this.cleanupExpiredTokens();
+    // Revoke existing tokens for the user
+    await this.tokenRepository.update(
+      { userId, deviceInfo },
+      { isRevoked: true },
+    );
     // Generate JWT refresh token
     const refreshToken = this.jwtService.sign(
       { userId },
