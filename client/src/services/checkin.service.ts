@@ -3,7 +3,7 @@ import api from "./api";
 
 // CheckIn Service for handling check-in operations
 export const CheckInService = {
-  uploadGuestImage: async (guestImage: string | null): Promise<string> => {
+  async uploadGuestImage(guestImage: string | null): Promise<string> {
     if (!guestImage) return '';
     
     try {
@@ -33,7 +33,7 @@ export const CheckInService = {
     }
   },
 
-  checkinGuest: async (checkinDto: GuestCheckIn): Promise<CheckInResponse> => {
+  async checkinGuest(checkinDto: GuestCheckIn): Promise<CheckInResponse> {
     try {
       const response = await api.post('/guests/checkin', checkinDto, {
         headers: {
@@ -47,7 +47,7 @@ export const CheckInService = {
     }
   },
 
-  getGuestList: async (eventCode: string, pocId: string): Promise<{ success: boolean; message: string; data: GuestCheckinData[] }> => {
+  async getGuestList(eventCode: string, pocId: string): Promise<{ success: boolean; message: string; data: GuestCheckinData[] }> {
     try {
       const response = await api.get(`/guests/poc-checkins?eventCode=${eventCode}&pocId=${pocId}`);
       return response.data.data;
