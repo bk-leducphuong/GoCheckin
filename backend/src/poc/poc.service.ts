@@ -10,6 +10,7 @@ import { CreatePocDto } from './dto/create-poc.dto';
 // import { UpdatePocDto } from './dto/update-poc.dto';
 import { EventService } from 'src/event/event.service';
 import { UpdatePocDto } from './dto/update-poc.dto';
+import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class PocService {
@@ -127,5 +128,22 @@ export class PocService {
     // Soft delete - just set enabled to false
     poc.enabled = false;
     await this.pocRepository.save(poc);
+  }
+
+  async validatePoc(
+    user: JwtPayload,
+    validatePocDto: any,
+  ): Promise<PointOfCheckin> {
+    const { eventCode, pocId } = validatePocDto;
+    const userId = user.userId;
+
+    const poc = await this.pocRepository.findOne({
+      where: { userId, eventCode, pocId, enabled: true },
+    });
+    if (!poc) {
+      throw new NotFoundException('Not found poc!');
+    }
+
+    return poc;
   }
 }

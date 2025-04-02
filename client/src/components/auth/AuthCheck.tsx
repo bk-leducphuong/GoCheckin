@@ -6,7 +6,6 @@ import { useAuthStore } from "@/store/authStore";
 import { AuthService } from "@/services/auth.service";
 import { UserRole } from "@/types/auth";
 import { useShallow } from "zustand/shallow";
-import { set } from "react-hook-form";
 
 interface AuthCheckProps {
   children: React.ReactNode;
@@ -30,7 +29,6 @@ export default function AuthCheck({
   const {
     isAuthenticated,
     accessToken,
-    refreshToken,
     user,
     clearAuth,
     refreshAccessToken,
@@ -38,7 +36,6 @@ export default function AuthCheck({
     useShallow((state) => ({
       isAuthenticated: state.isAuthenticated,
       accessToken: state.accessToken,
-      refreshToken: state.refreshToken,
       user: state.user,
       clearAuth: state.clearAuth,
       refreshAccessToken: state.refreshAccessToken,
@@ -72,7 +69,7 @@ export default function AuthCheck({
   }, [
     isAuthenticated,
     accessToken,
-    refreshToken,
+    refreshAccessToken,
     clearAuth,
     router,
     redirectTo,

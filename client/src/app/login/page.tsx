@@ -25,7 +25,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { adminLogin, pocLogin, isLoading, user } = useAuthStore(
+  const { adminLogin, pocLogin, isLoading } = useAuthStore(
     useShallow((state) => ({
       user: state.user,
       adminLogin: state.adminLogin,
@@ -56,8 +56,8 @@ export default function LoginPage() {
         await adminLogin(data.email, data.password);
         router.push("/admin");
       } else {
-        await pocLogin(data.email, data.password);
-        router.push("/poc");
+        const { pocId, eventCode } = await pocLogin(data.email, data.password);
+        router.push(`/poc?pocId=${pocId}&eventCode=${eventCode}`);
       }
     } catch (error) {
       console.error("Login error:", error);

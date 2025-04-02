@@ -2,8 +2,36 @@
 
 import AuthCheck from "@/components/auth/AuthCheck";
 import { UserRole } from "@/types/auth";
+import { useSearchParams } from "next/navigation";
+import { usePocStore } from "@/store/pocStore";
+import { useEffect } from "react";
+import { useShallow } from "zustand/shallow";
+import { useRouter } from "next/navigation";
 
 export default function PocLayout({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const pocId = searchParams.get("pocId");
+  const eventCode = searchParams.get("eventCode");
+  const router = useRouter();
+
+  const { validatePoc } = usePocStore(
+    useShallow((state) => ({
+      validatePoc: state.validatePoc,
+    }))
+  );
+
+  useEffect(() => {
+    const validatePocData = async () => {
+      if (pocId && eventCode) {
+        const response = await validatePoc(pocId, eventCode);
+        if (!response.success) {
+          router.push("/login");
+        }
+      }
+    };
+    validatePocData();
+  }, [pocId, eventCode, router, validatePoc]);
+
   return (
     <AuthCheck
       allowedRoles={[UserRole.POC]}

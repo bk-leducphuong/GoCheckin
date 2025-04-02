@@ -5,15 +5,16 @@ import { User, AdminRegisterData, PocRegisterData } from "@/types/auth";
 
 interface AuthState {
   user: User | null;
-  pocId: string | null;
-  eventCode: string | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  adminLogin: (email: string, password: string) => Promise<User>;
-  pocLogin: (email: string, password: string) => Promise<User>;
+  adminLogin: (email: string, password: string) => Promise<void>;
+  pocLogin: (
+    pocId: string,
+    eventCode: string
+  ) => Promise<{ pocId: string; eventCode: string }>;
   adminRegister: (data: AdminRegisterData) => Promise<User>;
   pocRegister: (data: PocRegisterData) => Promise<User>;
   logout: () => Promise<void>;
@@ -27,8 +28,6 @@ export const useAuthStore = create<AuthState>()(
     persist(
       (set, get) => ({
         user: null,
-        pocId: null,
-        eventCode: null,
         accessToken: null,
         refreshToken: null,
         isAuthenticated: false,
@@ -49,8 +48,6 @@ export const useAuthStore = create<AuthState>()(
             };
 
             set(newState);
-
-            return response.user;
           } catch (error) {
             set({
               error: error instanceof Error ? error.message : "Login failed",
@@ -67,17 +64,21 @@ export const useAuthStore = create<AuthState>()(
 
             const newState = {
               user: response.user,
-              pocId: response.pocId,
-              eventCode: response.eventCode,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               isAuthenticated: true,
               isLoading: false,
             };
-
             set(newState);
 
-            return response.user;
+            if (!response.pocId || !response.eventCode) {
+              throw new Error("Invalid response from server");
+            }
+
+            return {
+              pocId: response.pocId,
+              eventCode: response.eventCode,
+            };
           } catch (error) {
             set({
               error: error instanceof Error ? error.message : "Login failed",
@@ -158,8 +159,6 @@ export const useAuthStore = create<AuthState>()(
         clearAuth: () => {
           set({
             user: null,
-            pocId: null,
-            eventCode: null,
             accessToken: null,
             refreshToken: null,
             isAuthenticated: false,
@@ -202,8 +201,6 @@ export const useAuthStore = create<AuthState>()(
         storage: createJSONStorage(() => localStorage),
         partialize: (state) => ({
           user: state.user,
-          pocId: state.pocId,
-          eventCode: state.eventCode,
           accessToken: state.accessToken,
           refreshToken: state.refreshToken,
           isAuthenticated: state.isAuthenticated,

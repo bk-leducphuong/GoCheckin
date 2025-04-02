@@ -10,6 +10,7 @@ import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
 import { CheckInService } from "@/services/checkin.service";
 import { GuestCheckIn, GuestCheckinData } from "@/types/checkin";
+import { useSearchParams } from "next/navigation";
 
 // Placeholder data for guest list
 const MOCK_GUESTS = [
@@ -68,18 +69,17 @@ type CheckInFormData = z.infer<typeof checkInSchema>;
 export default function POCDashboard() {
   const {
     user,
-    pocId,
-    eventCode: storeEventCode,
   } = useAuthStore(
     useShallow((state) => ({
       user: state.user,
-      pocId: state.pocId,
-      eventCode: state.eventCode,
     }))
   );
+  const searchParams = useSearchParams();
+  const eventCode = searchParams.get("eventCode") || null;
+  const pocId = searchParams.get("pocId") || null;
 
   // Use stored values or fallbacks
-  const activeEventCode = storeEventCode || "EVENT001";
+  const activeEventCode = eventCode || "EVENT001";
   const activePocId = pocId || "POC001";
 
   const [searchQuery, setSearchQuery] = useState("");

@@ -18,7 +18,9 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/account/entities/account.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-// import { CurrentUser } from 'src/common/decorators/user.decorator';
+import { CurrentUser } from 'src/common/decorators/user.decorator';
+import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
+import { PointOfCheckin } from './entities/poc.entity';
 // import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @ApiTags('points-of-checkin')
@@ -100,5 +102,19 @@ export class PocController {
   })
   async deletePoc(@Param('pocId') pocId: string) {
     return this.pocService.remove(pocId);
+  }
+
+  @Post('validate-poc')
+  @Roles(UserRole.POC)
+  @ApiOperation({ summary: 'Validate poc account' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Point of check-in validated successfully',
+  })
+  async validatePoc(
+    @CurrentUser() user: JwtPayload,
+    @Body() validatePocDto: any,
+  ): Promise<PointOfCheckin> {
+    return this.pocService.validatePoc(user, validatePocDto);
   }
 }
