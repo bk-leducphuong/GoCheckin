@@ -23,6 +23,10 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Guest } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  GetGuestsResponseDto,
+  GuestResponse,
+} from './dto/get-guests-response.dto';
 
 @ApiTags('guests')
 @Controller('guests')
@@ -42,7 +46,7 @@ export class GuestController {
     status: HttpStatus.NOT_FOUND,
     description: 'Guest not found',
   })
-  async checkinGuest(@Body() checkinDto: CheckinDto): Promise<GuestCheckin> {
+  async checkinGuest(@Body() checkinDto: CheckinDto): Promise<GuestResponse> {
     return this.guestService.checkin(checkinDto);
   }
 
@@ -97,20 +101,23 @@ export class GuestController {
     return this.guestService.getPocCheckins(pocId, eventCode);
   }
 
-  @Get()
+  @Get('all/:eventCode/:pocId')
   @Roles(UserRole.ADMIN, UserRole.POC)
   @ApiOperation({
     summary: 'Get all guests for a specific event and point of check-in',
   })
   @ApiParam({ name: 'eventCode', description: 'Event code' })
-  @ApiParam({ name: 'pointCode', description: 'Point of check-in code' })
+  @ApiParam({ name: 'pocId', description: 'Point of check-in ID' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all guests for the event and point of check-in',
     type: [Guest],
   })
-  async getAllGuestsByEventAndPoint(): Promise<Guest[]> {
-    return this.guestService.findAllByEventAndPoint();
+  async getAllGuestsOfPoc(
+    @Param('eventCode') eventCode: string,
+    @Param('pocId') pocId: string,
+  ): Promise<GetGuestsResponseDto> {
+    return this.guestService.getAllGuestsOfPoc(eventCode, pocId);
   }
 
   @Get('all')

@@ -9,52 +9,9 @@ import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
 import { CheckInService } from "@/services/checkin.service";
-import { GuestCheckIn, GuestCheckinData } from "@/types/checkin";
+import { GuestCheckinInfo } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
-
-// Placeholder data for guest list
-const MOCK_GUESTS = [
-  {
-    id: 1,
-    name: "John Smith",
-    email: "john@example.com",
-    code: "G001",
-    status: "Checked In",
-    checkInTime: "10:30 AM",
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    email: "sarah@example.com",
-    code: "G002",
-    status: "Registered",
-    checkInTime: "-",
-  },
-  {
-    id: 3,
-    name: "Michael Brown",
-    email: "michael@example.com",
-    code: "G003",
-    status: "Checked In",
-    checkInTime: "09:15 AM",
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    email: "emily@example.com",
-    code: "G004",
-    status: "Registered",
-    checkInTime: "-",
-  },
-  {
-    id: 5,
-    name: "David Wilson",
-    email: "david@example.com",
-    code: "G005",
-    status: "Checked In",
-    checkInTime: "11:45 AM",
-  },
-];
+import GuestList from "@/components/poc/GuestList";
 
 // Guest check-in validation schema
 const checkInSchema = z.object({
@@ -67,9 +24,7 @@ const checkInSchema = z.object({
 type CheckInFormData = z.infer<typeof checkInSchema>;
 
 export default function POCDashboard() {
-  const {
-    user,
-  } = useAuthStore(
+  const { user } = useAuthStore(
     useShallow((state) => ({
       user: state.user,
     }))
@@ -82,11 +37,9 @@ export default function POCDashboard() {
   const activeEventCode = eventCode || "EVENT001";
   const activePocId = pocId || "POC001";
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [guestCode, setGuestCode] = useState("");
   const [note, setNote] = useState("");
   const [guestImage, setGuestImage] = useState<string | null>(null);
-  const [guests, setGuests] = useState(MOCK_GUESTS);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
 
@@ -99,14 +52,6 @@ export default function POCDashboard() {
     resolver: zodResolver(checkInSchema),
   });
 
-  // Filter guests based on search query
-  const filteredGuests = guests.filter(
-    (guest) =>
-      guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      guest.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      guest.code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const onSubmit = async (data: CheckInFormData) => {
     try {
       setIsLoading(true);
@@ -118,7 +63,7 @@ export default function POCDashboard() {
       }
 
       // Prepare the check-in data
-      const checkInData: GuestCheckIn = {
+      const checkInData: GuestCheckinInfo = {
         guestCode,
         eventCode: activeEventCode,
         pocId: activePocId,
@@ -136,26 +81,7 @@ export default function POCDashboard() {
       setNote("");
       alert("Guest checked in successfully!");
 
-      // Refresh guest list
-      // try {
-      //   const guestListResponse = await CheckInService.getGuestList(activeEventCode, activePocId);
-      //   if (guestListResponse.success && guestListResponse.data) {
-      //     // Convert API response to the format expected by the component
-      //     const formattedGuests = Array.isArray(guestListResponse.data)
-      //       ? guestListResponse.data.map((item: GuestCheckinData) => ({
-      //           id: item.id,
-      //           name: item.guest?.name || 'Unknown',
-      //           email: item.guest?.email || 'Unknown',
-      //           code: item.guest?.guestCode || 'Unknown',
-      //           status: item.status,
-      //           checkInTime: new Date(item.checkInTime).toLocaleTimeString(),
-      //         }))
-      //       : [];
-      //     setGuests(formattedGuests);
-      //   }
-      // } catch (listError) {
-      //   console.error('Failed to refresh guest list:', listError);
-      // }
+      
     } catch (error) {
       console.error("Check-in error:", error);
       alert(
@@ -419,101 +345,7 @@ export default function POCDashboard() {
       </div>
 
       {/* Section 3: Guest List */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Guest List</h2>
-          <div className="w-full md:w-64 mt-2 md:mt-0">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              placeholder="Search guests..."
-            />
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Name
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Code
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Email
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Status
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Check-in Time
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredGuests.length > 0 ? (
-                filteredGuests.map((guest) => (
-                  <tr key={guest.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {guest.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{guest.code}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{guest.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          guest.status === "Checked In"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {guest.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {guest.checkInTime}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"
-                  >
-                    No guests found matching your search criteria.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <GuestList></GuestList>
 
       {showCamera && (
         <Camera

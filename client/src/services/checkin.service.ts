@@ -1,4 +1,4 @@
-import { GuestCheckIn, CheckInResponse, GuestCheckinData } from "@/types/checkin";
+import { GuestCheckinInfo, CheckInResponse } from "@/types/checkin";
 import api from "./api";
 
 // CheckIn Service for handling check-in operations
@@ -33,7 +33,7 @@ export const CheckInService = {
     }
   },
 
-  async checkinGuest(checkinDto: GuestCheckIn): Promise<CheckInResponse> {
+  async checkinGuest(checkinDto: GuestCheckinInfo): Promise<CheckInResponse> {
     try {
       const response = await api.post('/guests/checkin', checkinDto, {
         headers: {
@@ -43,16 +43,6 @@ export const CheckInService = {
       return response.data.data;
     } catch (error) {
       console.error('Check-in error:', error);
-      throw error;
-    }
-  },
-
-  async getGuestList(eventCode: string, pocId: string): Promise<{ success: boolean; message: string; data: GuestCheckinData[] }> {
-    try {
-      const response = await api.get(`/guests/poc-checkins?eventCode=${eventCode}&pocId=${pocId}`);
-      return response.data.data;
-    } catch (error) {
-      console.error('Get guest list error:', error);
       throw error;
     }
   },

@@ -13,6 +13,10 @@ import { UpdateGuestDto } from './dto/update-guest.dto';
 import { CheckinDto } from './dto/checkin.dto';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import {
+  GetGuestsResponseDto,
+  GuestResponse,
+} from './dto/get-guests-response.dto';
 
 @Injectable()
 export class GuestService {
@@ -53,7 +57,7 @@ export class GuestService {
     }
   }
 
-  async checkin(checkinDto: CheckinDto): Promise<GuestCheckin> {
+  async checkin(checkinDto: CheckinDto): Promise<GuestResponse> {
     try {
       // Check if guest has already checked in
       const existingCheckin = await this.guestCheckinRepository.findOne({
@@ -63,32 +67,46 @@ export class GuestService {
           active: true,
         },
       });
-
       if (existingCheckin) {
         throw new ConflictException(
           `Guest with code ${checkinDto.guestCode} has already checked in for this event`,
         );
       }
 
-      const guest = await this.create({
-        guestCode: checkinDto.guestCode,
-        eventCode: checkinDto.eventCode,
-        identityType: IdentityType.ID_CARD,
-        imageUrl: checkinDto.imageUrl,
-        description: checkinDto.notes,
+      // Check if guest exists with the provided guest code and event code
+      let checkinGuest = await this.guestRepository.findOne({
+        where: {
+          guestCode: checkinDto.guestCode,
+          eventCode: checkinDto.eventCode,
+        },
       });
+      if (!checkinGuest) {
+        // Create a new guest record
+        const newGuest = this.guestRepository.create({
+          guestCode: checkinDto.guestCode,
+          eventCode: checkinDto.eventCode,
+          identityType: IdentityType.ID_CARD,
+          imageUrl: checkinDto.imageUrl,
+          description: checkinDto.notes,
+        });
+        await this.guestRepository.save(newGuest);
+        checkinGuest = newGuest;
+      }
 
       // Create a new checkin record
       const checkin = this.guestCheckinRepository.create({
-        guestId: guest.guestId,
+        guestId: checkinGuest.guestId,
         guestCode: checkinDto.guestCode,
         eventCode: checkinDto.eventCode,
         pocId: checkinDto.pocId,
       });
 
       // Save the checkin record
-      const savedCheckin = await this.guestCheckinRepository.save(checkin);
-      return savedCheckin;
+      const checkinInfo = await this.guestCheckinRepository.save(checkin);
+      return {
+        guestInfo: checkinGuest,
+        checkinInfo,
+      };
     } catch (error) {
       console.error('Error checking in guest: ', error);
       throw error;
@@ -120,12 +138,34 @@ export class GuestService {
     });
   }
 
-  async findAllByEventAndPoint(): Promise<Guest[]> {
-    return this.guestRepository.find({
-      where: {
-        enabled: true,
-      },
+  async getAllGuestsOfPoc(
+    eventCode: string,
+    pocId: string,
+  ): Promise<GetGuestsResponseDto> {
+    const checkins = await this.guestCheckinRepository.find({
+      where: { pocId, eventCode, active: true },
+      order: { checkinTime: 'DESC' },
     });
+
+    const guestResponses = await Promise.all(
+      checkins.map(async (checkin) => {
+        const response = new GuestResponse();
+        const guestDetails = await this.guestRepository.findOne({
+          where: { guestId: checkin.guestId, enabled: true },
+        });
+        if (!guestDetails) return null;
+
+        response.guestInfo = guestDetails;
+        response.checkinInfo = checkin;
+        return response;
+      }),
+    );
+
+    return {
+      guests: guestResponses.filter(
+        (guest): guest is GuestResponse => guest !== null,
+      ),
+    };
   }
 
   async findAllByEvent(): Promise<Guest[]> {

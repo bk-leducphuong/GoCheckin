@@ -1,4 +1,6 @@
-export interface GuestCheckIn {
+import { GuestInfo } from './guest';
+
+export interface GuestCheckinInfo {
   guestCode: string;
   eventCode: string;
   pocId: string;
@@ -10,27 +12,17 @@ export interface GuestCheckIn {
   imageUrl?: string;
 }
 
-export interface CheckInResponse {
-  success: boolean;
-  message: string;
-  data?: GuestCheckinData | GuestCheckinData[];
+export interface CheckinInfo {
+  checkinId: string;
+  guestId: string;
+  guestCode: string;
+  pocId: string;
+  eventCode: string;
+  checkinTime: string;
+  active: boolean;
 }
 
-export interface GuestCheckinData {
-  id: string;
-  guestId: string;
-  eventCode: string;
-  pocId: string;
-  notes?: string;
-  imageUrl?: string;
-  checkInTime: string;
-  status: 'Checked In' | 'Registered';
-  guest?: {
-    id: string;
-    name: string;
-    email: string;
-    phoneNumber: string;
-    purpose: string;
-    guestCode: string;
-  };
+export interface CheckInResponse {
+  guestInfo: GuestInfo;
+  checkinInfo: CheckinInfo;
 }
