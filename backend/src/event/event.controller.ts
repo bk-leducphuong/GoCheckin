@@ -43,23 +43,14 @@ export class EventController {
   //   return this.eventService.findAll(status, tenantCode);
   // }
 
-  // @Post()
-  // @Roles(UserRole.ADMIN, UserRole.TENANT)
-  // async createEvent(
-  //   @CurrentUser() user: JwtPayload,
-  //   @Body() createEventDto: CreateEventDto,
-  // ) {
-  //   // Tenants can only create events for their own tenant code
-  //   if (
-  //     user.role === UserRole.TENANT &&
-  //     createEventDto.tenantCode !== user.tenantCode
-  //   ) {
-  //     throw new UnauthorizedException(
-  //       'You can only create events for your own tenant',
-  //     );
-  //   }
-  //   return this.eventService.create(createEventDto);
-  // }
+  @Post()
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  async createEvent(
+    @CurrentUser() user: JwtPayload,
+    @Body() createEventDto: CreateEventDto,
+  ) {
+    return this.eventService.create(createEventDto);
+  }
 
   // @Get(':eventId')
   // @Roles(UserRole.ADMIN, UserRole.TENANT)

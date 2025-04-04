@@ -54,14 +54,15 @@ export class AuthService {
       return {
         accessToken: this.jwtService.sign({
           userId: user.userId,
+          role: user.role,
         }),
         refreshToken: refreshToken,
-        user: {
-          userId: user.userId,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-        },
+        // user: {
+        //   userId: user.userId,
+        //   username: user.username,
+        //   email: user.email,
+        //   role: user.role,
+        // },
       };
     } catch (error) {
       console.log(error);
@@ -101,14 +102,15 @@ export class AuthService {
       return {
         accessToken: this.jwtService.sign({
           userId: user.userId,
+          role: user.role,
         }),
         refreshToken: refreshToken,
-        user: {
-          userId: user.userId,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-        },
+        // user: {
+        //   userId: user.userId,
+        //   username: user.username,
+        //   email: user.email,
+        //   role: user.role,
+        // },
         pocId: poc.pocId,
         eventCode: poc.eventCode,
       };
@@ -172,14 +174,15 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign({
         userId: newUser.userId,
+        role: newUser.role,
       }),
       refreshToken: refreshToken,
-      user: {
-        userId: newUser.userId,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
-      },
+      // user: {
+      //   userId: newUser.userId,
+      //   username: newUser.username,
+      //   email: newUser.email,
+      //   role: newUser.role,
+      // },
     };
   }
 
@@ -239,17 +242,15 @@ export class AuthService {
     return {
       accessToken: this.jwtService.sign({
         userId: newUser.userId,
-        username: newUser.username,
-        email: newUser.email,
         role: newUser.role,
       }),
       refreshToken: refreshToken,
-      user: {
-        userId: newUser.userId,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
-      },
+      // user: {
+      //   userId: newUser.userId,
+      //   username: newUser.username,
+      //   email: newUser.email,
+      //   role: newUser.role,
+      // },
       pocId: poc.pocId,
       eventCode: poc.eventCode,
     };
@@ -287,8 +288,6 @@ export class AuthService {
     const accessToken = this.jwtService.sign(
       {
         userId: user.userId,
-        username: user.username,
-        email: user.email,
         role: user.role,
       },
       {
@@ -320,12 +319,12 @@ export class AuthService {
     return {
       accessToken,
       refreshToken: newRefreshToken,
-      user: {
-        userId: user.userId,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
+      // user: {
+      //   userId: user.userId,
+      //   username: user.username,
+      //   email: user.email,
+      //   role: user.role,
+      // },
       ...pocData,
     };
   }

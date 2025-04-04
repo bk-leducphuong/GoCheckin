@@ -1,18 +1,3 @@
-// User roles
-export enum UserRole {
-  ADMIN = 'admin',
-  POC = 'poc',
-  USER = 'user'
-}
-
-// User interface
-export interface User {
-  userId: string;
-  username?: string;
-  email: string;
-  role: UserRole;
-  fullName?: string;
-}
 
 // Login credentials
 export interface LoginCredentials {
@@ -24,7 +9,6 @@ export interface LoginCredentials {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  user: User;
   pocId?: string;
   eventCode?: string;
 }
@@ -74,5 +58,4 @@ export interface TokenPayload {
 export interface TokenRefreshResponse {
   accessToken: string;
   refreshToken: string;
-  user?: User;
 } 

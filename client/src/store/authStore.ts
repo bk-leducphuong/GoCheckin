@@ -4,7 +4,7 @@ import { AuthService } from "@/services/auth.service";
 import { User, AdminRegisterData, PocRegisterData } from "@/types/auth";
 
 interface AuthState {
-  user: User | null;
+  // user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
-        user: null,
+        // user: null,
         accessToken: null,
         refreshToken: null,
         isAuthenticated: false,
@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.adminLogin({ email, password });
 
             const newState = {
-              user: response.user,
+              // user: response.user,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               isAuthenticated: true,
@@ -63,7 +63,7 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.pocLogin({ email, password });
 
             const newState = {
-              user: response.user,
+              // user: response.user,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               isAuthenticated: true,
@@ -94,7 +94,7 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.adminRegister(data);
 
             const newState = {
-              user: response.user,
+              // user: response.user,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               isAuthenticated: true,
@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.pocRegister(data);
 
             const newState = {
-              user: response.user,
+              // user: response.user,
               pocId: response.pocId,
               eventCode: response.eventCode,
               accessToken: response.accessToken,
@@ -158,7 +158,7 @@ export const useAuthStore = create<AuthState>()(
 
         clearAuth: () => {
           set({
-            user: null,
+            // user: null,
             accessToken: null,
             refreshToken: null,
             isAuthenticated: false,
@@ -183,7 +183,7 @@ export const useAuthStore = create<AuthState>()(
             const updatedState = {
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
-              user: response.user || get().user,
+              // user: response.user || get().user,
             };
 
             set(updatedState);
@@ -200,7 +200,7 @@ export const useAuthStore = create<AuthState>()(
         name: "auth-storage",
         storage: createJSONStorage(() => localStorage),
         partialize: (state) => ({
-          user: state.user,
+          // user: state.user,
           accessToken: state.accessToken,
           refreshToken: state.refreshToken,
           isAuthenticated: state.isAuthenticated,

@@ -16,8 +16,8 @@ export class AuthLoginResponseDto {
   @IsString()
   refreshToken: string;
 
-  @IsObject()
-  user: User;
+  // @IsObject()
+  // user: User;
 
   @IsString()
   @IsOptional()

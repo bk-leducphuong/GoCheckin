@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +11,7 @@ import { CheckInService } from "@/services/checkin.service";
 import { GuestCheckinInfo } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
 import GuestList from "@/components/poc/GuestList";
+import { useUserStore } from "@/store/userStore";
 
 // Guest check-in validation schema
 const checkInSchema = z.object({
@@ -24,7 +24,7 @@ const checkInSchema = z.object({
 type CheckInFormData = z.infer<typeof checkInSchema>;
 
 export default function POCDashboard() {
-  const { user } = useAuthStore(
+  const { user } = useUserStore(
     useShallow((state) => ({
       user: state.user,
     }))
