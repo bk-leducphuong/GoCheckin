@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
+import { AccountTenant } from './entities/account-tenant.entity';
 import { AccountDto } from './dto/account.dto';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -16,6 +17,8 @@ export class AccountService {
   constructor(
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
+    @InjectRepository(AccountTenant)
+    private readonly accountTenantRepository: Repository<AccountTenant>,
   ) {}
 
   async create(createAccountDto: CreateAccountDto): Promise<Account> {
@@ -148,5 +151,24 @@ export class AccountService {
 
     // If you want to completely remove the account, use this instead:
     // await this.accountRepository.remove(account);
+  }
+
+  async createAccountTenant(userId: string, tenantCode: string) {
+    try {
+      const accountTenant = await this.accountTenantRepository.findOne({
+        where: { userId: userId, tenantCode: tenantCode },
+      });
+      if (accountTenant) {
+        throw new UnauthorizedException('Account already exists in tenant');
+      }
+      const newAccountTenant = this.accountTenantRepository.create({
+        userId: userId,
+        tenantCode: tenantCode,
+      });
+      await this.accountTenantRepository.save(newAccountTenant);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }

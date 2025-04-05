@@ -57,12 +57,6 @@ export class AuthService {
           role: user.role,
         }),
         refreshToken: refreshToken,
-        // user: {
-        //   userId: user.userId,
-        //   username: user.username,
-        //   email: user.email,
-        //   role: user.role,
-        // },
       };
     } catch (error) {
       console.log(error);
@@ -105,12 +99,6 @@ export class AuthService {
           role: user.role,
         }),
         refreshToken: refreshToken,
-        // user: {
-        //   userId: user.userId,
-        //   username: user.username,
-        //   email: user.email,
-        //   role: user.role,
-        // },
         pocId: poc.pocId,
         eventCode: poc.eventCode,
       };
@@ -133,14 +121,7 @@ export class AuthService {
       throw new ConflictException('User already exists');
     }
 
-    // Validate admin-specific requirements
-    if (!registerDto.phoneNumber) {
-      throw new BadRequestException(
-        'Phone number is required for admin registration',
-      );
-    }
-
-    // Validate tenant code
+    /* Tenant creation */
     const tenant = await this.tenantService.findByCodeOrName(
       registerDto.tenantCode,
       registerDto.tenantName,
@@ -148,41 +129,35 @@ export class AuthService {
     if (tenant) {
       throw new BadRequestException('Tenant already exists');
     }
-
-    // Create tenant
-    await this.tenantService.createTenant({
+    const newTenant = await this.tenantService.createTenant({
       tenantCode: registerDto.tenantCode,
       tenantName: registerDto.tenantName,
     });
 
-    // Hash password
+    /* Create account */
     const hashedPassword = await hash(registerDto.password, 10);
-
-    // Create account
     const newUser = await this.accountService.create({
       ...registerDto,
       role: UserRole.ADMIN,
       password: hashedPassword,
     });
 
-    // Create refresh token
+    /* Create account and tenant relationship */
+    await this.accountService.createAccountTenant(
+      newUser.userId,
+      newTenant.tenantCode,
+    );
+
+    /* Create refresh and access token */
     const refreshToken = await this.refreshTokenService.generateRefreshToken(
       newUser.userId,
     );
-
-    // Generate JWT token
     return {
       accessToken: this.jwtService.sign({
         userId: newUser.userId,
         role: newUser.role,
       }),
       refreshToken: refreshToken,
-      // user: {
-      //   userId: newUser.userId,
-      //   username: newUser.username,
-      //   email: newUser.email,
-      //   role: newUser.role,
-      // },
     };
   }
 
@@ -245,12 +220,6 @@ export class AuthService {
         role: newUser.role,
       }),
       refreshToken: refreshToken,
-      // user: {
-      //   userId: newUser.userId,
-      //   username: newUser.username,
-      //   email: newUser.email,
-      //   role: newUser.role,
-      // },
       pocId: poc.pocId,
       eventCode: poc.eventCode,
     };
@@ -319,12 +288,6 @@ export class AuthService {
     return {
       accessToken,
       refreshToken: newRefreshToken,
-      // user: {
-      //   userId: user.userId,
-      //   username: user.username,
-      //   email: user.email,
-      //   role: user.role,
-      // },
       ...pocData,
     };
   }
