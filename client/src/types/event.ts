@@ -1,11 +1,29 @@
+
+export enum EventStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
+
 export interface Event {
-  id: string;
-  name: string;
-  code: string;
-  startDate: string;
-  endDate: string;
-  notes?: string;
-  checkInPoints: CheckInPoint[];
+  eventId: string;
+  eventCode: string;
+  eventName: string;
+  tenantCode: string;
+  eventDescription: string | null;
+  eventStatus: EventStatus;
+  startTime: string;
+  endTime: string;
+  eventImg: string | null;
+  venueName: string;
+  venueAddress: string | null;
+  capacity: number | null;
+  eventType: string | null;
+  termsConditions: string | null;
+  floorPlanImg: string | null;
+  enabled: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -1,39 +1,14 @@
-import { CreateEventRequest, EventResponse } from '@/types/event';
-import { API_BASE_URL } from '@/config/env';
+import api from "./api"
+import { Event } from "../types/event";
 
-export class EventService {
-  private static instance: EventService;
-  private baseUrl: string;
-
-  private constructor() {
-    this.baseUrl = `${API_BASE_URL}/api/events`;
-  }
-
-  public static getInstance(): EventService {
-    if (!EventService.instance) {
-      EventService.instance = new EventService();
-    }
-    return EventService.instance;
-  }
-
-  async createEvent(data: CreateEventRequest): Promise<EventResponse> {
+export const EventService = {
+  async getAllEvents() : Promise<Event[]> {
     try {
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create event');
-      }
-
-      return await response.json();
+      const response = await api.get("/events");
+      return response.data.data;
     } catch (error) {
-      console.error('Create event error:', error);
+      console.error("Get all events error:", error);
       throw error;
     }
   }
-} 
+}

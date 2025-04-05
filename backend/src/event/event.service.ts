@@ -38,34 +38,31 @@ export class EventService {
     }
 
     // get tenant code from user
-    const tenantCode = await this.accountTenantRepository.findOne({
+    const tenant = await this.accountTenantRepository.findOne({
       where: { userId: user.userId },
     });
-    if (!tenantCode) {
+    if (!tenant) {
       throw new NotFoundException('Tenant not found');
     }
-    newEventData.tenantCode = tenantCode.tenantCode;
+    newEventData.tenantCode = tenant.tenantCode;
 
     const newEvent = this.eventRepository.create(newEventData);
     return this.eventRepository.save(newEvent);
   }
 
-  async findAll(status?: string, tenantCode?: string): Promise<Event[]> {
-    const query = this.eventRepository.createQueryBuilder('event');
-
-    if (status) {
-      query.andWhere('event.eventStatus = :status', {
-        status: status.toUpperCase(),
-      });
+  async findAll(user: JwtPayload): Promise<Event[]> {
+    // get tenant code from user
+    const tenant = await this.accountTenantRepository.findOne({
+      where: { userId: user.userId },
+    });
+    if (!tenant) {
+      throw new NotFoundException('Tenant not found');
     }
 
-    if (tenantCode) {
-      query.andWhere('event.tenantCode = :tenantCode', { tenantCode });
-    }
-
-    query.orderBy('event.createdAt', 'DESC');
-
-    return query.getMany();
+    const events = await this.eventRepository.find({
+      where: { tenantCode: tenant.tenantCode },
+    });
+    return events;
   }
 
   async findOne(eventId: string): Promise<Event> {

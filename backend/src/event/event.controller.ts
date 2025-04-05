@@ -26,22 +26,11 @@ import { UpdateEventDto } from './dto/update-event.dto';
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
-  // @Get()
-  // @Roles(UserRole.ADMIN, UserRole.TENANT)
-  // async getEvents(
-  //   @CurrentUser() user: JwtPayload,
-  //   @Query('status') status?: string,
-  //   @Query('tenantCode') tenantCode?: string,
-  // ) {
-  //   // Admin can see all events, tenants can only see their own events
-  //   if (
-  //     user.role === UserRole.TENANT &&
-  //     (!tenantCode || tenantCode !== user.tenantCode)
-  //   ) {
-  //     tenantCode = user.tenantCode; // Force tenant to only see their events
-  //   }
-  //   return this.eventService.findAll(status, tenantCode);
-  // }
+  @Get()
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  async getEvents(@CurrentUser() user: JwtPayload) {
+    return this.eventService.findAll(user);
+  }
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.TENANT)
