@@ -16,6 +16,7 @@ export class EventService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
+    @InjectRepository(AccountTenant)
     private readonly accountTenantRepository: Repository<AccountTenant>,
   ) {}
 
