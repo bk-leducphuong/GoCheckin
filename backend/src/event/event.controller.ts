@@ -49,7 +49,7 @@ export class EventController {
     @CurrentUser() user: JwtPayload,
     @Body() createEventDto: CreateEventDto,
   ) {
-    return this.eventService.create(createEventDto);
+    return this.eventService.create(user, createEventDto);
   }
 
   // @Get(':eventId')

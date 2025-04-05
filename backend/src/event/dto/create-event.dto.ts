@@ -21,7 +21,7 @@ export class CreateEventDto {
 
   @IsString()
   @IsNotEmpty()
-  tenantCode: string;
+  tenantCode?: string;
 
   @IsString()
   @IsOptional()

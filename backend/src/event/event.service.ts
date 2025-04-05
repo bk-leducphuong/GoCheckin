@@ -6,14 +6,17 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Event } from './entities/event.entity';
+import { AccountTenant } from 'src/account/entities/account-tenant.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class EventService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
+    private readonly accountTenantRepository: Repository<AccountTenant>,
   ) {}
 
   async validateEventCode(eventCode: string): Promise<boolean> {
@@ -24,16 +27,25 @@ export class EventService {
     return !!event;
   }
 
-  async create(createEventDto: CreateEventDto): Promise<Event> {
+  async create(user: JwtPayload, newEventData: CreateEventDto): Promise<Event> {
     // check if event code is already in use
     const event = await this.eventRepository.findOne({
-      where: { eventCode: createEventDto.eventCode },
+      where: { eventCode: newEventData.eventCode },
     });
     if (event) {
       throw new BadRequestException('Event code already in use');
     }
 
-    const newEvent = this.eventRepository.create(createEventDto);
+    // get tenant code from user
+    const tenantCode = await this.accountTenantRepository.findOne({
+      where: { userId: user.userId },
+    });
+    if (!tenantCode) {
+      throw new NotFoundException('Tenant not found');
+    }
+    newEventData.tenantCode = tenantCode.tenantCode;
+
+    const newEvent = this.eventRepository.create(newEventData);
     return this.eventRepository.save(newEvent);
   }
 
