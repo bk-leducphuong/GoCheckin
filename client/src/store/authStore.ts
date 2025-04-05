@@ -14,8 +14,8 @@ interface AuthState {
     pocId: string,
     eventCode: string
   ) => Promise<{ pocId: string; eventCode: string }>;
-  adminRegister: (data: AdminRegisterData) => Promise<User>;
-  pocRegister: (data: PocRegisterData) => Promise<User>;
+  adminRegister: (data: AdminRegisterData) => Promise<void>;
+  pocRegister: (data: PocRegisterData) => Promise<void>;
   logout: () => Promise<void>;
   clearAuth: () => void;
   setTokens: (accessToken: string, refreshToken: string) => void;

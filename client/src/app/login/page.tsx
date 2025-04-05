@@ -27,7 +27,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { adminLogin, pocLogin, isLoading } = useAuthStore(
     useShallow((state) => ({
-      user: state.user,
       adminLogin: state.adminLogin,
       pocLogin: state.pocLogin,
       isLoading: state.isLoading,

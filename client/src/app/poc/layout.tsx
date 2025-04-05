@@ -1,7 +1,7 @@
 "use client";
 
 import AuthCheck from "@/components/auth/AuthCheck";
-import { UserRole } from "@/types/auth";
+import { UserRole } from "@/types/user";
 import { useSearchParams } from "next/navigation";
 import { usePocStore } from "@/store/pocStore";
 import { useEffect } from "react";
@@ -22,11 +22,16 @@ export default function PocLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const validatePocData = async () => {
-      if (pocId && eventCode) {
-        const response = await validatePoc(pocId, eventCode);
-        if (!response.success) {
-          router.push("/login");
+      try {
+        if (pocId && eventCode) {
+          const response = await validatePoc(pocId, eventCode);
+          if (!response.success) {
+            router.push("/login");
+          }
         }
+      } catch (error) {
+        console.error("Error validating POC data:", error);
+        router.push("/login");
       }
     };
     validatePocData();

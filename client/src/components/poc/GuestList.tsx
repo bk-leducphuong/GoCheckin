@@ -6,6 +6,8 @@ import { CheckInResponse } from "@/types/checkin";
 
 export default function GuestList() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [guests, setGuests] = useState<CheckInResponse[]>([]);
   const { poc } = usePocStore(
     useShallow((state) => ({
@@ -16,24 +18,36 @@ export default function GuestList() {
   useEffect(() => {
     if (!poc) return;
     const fetchGuests = async () => {
-      const guests = await GuestService.getAllGuestsOfPoc(
-        poc.eventCode,
-        poc.pocId
-      );
-      setGuests(guests);
+      try {
+        setLoading(true);
+        setErrorMessage(null);
+        const guests = await GuestService.getAllGuestsOfPoc(
+          poc.eventCode,
+          poc.pocId
+        );
+        setGuests(guests);
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error ? error.message : "An unknown error occurred"
+        );
+        console.error("Failed to fetch guests:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchGuests();
   }, [poc]);
 
   if (!poc) {
-    return <div className="text-center py-4">Please select a point of check-in.</div>;
+    return (
+      <div className="text-center py-4">Please select a point of check-in.</div>
+    );
   }
 
-  const filteredGuests = guests.filter(
-    (guest) =>
-      // guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      // guest.guestInfo.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      guest.guestInfo.guestCode.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredGuests = guests.filter((guest) =>
+    // guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    // guest.guestInfo.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    guest.guestInfo.guestCode.toLowerCase().includes(searchQuery.toLowerCase())
   );
   return (
     <>
@@ -87,6 +101,24 @@ export default function GuestList() {
                 </th>
               </tr>
             </thead>
+            {loading && (
+              <tbody>
+                <tr>
+                  <td colSpan={5} className="text-center py-4">
+                    Loading guests...
+                  </td>
+                </tr>
+              </tbody>
+            )}
+            {errorMessage && (
+              <tbody>
+                <tr>
+                  <td colSpan={5} className="text-center py-4">
+                    {errorMessage}
+                  </td>
+                </tr>
+              </tbody>
+            )}
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredGuests.length > 0 ? (
                 filteredGuests.map((guest) => (
@@ -98,10 +130,14 @@ export default function GuestList() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{guest.guestInfo.guestCode}</div>
+                      <div className="text-sm text-gray-500">
+                        {guest.guestInfo.guestCode}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{guest.guestInfo.description}</div>
+                      <div className="text-sm text-gray-500">
+                        {guest.guestInfo.description}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
@@ -111,7 +147,9 @@ export default function GuestList() {
                             : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {guest.checkinInfo.active === true ? "Checked In" : "Not Checked In"}
+                        {guest.checkinInfo.active === true
+                          ? "Checked In"
+                          : "Not Checked In"}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
