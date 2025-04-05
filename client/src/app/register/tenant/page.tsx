@@ -19,8 +19,8 @@ const adminRegisterSchema = z.object({
   confirmPassword: z.string(),
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   phoneNumber: z.string().min(6, 'Phone number is required'),
-  organizationName: z.string(),
-  organizationCode: z.string(),
+  tenantName: z.string(),
+  tenantCode: z.string(),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
@@ -134,8 +134,8 @@ export default function TenantRegisterPage() {
             <Input
               label="Organization Name"
               type="text"
-              {...register('organizationName')}
-              error={errors.organizationName?.message}
+              {...register('tenantName')}
+              error={errors.tenantName?.message}
               placeholder="Your Organization Ltd."
             />
 
@@ -143,15 +143,15 @@ export default function TenantRegisterPage() {
               <Input
                 label="Organization Code"
                 type="text"
-                {...register('organizationCode')}
-                error={errors.organizationCode?.message}
+                {...register('tenantCode')}
+                error={errors.tenantCode?.message}
                 placeholder="Your Organization Code"
               />
               <button
                 type="button"
                 onClick={() => {
                   const randomCode = `ORG-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
-                  setValue('organizationCode', randomCode, { shouldValidate: true });
+                  setValue('tenantCode', randomCode, { shouldValidate: true });
                 }}
                 className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
               >

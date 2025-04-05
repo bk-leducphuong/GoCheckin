@@ -1,10 +1,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage, devtools } from "zustand/middleware";
 import { AuthService } from "@/services/auth.service";
-import { User, AdminRegisterData, PocRegisterData } from "@/types/auth";
+import { AdminRegisterData, PocRegisterData } from "@/types/auth";
 
 interface AuthState {
-  // user: User | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -94,7 +93,6 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.adminRegister(data);
 
             const newState = {
-              // user: response.user,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               isAuthenticated: true,
@@ -102,8 +100,6 @@ export const useAuthStore = create<AuthState>()(
             };
 
             set(newState);
-
-            return response.user;
           } catch (error) {
             set({
               error:
@@ -120,7 +116,6 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.pocRegister(data);
 
             const newState = {
-              // user: response.user,
               pocId: response.pocId,
               eventCode: response.eventCode,
               accessToken: response.accessToken,
@@ -130,8 +125,6 @@ export const useAuthStore = create<AuthState>()(
             };
 
             set(newState);
-
-            return response.user;
           } catch (error) {
             set({
               error:

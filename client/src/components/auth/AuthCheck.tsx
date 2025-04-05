@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { AuthService } from "@/services/auth.service";
-import { UserRole } from "@/types/auth";
+import { UserRole } from "@/types/user";
+import { TokenPayload } from "@/types/auth";
 import { useShallow } from "zustand/shallow";
 
 interface AuthCheckProps {
@@ -26,24 +27,19 @@ export default function AuthCheck({
   fallback,
 }: AuthCheckProps) {
   const router = useRouter();
-  const {
-    isAuthenticated,
-    accessToken,
-    user,
-    clearAuth,
-    refreshAccessToken,
-  } = useAuthStore(
-    useShallow((state) => ({
-      isAuthenticated: state.isAuthenticated,
-      accessToken: state.accessToken,
-      user: state.user,
-      clearAuth: state.clearAuth,
-      refreshAccessToken: state.refreshAccessToken,
-    }))
-  );
+  const { isAuthenticated, accessToken, clearAuth, refreshAccessToken } =
+    useAuthStore(
+      useShallow((state) => ({
+        isAuthenticated: state.isAuthenticated,
+        accessToken: state.accessToken,
+        clearAuth: state.clearAuth,
+        refreshAccessToken: state.refreshAccessToken,
+      }))
+    );
 
   const [isValidating, setIsValidating] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [user, setUser] = useState<TokenPayload | null>(null);
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -53,6 +49,10 @@ export default function AuthCheck({
           if (!response.valid) {
             await refreshAccessToken();
           }
+          if (!response.user) {
+            throw new Error("User not found");
+          }
+          setUser(response.user);
         } catch (error) {
           console.error("Error verifying token:", error);
           clearAuth();

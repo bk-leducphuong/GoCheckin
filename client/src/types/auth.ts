@@ -1,3 +1,4 @@
+import { UserRole } from "./user";
 
 // Login credentials
 export interface LoginCredentials {
@@ -18,7 +19,6 @@ export interface AdminRegisterData {
   username: string;
   email: string;
   password: string;
-  confirmPassword?: string;
   fullName: string;
   phoneNumber: string;
   tenantName: string;
@@ -30,7 +30,6 @@ export interface PocRegisterData {
   username: string;
   email: string;
   password: string;
-  confirmPassword?: string;
   fullName: string;
   eventCode: string;
   pointCode: string;
@@ -47,11 +46,7 @@ export interface SessionInfo {
 // Token payload
 export interface TokenPayload {
   userId: string;
-  username?: string;
-  email?: string;
-  role?: string;
-  iat?: number;
-  exp?: number;
+  role: UserRole;
 }
 
 // Token refresh response

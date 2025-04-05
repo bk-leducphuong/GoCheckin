@@ -4,7 +4,7 @@ import React from 'react';
 import Sidebar from '@/components/admin/Sidebar';
 import { useAuthStore } from '@/store/authStore';
 import AuthCheck from '@/components/auth/AuthCheck';
-import { UserRole } from '@/types/auth';
+import { UserRole } from '@/types/user';
 
 export default function AdminLayout({
   children,
