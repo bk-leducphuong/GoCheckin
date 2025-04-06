@@ -29,25 +29,33 @@ export class EventService {
   }
 
   async create(user: JwtPayload, newEventData: CreateEventDto): Promise<Event> {
-    // check if event code is already in use
-    const event = await this.eventRepository.findOne({
-      where: { eventCode: newEventData.eventCode },
-    });
-    if (event) {
-      throw new BadRequestException('Event code already in use');
-    }
+    try {
+      // check if event code is already in use
+      const event = await this.eventRepository.findOne({
+        where: { eventCode: newEventData.eventCode },
+      });
+      if (event) {
+        throw new BadRequestException('Event code already in use');
+      }
 
-    // get tenant code from user
-    const tenant = await this.accountTenantRepository.findOne({
-      where: { userId: user.userId },
-    });
-    if (!tenant) {
-      throw new NotFoundException('Tenant not found');
-    }
-    newEventData.tenantCode = tenant.tenantCode;
+      // get tenant code from user
+      const tenant = await this.accountTenantRepository.findOne({
+        where: { userId: user.userId },
+      });
+      if (!tenant) {
+        throw new NotFoundException('Tenant not found');
+      }
 
-    const newEvent = this.eventRepository.create(newEventData);
-    return this.eventRepository.save(newEvent);
+      const newEvent = this.eventRepository.create({
+        ...newEventData,
+        tenantCode: tenant.tenantCode,
+      });
+      return this.eventRepository.save(newEvent);
+    } catch (error) {
+      console.error('Error creating event:', error);
+      // Handle any errors that occur during the creation process
+      throw new BadRequestException('Failed to create event: ' + error.message);
+    }
   }
 
   async findAll(user: JwtPayload): Promise<Event[]> {

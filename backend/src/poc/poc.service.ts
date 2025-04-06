@@ -20,10 +20,16 @@ export class PocService {
     private eventService: EventService,
   ) {}
 
-  async create(createPocDto: CreatePocDto): Promise<PointOfCheckin> {
+  async create(
+    eventCode: string,
+    createPocDto: CreatePocDto,
+  ): Promise<PointOfCheckin> {
     // Check if POC with the same code already exists
     const existingPoc = await this.pocRepository.findOne({
-      where: { pointCode: createPocDto.pointCode },
+      where: {
+        pointCode: createPocDto.pointCode,
+        eventCode: eventCode,
+      },
     });
 
     if (existingPoc) {
@@ -32,16 +38,16 @@ export class PocService {
       );
     }
 
-    const isEventCodeValid = await this.eventService.validateEventCode(
-      createPocDto.eventCode,
-    );
+    const isEventCodeValid =
+      await this.eventService.validateEventCode(eventCode);
     if (!isEventCodeValid) {
-      throw new NotFoundException(
-        `Event with code ${createPocDto.eventCode} not found`,
-      );
+      throw new NotFoundException(`Event with code ${eventCode} not found`);
     }
 
-    const newPoc = this.pocRepository.create(createPocDto);
+    const newPoc = this.pocRepository.create({
+      ...createPocDto,
+      eventCode: eventCode,
+    });
     return this.pocRepository.save(newPoc);
   }
 

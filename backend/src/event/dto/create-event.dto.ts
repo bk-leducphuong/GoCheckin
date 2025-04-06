@@ -20,10 +20,6 @@ export class CreateEventDto {
   eventName: string;
 
   @IsString()
-  @IsNotEmpty()
-  tenantCode?: string;
-
-  @IsString()
   @IsOptional()
   eventDescription?: string;
 

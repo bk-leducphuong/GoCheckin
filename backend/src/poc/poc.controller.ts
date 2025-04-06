@@ -41,15 +41,18 @@ export class PocController {
     return this.pocService.getAllPocs(eventCode);
   }
 
-  @Post()
+  @Post(':eventCode')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new point of check-in for an event' })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Point of check-in created successfully',
   })
-  async createPoc(@Body() createPocDto: CreatePocDto) {
-    return this.pocService.create(createPocDto);
+  async createPoc(
+    @Param('eventCode') eventCode: string,
+    @Body() createPocDto: CreatePocDto,
+  ) {
+    return this.pocService.create(eventCode, createPocDto);
   }
 
   @Get(':pocId')

@@ -21,3 +21,16 @@ export interface PocValidationData {
     pocId: string;
     eventCode: string;
 }
+
+export interface CreatePocRequest {
+    pointCode: string;
+    pointName: string;
+    latitude?: string;
+    longitude?: string;
+    capacity?: string;
+    status?: string;
+    openTime?: string;
+    closeTime?: string;
+    locationDescription?: string;
+    floorLevel?: string;
+}

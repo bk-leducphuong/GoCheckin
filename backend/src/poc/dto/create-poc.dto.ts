@@ -25,11 +25,6 @@ export class CreatePocDto {
   pointName: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'Event code this point belongs to' })
-  eventCode: string;
-
-  @IsString()
   @IsOptional()
   @ApiPropertyOptional({
     description: 'UserId of the staff managing this point',
