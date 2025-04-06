@@ -73,27 +73,25 @@ export class EventService {
     return events;
   }
 
-  async findOne(eventId: string): Promise<Event> {
+  async findOne(eventCode: string): Promise<Event> {
     const event = await this.eventRepository.findOne({
-      where: { eventId },
+      where: { eventCode },
     });
 
     if (!event) {
-      throw new NotFoundException(`Event with ID ${eventId} not found`);
+      throw new NotFoundException(`Event with ID ${eventCode} not found`);
     }
 
     return event;
   }
 
   async update(
-    eventId: string,
+    eventCode: string,
     updateEventDto: UpdateEventDto,
   ): Promise<Event> {
-    const event = await this.findOne(eventId);
-
+    const event = await this.findOne(eventCode);
     // Update the event
     Object.assign(event, updateEventDto);
-
     return this.eventRepository.save(event);
   }
 

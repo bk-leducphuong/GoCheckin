@@ -8,6 +8,8 @@ interface EventStore {
   setEvents: (events: Event[]) => void;
   getAllEvents: () => Promise<Event[]>;
   createEvent: (eventData: CreateEventRequest) => Promise<Event>;
+  getEventByCode: (eventCode: string) => Promise<Event>;
+  updateEvent: (eventCode: string, eventData: CreateEventRequest) => Promise<Event>;
 }
 
 export const useEventStore = create<EventStore>()(
@@ -28,13 +30,35 @@ export const useEventStore = create<EventStore>()(
       createEvent: async (eventData: CreateEventRequest) => {
         try {
           const response = await EventService.createEvent(eventData);
-
           set((state) => ({
             events: [...state.events, response],
           }));
           return response;
         } catch (error) {
           console.error("Error creating event:", error);
+          throw error;
+        }
+      },
+      getEventByCode: async (eventCode: string) => {
+        try {
+          const response = await EventService.getEventByCode(eventCode);
+          return response;
+        } catch (error) {
+          console.error("Error getting event:", error);
+          throw error;
+        }
+      },
+      updateEvent: async (eventCode: string, eventData: CreateEventRequest) => {
+        try {
+          const response = await EventService.updateEvent(eventCode, eventData);
+          set((state) => ({
+            events: state.events.map((event) =>
+              event.eventCode === eventCode ? response : event
+            ),
+          }));
+          return response;
+        } catch (error) {
+          console.error("Error updating event:", error);
           throw error;
         }
       },

@@ -6,10 +6,7 @@ import {
   Delete,
   Body,
   Param,
-  Query,
   UseGuards,
-  UnauthorizedException,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -41,34 +38,24 @@ export class EventController {
     return this.eventService.create(user, createEventDto);
   }
 
-  // @Get(':eventId')
-  // @Roles(UserRole.ADMIN, UserRole.TENANT)
-  // async getEventById(
-  //   @CurrentUser() user: JwtPayload,
-  //   @Param('eventId', ParseUUIDPipe) eventId: string,
-  // ) {
-  //   const event = await this.eventService.findOne(eventId);
-  //   // Tenants can only view their own events
-  //   if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
-  //     throw new UnauthorizedException('You can only view your own events');
-  //   }
-  //   return event;
-  // }
+  @Get(':eventCode')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  async getEventById(
+    @CurrentUser() user: JwtPayload,
+    @Param('eventCode') eventCode: string,
+  ) {
+    return await this.eventService.findOne(eventCode);
+  }
 
-  // @Put(':eventId')
-  // @Roles(UserRole.ADMIN, UserRole.TENANT)
-  // async updateEvent(
-  //   @CurrentUser() user: JwtPayload,
-  //   @Param('eventId', ParseUUIDPipe) eventId: string,
-  //   @Body() updateEventDto: UpdateEventDto,
-  // ) {
-  //   const event = await this.eventService.findOne(eventId);
-  //   // Tenants can only update their own events
-  //   if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
-  //     throw new UnauthorizedException('You can only update your own events');
-  //   }
-  //   return this.eventService.update(eventId, updateEventDto);
-  // }
+  @Put(':eventCode')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  async updateEvent(
+    @CurrentUser() user: JwtPayload,
+    @Param('eventCode') eventCode: string,
+    @Body() updateEventDto: UpdateEventDto,
+  ) {
+    return this.eventService.update(eventCode, updateEventDto);
+  }
 
   // @Delete(':eventId')
   // @Roles(UserRole.ADMIN, UserRole.TENANT)

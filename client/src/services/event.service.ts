@@ -22,4 +22,24 @@ export const EventService = {
       throw error;
     }
   },
+
+  async getEventByCode(eventCode: string) : Promise<Event> {
+    try {
+      const response = await api.get(`/events/${eventCode}`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Get event error:", error);
+      throw error;
+    }
+  },
+
+  async updateEvent(eventCode: string, eventData: CreateEventRequest) : Promise<Event> {
+    try {
+      const response = await api.put(`/events/${eventCode}`, eventData);
+      return response.data.data;
+    } catch (error) {
+      console.error("Update event error:", error);
+      throw error;
+    }
+  },
 }

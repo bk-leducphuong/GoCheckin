@@ -86,7 +86,7 @@ export default function EventsPage() {
         )}
         <ul className="divide-y divide-gray-200">
           {events.map((item) => (
-            <li key={item.eventId}>
+            <li key={item.eventId} className="bg-white hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/admin/events/${item.eventCode}`)}>
               <div className="px-4 py-4 sm:px-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium text-blue-600 truncate">
