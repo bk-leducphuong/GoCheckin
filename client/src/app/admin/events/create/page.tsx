@@ -5,18 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { EventService } from '@/services/event.service';
 import { CreateEventRequest } from '@/types/event';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { useEventStore } from '@/store/eventStore';
+import { useShallow } from 'zustand/shallow';
 
 // Event creation validation schema
 const eventSchema = z.object({
-  name: z.string().min(3, 'Event name must be at least 3 characters'),
-  code: z.string().min(3, 'Event code must be at least 3 characters'),
-  startDate: z.string().min(1, 'Start date is required'),
-  endDate: z.string().min(1, 'End date is required'),
-  notes: z.string().optional(),
+  eventName: z.string().min(3, 'Event name must be at least 3 characters'),
+  eventCode: z.string().min(3, 'Event code must be at least 3 characters'),
+  startTime: z.string().min(1, 'Start date is required'),
+  endTime: z.string().min(1, 'End date is required'),
+  // notes: z.string().optional(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -33,6 +34,9 @@ export default function CreateEventPage() {
   const [checkInPoints, setCheckInPoints] = useState<CheckInPoint[]>([
     { name: '', location: '', pocId: '' },
   ]);
+  const {createEvent} = useEventStore(useShallow((state) => ({
+    createEvent: state.createEvent,
+  })));
 
   const {
     register,
@@ -42,7 +46,6 @@ export default function CreateEventPage() {
     resolver: zodResolver(eventSchema),
   });
 
-  const eventService = EventService.getInstance();
 
   const addCheckInPoint = () => {
     setCheckInPoints([...checkInPoints, { name: '', location: '', pocId: '' }]);
@@ -64,17 +67,17 @@ export default function CreateEventPage() {
 
       const eventData: CreateEventRequest = {
         ...data,
-        checkInPoints: checkInPoints.filter(point => 
-          point.name && point.location && point.pocId
-        ),
+        // checkInPoints: checkInPoints.filter(point => 
+        //   point.name && point.location && point.pocId
+        // ),
       };
 
-      const response = await eventService.createEvent(eventData);
+      const response = await createEvent(eventData);
 
-      if (response.success) {
+      if (response) {
         router.push('/admin/events');
       } else {
-        throw new Error(response.message || 'Failed to create event');
+        throw new Error('Failed to create event');
       }
     } catch (error) {
       console.error('Create event error:', error);
@@ -94,31 +97,31 @@ export default function CreateEventPage() {
             <Input
               label="Event Name"
               type="text"
-              {...register('name')}
-              error={errors.name?.message}
+              {...register('eventName')}
+              error={errors.eventName?.message}
               placeholder="Tech Conference 2024"
             />
 
             <Input
               label="Event Code"
               type="text"
-              {...register('code')}
-              error={errors.code?.message}
+              {...register('eventCode')}
+              error={errors.eventCode?.message}
               placeholder="TC2024"
             />
 
             <Input
               label="Start Date"
               type="datetime-local"
-              {...register('startDate')}
-              error={errors.startDate?.message}
+              {...register('startTime')}
+              error={errors.startTime?.message}
             />
 
             <Input
               label="End Date"
               type="datetime-local"
-              {...register('endDate')}
-              error={errors.endDate?.message}
+              {...register('endTime')}
+              error={errors.endTime?.message}
             />
           </div>
 
@@ -127,7 +130,7 @@ export default function CreateEventPage() {
               Notes
             </label>
             <textarea
-              {...register('notes')}
+              // {...register('notes')}
               rows={4}
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
               placeholder="Add any additional notes about the event"

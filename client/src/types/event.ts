@@ -36,12 +36,20 @@ export interface CheckInPoint {
 }
 
 export interface CreateEventRequest {
-  name: string;
-  code: string;
-  startDate: string;
-  endDate: string;
-  notes?: string;
-  checkInPoints: Omit<CheckInPoint, 'id'>[];
+  eventName: string;
+  eventCode: string;
+  startTime: string;
+  endTime: string;
+  eventDescription?: string;
+  eventStatus?: EventStatus;
+  eventImg?: string;
+  venueName?: string;
+  venueAddress?: string;
+  capacity?: number;
+  eventType?: string;
+  termsConditions?: string;
+  floorPlanImg?: string;
+  enabled?: boolean;
 }
 
 export interface EventResponse {

@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { EventService } from "@/services/event.service";
-import { Event } from "@/types/event";
+import { CreateEventRequest, Event } from "@/types/event";
 
 interface EventStore {
   events: Event[];
   setEvents: (events: Event[]) => void;
   getAllEvents: () => Promise<Event[]>;
+  createEvent: (eventData: CreateEventRequest) => Promise<Event>;
 }
 
 export const useEventStore = create<EventStore>()(
@@ -21,6 +22,19 @@ export const useEventStore = create<EventStore>()(
           return response;
         } catch (error) {
           console.error("Error getting all events:", error);
+          throw error;
+        }
+      },
+      createEvent: async (eventData: CreateEventRequest) => {
+        try {
+          const response = await EventService.createEvent(eventData);
+
+          set((state) => ({
+            events: [...state.events, response],
+          }));
+          return response;
+        } catch (error) {
+          console.error("Error creating event:", error);
           throw error;
         }
       },
