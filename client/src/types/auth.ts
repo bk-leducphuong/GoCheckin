@@ -4,6 +4,7 @@ import { UserRole } from "./user";
 export interface LoginCredentials {
   email: string;
   password: string;
+  deviceInfo?: string;
 }
 
 // Auth response from API

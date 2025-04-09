@@ -12,7 +12,7 @@ import { useEventStore } from "@/store/eventStore";
 import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
-import { compareDesc, format } from "date-fns";
+import { compareDesc } from "date-fns";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -39,7 +39,7 @@ export default function EventDetailsPage() {
   //   { pointCode: "", pointName: "" },
   // ]);
   const [checkInPoints, setCheckInPoints] = useState<Poc[]>([]);
-  const [newCheckinPoint, setNewCheckInPoint] = useState<CreatePocRequest[]>([]);
+  const [newCheckinPoints, setNewCheckInPoints] = useState<CreatePocRequest[]>([]);
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
   const [isEnabledEditing, setIsEnabledEditing] = useState(true);
 
@@ -59,6 +59,7 @@ export default function EventDetailsPage() {
     resolver: zodResolver(eventSchema),
   });
 
+  // Fetch event details by event code
   useEffect(() => {
     const fetchEvent = async () => {
       try {
@@ -91,6 +92,7 @@ export default function EventDetailsPage() {
     fetchEvent();
   }, [params.eventCode, getEventByCode, reset]);
 
+  // Fetch check-in points for the event
   useEffect(() => {
     const fetchCheckInPoints = async () => {
       try {
@@ -104,19 +106,10 @@ export default function EventDetailsPage() {
     fetchCheckInPoints();
   }, [params.eventCode]);
 
-  const addCheckInPoint = () => {
-    const newPoint: CreatePocRequest = {
-      pointCode: "",
-      pointName: "",
-    };
-    setNewCheckInPoint([...newCheckinPoint, newPoint]);
-  };
-
   const removeCheckInPoint = (index: number) => {
     setRemovedCheckinPoint([...removedCheckinPoint, checkInPoints[index]]);
     setCheckInPoints(checkInPoints.filter((_, i) => i !== index));
   };
-
   const updateCheckInPoint = (
     index: number,
     field: keyof UpdatePocRequest,
@@ -127,6 +120,28 @@ export default function EventDetailsPage() {
     setCheckInPoints(newPoints);
   };
 
+  // Helper function to update new check-in points
+  const addCheckInPoint = () => {
+    const newPoint: CreatePocRequest = {
+      pointCode: "",
+      pointName: "",
+    };
+    setNewCheckInPoints([...newCheckinPoints, newPoint]);
+  };
+  const removeNewCheckInPoint = (index: number) => {
+    setNewCheckInPoints(newCheckinPoints.filter((_, i) => i !== index));
+  };
+  const updateNewCheckInPoint = (
+    index: number,
+    field: keyof UpdatePocRequest,
+    value: string
+  ) => {
+    const newPoints = [...newCheckinPoints];
+    newPoints[index] = { ...newPoints[index], [field]: value };
+    setNewCheckInPoints(newPoints);
+  };
+
+  // Function to handle form submission
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     try {
@@ -147,8 +162,12 @@ export default function EventDetailsPage() {
         }
       }
 
-      for (const point of newCheckinPoint) {
+      for (const point of newCheckinPoints) {
         try {
+          if (!point.pointCode || !point.pointName) {
+            alert("POC code and name are required.");
+            return;
+          }
           await PocService.createPoc(params.eventCode as string, point);
         } catch (pocError) {
           console.error(`Failed to create POC: ${point.pointCode}`, pocError);
@@ -347,16 +366,16 @@ export default function EventDetailsPage() {
                 </div>
               ))}
 
-              {newCheckinPoint.map((point, index) => (
+              {newCheckinPoints.map((point, index) => (
                 <div key={index} className="bg-gray-50 p-4 rounded-md">
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-sm font-medium text-gray-900">
                       Check-in Point {index + 1}
                     </h3>
-                    {newCheckinPoint.length > 1 && (
+                    {newCheckinPoints.length > 1 && (
                       <button
                         type="button"
-                        onClick={() => removeCheckInPoint(index)}
+                        onClick={() => removeNewCheckInPoint(index)}
                         className="text-red-600 hover:text-red-800"
                       >
                         Remove
@@ -370,7 +389,7 @@ export default function EventDetailsPage() {
                       type="text"
                       value={point.pointName}
                       onChange={(e) =>
-                        updateCheckInPoint(index, "pointName", e.target.value)
+                        updateNewCheckInPoint(index, "pointName", e.target.value)
                       }
                       placeholder="Main Entrance"
                     />
@@ -380,7 +399,7 @@ export default function EventDetailsPage() {
                       type="text"
                       value={point.pointCode}
                       onChange={(e) =>
-                        updateCheckInPoint(index, "pointCode", e.target.value)
+                        updateNewCheckInPoint(index, "pointCode", e.target.value)
                       }
                       placeholder="POC001"
                     />

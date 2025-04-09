@@ -49,6 +49,7 @@ export class AuthService {
       // Create refresh token
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
         user.userId,
+        loginDto.deviceInfo,
       );
 
       return {
@@ -204,9 +205,7 @@ export class AuthService {
       registerDto.eventCode,
       registerDto.pointCode,
     );
-    await this.pocService.update(poc.pocId, {
-      userId: newUser.userId,
-    });
+    await this.pocService.updatePocManager(poc.pocId, newUser.userId);
 
     // Create refresh token
     const refreshToken = await this.refreshTokenService.generateRefreshToken(

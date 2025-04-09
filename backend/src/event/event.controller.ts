@@ -50,7 +50,6 @@ export class EventController {
   @Put(':eventCode')
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   async updateEvent(
-    @CurrentUser() user: JwtPayload,
     @Param('eventCode') eventCode: string,
     @Body() updateEventDto: UpdateEventDto,
   ) {

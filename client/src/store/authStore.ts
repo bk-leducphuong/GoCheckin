@@ -9,7 +9,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  adminLogin: (email: string, password: string) => Promise<void>;
+  adminLogin: (email: string, password: string, deviceInfo?: string) => Promise<void>;
   pocLogin: (
     pocId: string,
     eventCode: string
@@ -33,13 +33,12 @@ export const useAuthStore = create<AuthState>()(
         isLoading: false,
         error: null,
 
-        adminLogin: async (email: string, password: string) => {
+        adminLogin: async (email: string, password: string, deviceInfo?: string) => {
           try {
             set({ isLoading: true, error: null });
-            const response = await AuthService.adminLogin({ email, password });
+            const response = await AuthService.adminLogin({ email, password, deviceInfo });
 
             const newState = {
-              // user: response.user,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               isAuthenticated: true,
@@ -62,7 +61,6 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.pocLogin({ email, password });
 
             const newState = {
-              // user: response.user,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
               isAuthenticated: true,
@@ -151,7 +149,6 @@ export const useAuthStore = create<AuthState>()(
 
         clearAuth: () => {
           set({
-            // user: null,
             accessToken: null,
             refreshToken: null,
             isAuthenticated: false,
@@ -176,7 +173,6 @@ export const useAuthStore = create<AuthState>()(
             const updatedState = {
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
-              // user: response.user || get().user,
             };
 
             set(updatedState);
@@ -193,7 +189,6 @@ export const useAuthStore = create<AuthState>()(
         name: "auth-storage",
         storage: createJSONStorage(() => localStorage),
         partialize: (state) => ({
-          // user: state.user,
           accessToken: state.accessToken,
           refreshToken: state.refreshToken,
           isAuthenticated: state.isAuthenticated,

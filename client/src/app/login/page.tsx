@@ -50,9 +50,10 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setErrorMessage(null);
+      const deviceInfo = navigator.userAgent; // Get device info from user agent
 
       if (data.userType === "admin") {
-        await adminLogin(data.email, data.password);
+        await adminLogin(data.email, data.password, deviceInfo);
         router.push("/admin");
       } else {
         const { pocId, eventCode } = await pocLogin(data.email, data.password);

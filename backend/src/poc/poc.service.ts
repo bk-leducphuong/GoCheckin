@@ -152,4 +152,17 @@ export class PocService {
 
     return poc;
   }
+
+  async updatePocManager(pocId: string, userId: string): Promise<void> {
+    const poc = await this.pocRepository.findOne({
+      where: { pocId, enabled: true },
+    });
+
+    if (!poc) {
+      throw new NotFoundException('Not found poc!');
+    }
+
+    poc.userId = userId;
+    await this.pocRepository.save(poc);
+  }
 }
