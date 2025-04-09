@@ -88,8 +88,11 @@ export class AuthController {
   })
   @Post('refresh')
   @UseGuards(RefreshTokenGuard)
-  async refreshTokens(@Body('refreshToken') refreshToken: string) {
-    return this.service.refreshTokens(refreshToken);
+  async refreshTokens(
+    @Body('refreshToken') refreshToken: string,
+    @Body('deviceInfo') deviceInfo: string,
+  ) {
+    return this.service.refreshTokens(refreshToken, deviceInfo);
   }
 
   @ApiOperation({ summary: 'Logout (revoke refresh token)' })

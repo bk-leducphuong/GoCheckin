@@ -233,7 +233,7 @@ export class AuthService {
     return null;
   }
 
-  async refreshTokens(refreshToken: string) {
+  async refreshTokens(refreshToken: string, deviceInfo?: string) {
     // Validate refresh token
     const payload =
       await this.refreshTokenService.validateRefreshToken(refreshToken);
@@ -248,10 +248,6 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-
-    // Revoke old refresh token
-    await this.refreshTokenService.revokeRefreshToken(refreshToken);
-
     // Generate new access token
     const accessToken = this.jwtService.sign(
       {
@@ -264,30 +260,9 @@ export class AuthService {
       },
     );
 
-    // Generate new refresh token
-    const newRefreshToken = await this.refreshTokenService.generateRefreshToken(
-      user.userId,
-      'Refresh Token',
-    );
-
-    // Get additional data for POC users
-    let pocData = {};
-
-    if (user.role === UserRole.POC) {
-      const poc = await this.pocService.getPocByUserId(user.userId);
-      if (poc) {
-        pocData = {
-          pocId: poc.pocId,
-          eventCode: poc.eventCode,
-        };
-      }
-    }
-
     // Return new tokens and user info
     return {
       accessToken,
-      refreshToken: newRefreshToken,
-      ...pocData,
     };
   }
 

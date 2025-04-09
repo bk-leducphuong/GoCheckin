@@ -19,7 +19,7 @@ interface AuthState {
   logout: () => Promise<void>;
   clearAuth: () => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
-  refreshAccessToken: () => Promise<boolean>;
+  refreshAccessToken: (deviceInfo?: string) => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -160,7 +160,7 @@ export const useAuthStore = create<AuthState>()(
           set({ accessToken, refreshToken });
         },
 
-        refreshAccessToken: async () => {
+        refreshAccessToken: async (deviceInfo?: string) => {
           const { refreshToken } = get();
           if (!refreshToken) {
             get().clearAuth();
@@ -168,11 +168,10 @@ export const useAuthStore = create<AuthState>()(
           }
 
           try {
-            const response = await AuthService.refreshToken(refreshToken);
+            const response = await AuthService.refreshToken(refreshToken, deviceInfo);
 
             const updatedState = {
               accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
             };
 
             set(updatedState);

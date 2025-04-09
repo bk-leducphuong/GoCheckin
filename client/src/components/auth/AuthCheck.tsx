@@ -47,7 +47,8 @@ export default function AuthCheck({
         try {
           const response = await AuthService.verifyToken();
           if (!response.valid) {
-            await refreshAccessToken();
+            const deviceInfo = navigator.userAgent;
+            await refreshAccessToken(deviceInfo);
           }
           if (!response.user) {
             throw new Error("User not found");
