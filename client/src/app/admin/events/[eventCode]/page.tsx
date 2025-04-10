@@ -13,6 +13,7 @@ import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
 import { compareDesc } from "date-fns";
+import EventAnalysis from "@/components/admin/event/eventAnalysis";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -39,7 +40,9 @@ export default function EventDetailsPage() {
   //   { pointCode: "", pointName: "" },
   // ]);
   const [checkInPoints, setCheckInPoints] = useState<Poc[]>([]);
-  const [newCheckinPoints, setNewCheckInPoints] = useState<CreatePocRequest[]>([]);
+  const [newCheckinPoints, setNewCheckInPoints] = useState<CreatePocRequest[]>(
+    []
+  );
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
   const [isEnabledEditing, setIsEnabledEditing] = useState(true);
 
@@ -155,7 +158,7 @@ export default function EventDetailsPage() {
           await PocService.updatePoc(point.pocId, {
             pointCode: point.pointCode,
             pointName: point.pointName,
-          })
+          });
         } catch (pocError) {
           console.error(`Failed to update POC: ${point.pointCode}`, pocError);
           alert(`Failed to update POC: ${point.pointCode}. Please try again.`);
@@ -389,7 +392,11 @@ export default function EventDetailsPage() {
                       type="text"
                       value={point.pointName}
                       onChange={(e) =>
-                        updateNewCheckInPoint(index, "pointName", e.target.value)
+                        updateNewCheckInPoint(
+                          index,
+                          "pointName",
+                          e.target.value
+                        )
                       }
                       placeholder="Main Entrance"
                     />
@@ -399,14 +406,17 @@ export default function EventDetailsPage() {
                       type="text"
                       value={point.pointCode}
                       onChange={(e) =>
-                        updateNewCheckInPoint(index, "pointCode", e.target.value)
+                        updateNewCheckInPoint(
+                          index,
+                          "pointCode",
+                          e.target.value
+                        )
                       }
                       placeholder="POC001"
                     />
                   </div>
                 </div>
               ))}
-              
             </div>
           </div>
 
@@ -425,6 +435,9 @@ export default function EventDetailsPage() {
             </div>
           )}
         </form>
+      </div>
+      <div className="mt-8">
+        <EventAnalysis eventCode={params.eventCode as string} />
       </div>
     </div>
   );

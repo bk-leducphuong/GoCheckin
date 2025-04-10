@@ -8,7 +8,7 @@ import { useShallow } from "zustand/shallow";
 
 export default function EventsPage() {
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = useState<string| null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { events, getAllEvents } = useEventStore(
     useShallow((state) => ({
@@ -21,12 +21,14 @@ export default function EventsPage() {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        setErrorMessage(null); 
+        setErrorMessage(null);
         await getAllEvents();
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : "An unknown error occurred");
+        setErrorMessage(
+          error instanceof Error ? error.message : "An unknown error occurred"
+        );
         console.error("Failed to fetch events:", error);
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -71,22 +73,42 @@ export default function EventsPage() {
 
       {/* Events List */}
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        { errorMessage && (
+        {errorMessage && (
           <div className="bg-red-50 text-red-800 p-3 rounded-md text-sm">
             {errorMessage}
           </div>
         )}
-        { loading && (
+        {loading && (
           <div className="flex justify-center">
-            <svg className="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              className="animate-spin h-5 w-5 text-blue-600"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
           </div>
         )}
         <ul className="divide-y divide-gray-200">
           {events.map((item) => (
-            <li key={item.eventId} className="bg-white hover:bg-gray-50 cursor-pointer" onClick={() => router.push(`/admin/events/${item.eventCode}`)}>
+            <li
+              key={item.eventId}
+              className="bg-white hover:bg-gray-50 cursor-pointer"
+              onClick={() => router.push(`/admin/events/${item.eventCode}`)}
+            >
               <div className="px-4 py-4 sm:px-6">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium text-blue-600 truncate">
@@ -167,6 +189,16 @@ export default function EventsPage() {
                     <span>0 Attendees</span>
                   </div>
                 </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/admin/events/${item.eventCode}/live`);
+                  }}
+                  type="button"
+                  className="border-2 border-black-200 mt-4 rounded-md px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+                >
+                  View Realtime
+                </button>
               </div>
             </li>
           ))}
