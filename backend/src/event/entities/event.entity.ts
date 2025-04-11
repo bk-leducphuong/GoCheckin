@@ -10,6 +10,8 @@ import {
 } from 'typeorm';
 import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Guest } from '../../guest/entities/guest.entity';
+import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
+import { EventCheckinAnalytics } from '../../analysis/entities/event-checkin-analytics.entity';
 
 export enum EventStatus {
   DRAFT = 'draft',
@@ -86,4 +88,16 @@ export class Event {
 
   @OneToMany(() => Guest, (guest) => guest.event)
   guests: Guest[];
+
+  @OneToMany(
+    () => PointCheckinAnalytics,
+    (pointCheckinAnalytics) => pointCheckinAnalytics.event,
+  )
+  pointCheckinAnalytics: PointCheckinAnalytics[];
+
+  @OneToMany(
+    () => EventCheckinAnalytics,
+    (eventCheckinAnalytics) => eventCheckinAnalytics.event,
+  )
+  eventCheckinAnalytics: EventCheckinAnalytics[];
 }

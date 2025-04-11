@@ -11,6 +11,7 @@ import {
 import { Event } from '../../event/entities/event.entity';
 import { Account } from '../../account/entities/account.entity';
 import { GuestCheckin } from '../../guest/entities/guest-checkin.entity';
+import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 
 export enum PointStatus {
   ACTIVE = 'active',
@@ -86,4 +87,10 @@ export class PointOfCheckin {
 
   @OneToMany(() => GuestCheckin, (checkin) => checkin.pointOfCheckin)
   checkins: GuestCheckin[];
+
+  @OneToMany(
+    () => PointCheckinAnalytics,
+    (pointCheckinAnalytics) => pointCheckinAnalytics.point,
+  )
+  pointCheckinAnalytics: PointCheckinAnalytics[];
 }
