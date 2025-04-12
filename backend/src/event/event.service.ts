@@ -10,6 +10,7 @@ import { AccountTenant } from 'src/account/entities/account-tenant.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
+import { EventStatus } from './entities/event.entity';
 
 @Injectable()
 export class EventService {
@@ -98,5 +99,13 @@ export class EventService {
   async remove(eventId: string): Promise<void> {
     const event = await this.findOne(eventId);
     await this.eventRepository.remove(event);
+  }
+
+  async getEventStatus(eventCode: string): Promise<boolean> {
+    const event = await this.findOne(eventCode);
+    if (!event) {
+      throw new NotFoundException(`Event with code ${eventCode} not found`);
+    }
+    return event.eventStatus === EventStatus.ACTIVE;
   }
 }

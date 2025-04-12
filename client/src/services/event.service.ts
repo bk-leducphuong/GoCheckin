@@ -1,9 +1,9 @@
-import api from "./api"
+import api from "./api";
 import { Event } from "../types/event";
 import { CreateEventRequest } from "../types/event";
 
 export const EventService = {
-  async getAllEvents() : Promise<Event[]> {
+  async getAllEvents(): Promise<Event[]> {
     try {
       const response = await api.get("/events");
       return response.data.data;
@@ -13,7 +13,7 @@ export const EventService = {
     }
   },
 
-  async createEvent(eventData: CreateEventRequest) : Promise<Event> {
+  async createEvent(eventData: CreateEventRequest): Promise<Event> {
     try {
       const response = await api.post("/events", eventData);
       return response.data.data;
@@ -23,7 +23,7 @@ export const EventService = {
     }
   },
 
-  async getEventByCode(eventCode: string) : Promise<Event> {
+  async getEventByCode(eventCode: string): Promise<Event> {
     try {
       const response = await api.get(`/events/${eventCode}`);
       return response.data.data;
@@ -33,7 +33,10 @@ export const EventService = {
     }
   },
 
-  async updateEvent(eventCode: string, eventData: CreateEventRequest) : Promise<Event> {
+  async updateEvent(
+    eventCode: string,
+    eventData: CreateEventRequest
+  ): Promise<Event> {
     try {
       const response = await api.put(`/events/${eventCode}`, eventData);
       return response.data.data;
@@ -42,4 +45,8 @@ export const EventService = {
       throw error;
     }
   },
-}
+  async checkEventStartingStatus(eventCode: string): Promise<boolean> {
+    const response = await api.get(`/events/${eventCode}/status`);
+    return response.data.data;
+  },
+};

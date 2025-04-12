@@ -56,9 +56,15 @@ export const AuthService = {
   },
 
   // Token Management
-  async refreshToken(refreshToken: string, deviceInfo?: string): Promise<TokenRefreshResponse> {
+  async refreshToken(
+    refreshToken: string,
+    deviceInfo?: string
+  ): Promise<TokenRefreshResponse> {
     try {
-      const response = await api.post("/auth/refresh", { refreshToken, deviceInfo });
+      const response = await api.post("/auth/refresh", {
+        refreshToken,
+        deviceInfo,
+      });
       return response.data.data;
     } catch (error) {
       console.error("Token refresh error:", error);

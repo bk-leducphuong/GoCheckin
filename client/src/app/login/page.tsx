@@ -85,7 +85,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
           <div className="space-y-4">
             <div className="flex gap-4 border border-gray-300 rounded-md p-2">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -115,6 +115,7 @@ export default function LoginPage() {
             )}
 
             <Input
+              autoComplete="off"
               label="Email"
               type="email"
               {...register("email")}
@@ -123,6 +124,7 @@ export default function LoginPage() {
             />
 
             <Input
+              autoComplete="off"
               label="Password"
               type="password"
               {...register("password")}

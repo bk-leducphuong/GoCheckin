@@ -15,8 +15,8 @@ interface AuthState {
     deviceInfo?: string
   ) => Promise<void>;
   pocLogin: (
-    pocId: string,
-    eventCode: string
+    email: string,
+    password: string
   ) => Promise<{ pointCode: string; eventCode: string }>;
   adminRegister: (data: AdminRegisterData) => Promise<void>;
   pocRegister: (
@@ -208,6 +208,7 @@ export const useAuthStore = create<AuthState>()(
             return false;
           }
         },
+        
       }),
       {
         name: "auth-storage",

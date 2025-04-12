@@ -5,11 +5,17 @@ import { CreateEventRequest, Event } from "@/types/event";
 
 interface EventStore {
   events: Event[];
+  isLoading: boolean;
+  error: string | null;
   setEvents: (events: Event[]) => void;
   getAllEvents: () => Promise<Event[]>;
   createEvent: (eventData: CreateEventRequest) => Promise<Event>;
   getEventByCode: (eventCode: string) => Promise<Event>;
-  updateEvent: (eventCode: string, eventData: CreateEventRequest) => Promise<Event>;
+  updateEvent: (
+    eventCode: string,
+    eventData: CreateEventRequest
+  ) => Promise<Event>;
+  checkEventStartingStatus: (eventCode: string) => Promise<boolean>;
 }
 
 export const useEventStore = create<EventStore>()(
@@ -59,6 +65,18 @@ export const useEventStore = create<EventStore>()(
           return response;
         } catch (error) {
           console.error("Error updating event:", error);
+          throw error;
+        }
+      },
+      async checkEventStartingStatus(eventCode: string): Promise<boolean> {
+        try {
+          set({ isLoading: true, error: null });
+          const response = await EventService.checkEventStartingStatus(eventCode);
+          set({ isLoading: false });
+          return response;
+        } catch (error) {
+          set({ isLoading: false, error: "Failed to check event status" });
+          console.error("Error checking event status:", error);
           throw error;
         }
       },

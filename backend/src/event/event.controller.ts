@@ -3,7 +3,6 @@ import {
   Get,
   Put,
   Post,
-  Delete,
   Body,
   Param,
   UseGuards,
@@ -56,17 +55,9 @@ export class EventController {
     return this.eventService.update(eventCode, updateEventDto);
   }
 
-  // @Delete(':eventId')
-  // @Roles(UserRole.ADMIN, UserRole.TENANT)
-  // async deleteEvent(
-  //   @CurrentUser() user: JwtPayload,
-  //   @Param('eventId', ParseUUIDPipe) eventId: string,
-  // ) {
-  //   const event = await this.eventService.findOne(eventId);
-  //   // Tenants can only delete their own events
-  //   if (user.role === UserRole.TENANT && event.tenantCode !== user.tenantCode) {
-  //     throw new UnauthorizedException('You can only delete your own events');
-  //   }
-  //   return this.eventService.remove(eventId);
-  // }
+  @Get(':eventCode/status')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  async getEventStatus(@Param('eventCode') eventCode: string) {
+    return this.eventService.getEventStatus(eventCode);
+  }
 }

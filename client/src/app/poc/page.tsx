@@ -13,7 +13,7 @@ import { useSearchParams } from "next/navigation";
 import GuestList from "@/components/poc/GuestList";
 import { useUserStore } from "@/store/userStore";
 import { useCheckinStore } from "@/store/checkinStore";
-
+import MenuModal from "@/components/poc/MenuModal";
 
 // Guest check-in validation schema
 const checkInSchema = z.object({
@@ -46,6 +46,7 @@ export default function POCDashboard() {
   const [guestImage, setGuestImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const {
     register,
@@ -100,6 +101,14 @@ export default function POCDashboard() {
     setGuestImage(imageData);
   };
 
+  const openMenu = () => {
+    setShowMenu(true);
+  };
+
+  const closeMenu = () => {
+    setShowMenu(false);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Section 1: Event and POC Information */}
@@ -114,7 +123,7 @@ export default function POCDashboard() {
             </p>
           </div>
           <div className="mt-4 md:mt-0">
-            <div className="flex items-center bg-blue-50 px-4 py-2 rounded-md">
+            <div className="flex items-center bg-blue-50 px-4 py-2 rounded-md cursor-pointer" onClick={openMenu}>
               <div className="mr-3">
                 <svg
                   className="h-6 w-6 text-blue-500"
@@ -134,13 +143,15 @@ export default function POCDashboard() {
               <div>
                 <p className="text-sm text-gray-600">Point of Contact</p>
                 <p className="font-medium text-gray-900">
-                  {user?.email || "POC User"}
+                  {user?.username || "POC User"}
                 </p>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {showMenu && <MenuModal onClose={closeMenu} />}
 
       {/* Section 2: Check-in Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
