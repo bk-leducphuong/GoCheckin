@@ -123,13 +123,6 @@ export class AuthService {
     }
 
     /* Tenant creation */
-    const tenant = await this.tenantService.findByCodeOrName(
-      registerDto.tenantCode,
-      registerDto.tenantName,
-    );
-    if (tenant) {
-      throw new BadRequestException('Tenant already exists');
-    }
     const newTenant = await this.tenantService.createTenant({
       tenantCode: registerDto.tenantCode,
       tenantName: registerDto.tenantName,
