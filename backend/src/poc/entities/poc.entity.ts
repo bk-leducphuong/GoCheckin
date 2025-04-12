@@ -10,7 +10,6 @@ import {
 } from 'typeorm';
 import { Event } from '../../event/entities/event.entity';
 import { Account } from '../../account/entities/account.entity';
-import { GuestCheckin } from '../../guest/entities/guest-checkin.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 
 export enum PointStatus {
@@ -84,9 +83,6 @@ export class PointOfCheckin {
   @ManyToOne(() => Account)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
   account: Account;
-
-  @OneToMany(() => GuestCheckin, (checkin) => checkin.pointOfCheckin)
-  checkins: GuestCheckin[];
 
   @OneToMany(
     () => PointCheckinAnalytics,

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { CreatePocDto } from './dto/create-poc.dto';
 import { EventService } from 'src/event/event.service';
 import { UpdatePocDto } from './dto/update-poc.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
+import { ValidatePocDto } from './dto/validate-poc.dto';
 
 @Injectable()
 export class PocService {
@@ -55,7 +57,10 @@ export class PocService {
     eventCode: string,
     pointCode: string,
   ): Promise<boolean> {
-    const poc = await this.getPocByCode(eventCode, pointCode);
+    const poc = await this.pocRepository.findOne({
+      where: { eventCode, pointCode, enabled: true },
+      relations: ['account', 'event'],
+    });
     return !!poc;
   }
 
@@ -75,24 +80,6 @@ export class PocService {
     if (!poc) {
       throw new NotFoundException(
         `Point of Check-in with ID ${pocId} not found`,
-      );
-    }
-
-    return poc;
-  }
-
-  async getPocByCode(
-    eventCode: string,
-    pointCode: string,
-  ): Promise<PointOfCheckin> {
-    const poc = await this.pocRepository.findOne({
-      where: { eventCode, pointCode, enabled: true },
-      relations: ['account', 'event'],
-    });
-
-    if (!poc) {
-      throw new NotFoundException(
-        `Point of Check-in with code ${pointCode} not found`,
       );
     }
 
@@ -138,13 +125,16 @@ export class PocService {
 
   async validatePoc(
     user: JwtPayload,
-    validatePocDto: any,
+    validatePocDto: ValidatePocDto,
   ): Promise<PointOfCheckin> {
-    const { eventCode, pocId } = validatePocDto;
+    const { eventCode, pointCode } = validatePocDto;
+    if (!eventCode || !pointCode) {
+      throw new BadRequestException('Event code and point code are required');
+    }
     const userId = user.userId;
 
     const poc = await this.pocRepository.findOne({
-      where: { userId, eventCode, pocId, enabled: true },
+      where: { userId, eventCode, pointCode, enabled: true },
     });
     if (!poc) {
       throw new NotFoundException('Not found poc!');
@@ -153,16 +143,14 @@ export class PocService {
     return poc;
   }
 
-  async updatePocManager(pocId: string, userId: string): Promise<void> {
-    const poc = await this.pocRepository.findOne({
-      where: { pocId, enabled: true },
-    });
-
-    if (!poc) {
-      throw new NotFoundException('Not found poc!');
-    }
-
-    poc.userId = userId;
-    await this.pocRepository.save(poc);
+  async updatePocManager(
+    eventCode: string,
+    pointCode: string,
+    userId: string,
+  ): Promise<void> {
+    await this.pocRepository.update(
+      { eventCode, pointCode },
+      { userId: userId },
+    );
   }
 }

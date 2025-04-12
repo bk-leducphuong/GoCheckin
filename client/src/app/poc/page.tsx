@@ -1,17 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
+// import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
-import { CheckInService } from "@/services/checkin.service";
 import { GuestCheckinInfo } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
 import GuestList from "@/components/poc/GuestList";
 import { useUserStore } from "@/store/userStore";
+import { useCheckinStore } from "@/store/checkinStore";
+
 
 // Guest check-in validation schema
 const checkInSchema = z.object({
@@ -29,14 +31,16 @@ export default function POCDashboard() {
       user: state.user,
     }))
   );
+  const { checkinGuest, uploadGuestImage } = useCheckinStore(
+    useShallow((state) => ({
+      checkinGuest: state.checkinGuest,
+      uploadGuestImage: state.uploadGuestImage,
+      guests: state.guests,
+    }))
+  );
   const searchParams = useSearchParams();
-  const eventCode = searchParams.get("eventCode") || null;
-  const pocId = searchParams.get("pocId") || null;
-
-  // Use stored values or fallbacks
-  const activeEventCode = eventCode || "EVENT001";
-  const activePocId = pocId || "POC001";
-
+  const eventCode = searchParams.get("eventCode");
+  const pointCode = searchParams.get("pointCode");
   const [guestCode, setGuestCode] = useState("");
   const [note, setNote] = useState("");
   const [guestImage, setGuestImage] = useState<string | null>(null);
@@ -52,27 +56,27 @@ export default function POCDashboard() {
     resolver: zodResolver(checkInSchema),
   });
 
-  const onSubmit = async (data: CheckInFormData) => {
+  const onSubmit = async () => {
     try {
       setIsLoading(true);
 
       // First upload the image if available
       let imageUrl;
       if (guestImage) {
-        imageUrl = await CheckInService.uploadGuestImage(guestImage);
+        imageUrl = await uploadGuestImage(guestImage);
       }
 
       // Prepare the check-in data
       const checkInData: GuestCheckinInfo = {
         guestCode,
-        eventCode: activeEventCode,
-        pocId: activePocId,
+        eventCode: eventCode || "",
+        pointCode: pointCode || "",
         notes: note || undefined,
         imageUrl,
       };
 
       // Call the check-in service
-      await CheckInService.checkinGuest(checkInData);
+      await checkinGuest(checkInData);
 
       // Reset form and show success message
       reset();
@@ -80,8 +84,6 @@ export default function POCDashboard() {
       setGuestCode("");
       setNote("");
       alert("Guest checked in successfully!");
-
-      
     } catch (error) {
       console.error("Check-in error:", error);
       alert(

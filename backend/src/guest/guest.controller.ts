@@ -11,6 +11,7 @@ import {
   HttpCode,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { GuestService } from './guest.service';
 import { UpdateGuestDto } from './dto/update-guest.dto';
@@ -101,23 +102,21 @@ export class GuestController {
     return this.guestService.getPocCheckins(pocId, eventCode);
   }
 
-  @Get('all/:eventCode/:pocId')
+  @Get()
   @Roles(UserRole.ADMIN, UserRole.POC)
   @ApiOperation({
     summary: 'Get all guests for a specific event and point of check-in',
   })
-  @ApiParam({ name: 'eventCode', description: 'Event code' })
-  @ApiParam({ name: 'pocId', description: 'Point of check-in ID' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all guests for the event and point of check-in',
     type: [Guest],
   })
   async getAllGuestsOfPoc(
-    @Param('eventCode') eventCode: string,
-    @Param('pocId') pocId: string,
+    @Query('eventCode') eventCode: string,
+    @Query('pointCode') pointCode: string,
   ): Promise<GetGuestsResponseDto> {
-    return this.guestService.getAllGuestsOfPoc(eventCode, pocId);
+    return this.guestService.getAllGuestsOfPoc(eventCode, pointCode);
   }
 
   @Get('all')

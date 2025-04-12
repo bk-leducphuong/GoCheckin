@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 
 export default function PocLayout({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
-  const pocId = searchParams.get("pocId");
+  const pointCode = searchParams.get("pointCode");
   const eventCode = searchParams.get("eventCode");
   const router = useRouter();
 
@@ -23,8 +23,8 @@ export default function PocLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const validatePocData = async () => {
       try {
-        if (pocId && eventCode) {
-          const response = await validatePoc(pocId, eventCode);
+        if (pointCode && eventCode) {
+          const response = await validatePoc(pointCode, eventCode);
           if (!response.success) {
             router.push("/login");
           }
@@ -35,7 +35,7 @@ export default function PocLayout({ children }: { children: React.ReactNode }) {
       }
     };
     validatePocData();
-  }, [pocId, eventCode, router, validatePoc]);
+  }, [pointCode, eventCode, router, validatePoc]);
 
   return (
     <AuthCheck

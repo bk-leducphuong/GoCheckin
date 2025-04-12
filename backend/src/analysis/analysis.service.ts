@@ -108,8 +108,6 @@ export class AnalysisService {
       await this.guestService.getAllCheckinsByEvent(eventCode);
     if (transactions.length === 0) return [];
 
-    const pocs = await this.pocService.getAllPocs(eventCode);
-
     // Map to store point analytics grouped by point and time interval
     const pointIntervalMap = new Map<string, GuestCheckin[]>();
 
@@ -137,15 +135,8 @@ export class AnalysisService {
           break;
       }
 
-      let pointCode: string | undefined;
-      pocs.map((poc) => {
-        if (poc.pocId === transaction.pocId) {
-          pointCode = poc.pointCode;
-        }
-      });
-
       // Combine point code and interval for unique key
-      const mapKey = `${pointCode}:${intervalKey}`;
+      const mapKey = `${transaction.pointCode}:${intervalKey}`;
 
       if (!pointIntervalMap.has(mapKey)) {
         pointIntervalMap.set(mapKey, []);

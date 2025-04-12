@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CheckinDto {
@@ -7,11 +7,11 @@ export class CheckinDto {
   @ApiProperty({ description: 'Guest code to check in' })
   guestCode: string;
 
-  @IsUUID()
+  @IsString()
   @ApiProperty({
-    description: 'Point of check-in ID',
+    description: 'Point of check-in code',
   })
-  pocId: string;
+  pointCode: string;
 
   @IsString()
   @IsOptional()

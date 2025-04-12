@@ -7,7 +7,7 @@ export const PocService = {
     try {
       const response = await api.post("/pocs/validate-poc", {
         eventCode: data.eventCode,
-        pocId: data.pocId,
+        pointCode: data.pointCode,
       });
 
       return response.data.data;
@@ -17,7 +17,7 @@ export const PocService = {
   },
   async createPoc(eventCode: string, pocData: CreatePocRequest): Promise<Poc> {
     try {
-      const response = await api.post(`/pocs/${eventCode}`, pocData);
+      const response = await api.post(`/pocs/event?eventCode=${eventCode}`, pocData);
       return response.data.data;
     } catch (error) {
       throw error;
@@ -25,7 +25,7 @@ export const PocService = {
   },
   async getAllPocs(eventCode: string): Promise<Poc[]> {
     try {
-      const response = await api.get(`/pocs/${eventCode}`);
+      const response = await api.get(`/pocs/event?eventCode=${eventCode}`);
       return response.data.data;
     } catch (error) {
       throw error;
@@ -33,7 +33,7 @@ export const PocService = {
   },
   async updatePoc(pocId: string,pocData: UpdatePocRequest): Promise<Poc> {
     try {
-      const response = await api.put(`/pocs/${pocId}`, pocData);
+      const response = await api.put(`/pocs/poc?pocId=${pocId}`, pocData);
       return response.data.data;
     } catch (error) {
       throw error;
@@ -41,7 +41,7 @@ export const PocService = {
   },
   async removePoc(pocId: string): Promise<void> {
     try {
-      await api.delete(`/pocs/${pocId}`);
+      await api.delete(`/pocs/poc?pocId=${pocId}`);
     } catch (error) {
       throw error;
     }

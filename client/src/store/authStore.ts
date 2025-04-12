@@ -9,13 +9,19 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  adminLogin: (email: string, password: string, deviceInfo?: string) => Promise<void>;
+  adminLogin: (
+    email: string,
+    password: string,
+    deviceInfo?: string
+  ) => Promise<void>;
   pocLogin: (
     pocId: string,
     eventCode: string
-  ) => Promise<{ pocId: string; eventCode: string }>;
+  ) => Promise<{ pointCode: string; eventCode: string }>;
   adminRegister: (data: AdminRegisterData) => Promise<void>;
-  pocRegister: (data: PocRegisterData) => Promise<void>;
+  pocRegister: (
+    data: PocRegisterData
+  ) => Promise<{ pointCode: string; eventCode: string }>;
   logout: () => Promise<void>;
   clearAuth: () => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
@@ -33,10 +39,18 @@ export const useAuthStore = create<AuthState>()(
         isLoading: false,
         error: null,
 
-        adminLogin: async (email: string, password: string, deviceInfo?: string) => {
+        adminLogin: async (
+          email: string,
+          password: string,
+          deviceInfo?: string
+        ) => {
           try {
             set({ isLoading: true, error: null });
-            const response = await AuthService.adminLogin({ email, password, deviceInfo });
+            const response = await AuthService.adminLogin({
+              email,
+              password,
+              deviceInfo,
+            });
 
             const newState = {
               accessToken: response.accessToken,
@@ -68,12 +82,12 @@ export const useAuthStore = create<AuthState>()(
             };
             set(newState);
 
-            if (!response.pocId || !response.eventCode) {
+            if (!response.pointCode || !response.eventCode) {
               throw new Error("Invalid response from server");
             }
 
             return {
-              pocId: response.pocId,
+              pointCode: response.pointCode,
               eventCode: response.eventCode,
             };
           } catch (error) {
@@ -114,7 +128,7 @@ export const useAuthStore = create<AuthState>()(
             const response = await AuthService.pocRegister(data);
 
             const newState = {
-              pocId: response.pocId,
+              pointCode: response.pointCode,
               eventCode: response.eventCode,
               accessToken: response.accessToken,
               refreshToken: response.refreshToken,
@@ -123,6 +137,14 @@ export const useAuthStore = create<AuthState>()(
             };
 
             set(newState);
+            if (!response.pointCode || !response.eventCode) {
+              throw new Error("Invalid response from server");
+            }
+            
+            return {
+              pointCode: response.pointCode,
+              eventCode: response.eventCode,
+            };
           } catch (error) {
             set({
               error:
@@ -168,7 +190,10 @@ export const useAuthStore = create<AuthState>()(
           }
 
           try {
-            const response = await AuthService.refreshToken(refreshToken, deviceInfo);
+            const response = await AuthService.refreshToken(
+              refreshToken,
+              deviceInfo
+            );
 
             const updatedState = {
               accessToken: response.accessToken,

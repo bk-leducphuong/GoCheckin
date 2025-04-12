@@ -1,41 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { usePocStore } from "../../store/pocStore";
-import { GuestService } from "@/services/guest.service";
+import { useCheckinStore } from "@/store/checkinStore";
 import { useShallow } from "zustand/shallow";
-import { CheckInResponse } from "@/types/checkin";
 
 export default function GuestList() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [guests, setGuests] = useState<CheckInResponse[]>([]);
   const { poc } = usePocStore(
     useShallow((state) => ({
       poc: state.poc,
     }))
   );
+  const { guests, fetchGuests, isLoading, error } = useCheckinStore(
+    useShallow((state) => ({
+      guests: state.guests,
+      fetchGuests: state.fetchGuests,
+      isLoading: state.isLoading,
+      error: state.error,
+    }))
+  );
 
   useEffect(() => {
     if (!poc) return;
-    const fetchGuests = async () => {
-      try {
-        setLoading(true);
-        setErrorMessage(null);
-        const guests = await GuestService.getAllGuestsOfPoc(
-          poc.eventCode,
-          poc.pocId
-        );
-        setGuests(guests);
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : "An unknown error occurred"
-        );
-        console.error("Failed to fetch guests:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchGuests();
+    fetchGuests(poc.eventCode, poc.pointCode);
   }, [poc]);
 
   if (!poc) {
@@ -101,7 +87,7 @@ export default function GuestList() {
                 </th>
               </tr>
             </thead>
-            {loading && (
+            {isLoading && (
               <tbody>
                 <tr>
                   <td colSpan={5} className="text-center py-4">
@@ -110,11 +96,11 @@ export default function GuestList() {
                 </tr>
               </tbody>
             )}
-            {errorMessage && (
+            {error && (
               <tbody>
                 <tr>
                   <td colSpan={5} className="text-center py-4">
-                    {errorMessage}
+                    {error}
                   </td>
                 </tr>
               </tbody>

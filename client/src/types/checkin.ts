@@ -3,7 +3,7 @@ import { GuestInfo } from './guest';
 export interface GuestCheckinInfo {
   guestCode: string;
   eventCode: string;
-  pocId: string;
+  pointCode: string;
   name?: string;
   email?: string;
   phoneNumber?: string;
@@ -16,7 +16,7 @@ export interface CheckinInfo {
   checkinId: string;
   guestId: string;
   guestCode: string;
-  pocId: string;
+  pointCode: string;
   eventCode: string;
   checkinTime: string;
   active: boolean;

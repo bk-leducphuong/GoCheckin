@@ -7,7 +7,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Guest } from './guest.entity';
-import { PointOfCheckin } from '../../poc/entities/poc.entity';
 
 @Entity('guest_checkins')
 export class GuestCheckin {
@@ -20,11 +19,11 @@ export class GuestCheckin {
   @Column({ name: 'guest_code', type: 'varchar', length: 50 })
   guestCode: string;
 
-  @Column({ name: 'poc_id', type: 'uuid' })
-  pocId: string;
-
   @Column({ name: 'event_code', type: 'varchar', length: 50 })
   eventCode: string;
+
+  @Column({ name: 'point_code', type: 'varchar', length: 50 })
+  pointCode: string;
 
   @CreateDateColumn({
     name: 'checkin_time',
@@ -39,8 +38,4 @@ export class GuestCheckin {
   @ManyToOne(() => Guest, (guest) => guest.checkins)
   @JoinColumn({ name: 'guest_id' })
   guest: Guest;
-
-  @ManyToOne(() => PointOfCheckin, (poc) => poc.checkins)
-  @JoinColumn({ name: 'poc_id' })
-  pointOfCheckin: PointOfCheckin;
 }

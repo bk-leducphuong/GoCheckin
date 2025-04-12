@@ -63,7 +63,7 @@ export class GuestService {
       const existingCheckin = await this.guestCheckinRepository.findOne({
         where: {
           guestCode: checkinDto.guestCode,
-          pocId: checkinDto.pocId,
+          pointCode: checkinDto.pointCode,
           active: true,
         },
       });
@@ -98,7 +98,7 @@ export class GuestService {
         guestId: checkinGuest.guestId,
         guestCode: checkinDto.guestCode,
         eventCode: checkinDto.eventCode,
-        pocId: checkinDto.pocId,
+        pointCode: checkinDto.pointCode,
       });
 
       // Save the checkin record
@@ -127,12 +127,12 @@ export class GuestService {
   }
 
   async getPocCheckins(
-    pocId: string,
+    pointCode: string,
     eventCode: string,
   ): Promise<GuestCheckin[]> {
     // Find all check-ins at a specific POC for a specific event
     return this.guestCheckinRepository.find({
-      where: { pocId, eventCode, active: true },
+      where: { pointCode, eventCode, active: true },
       relations: ['guest'],
       order: { checkinTime: 'DESC' },
     });
@@ -140,10 +140,10 @@ export class GuestService {
 
   async getAllGuestsOfPoc(
     eventCode: string,
-    pocId: string,
+    pointCode: string,
   ): Promise<GetGuestsResponseDto> {
     const checkins = await this.guestCheckinRepository.find({
-      where: { pocId, eventCode, active: true },
+      where: { pointCode, eventCode, active: true },
       order: { checkinTime: 'DESC' },
     });
 

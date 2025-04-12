@@ -4,11 +4,11 @@ import {
   Post,
   Put,
   Delete,
-  Param,
   Body,
   UseGuards,
   HttpStatus,
   HttpCode,
+  Query,
 } from '@nestjs/common';
 import { PocService } from './poc.service';
 import { CreatePocDto } from './dto/create-poc.dto';
@@ -21,6 +21,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { PointOfCheckin } from './entities/poc.entity';
+import { ValidatePocDto } from './dto/validate-poc.dto';
 // import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @ApiTags('points-of-checkin')
@@ -29,19 +30,32 @@ import { PointOfCheckin } from './entities/poc.entity';
 export class PocController {
   constructor(private readonly pocService: PocService) {}
 
-  @Get(':eventCode')
+  @Post('validate-poc')
+  @Roles(UserRole.POC)
+  @ApiOperation({ summary: 'Validate poc account' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Point of check-in validated successfully',
+  })
+  async validatePoc(
+    @CurrentUser() user: JwtPayload,
+    @Body() validatePocDto: ValidatePocDto,
+  ): Promise<PointOfCheckin> {
+    return this.pocService.validatePoc(user, validatePocDto);
+  }
+
+  @Get('event')
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   @ApiOperation({ summary: 'Get all points of check-in for an event' })
-  @ApiParam({ name: 'eventCode', description: 'Event code' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all points of check-in for the event',
   })
-  async getAllPocs(@Param('eventCode') eventCode: string) {
+  async getAllPocs(@Query('eventCode') eventCode: string) {
     return this.pocService.getAllPocs(eventCode);
   }
 
-  @Post(':eventCode')
+  @Post('event')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new point of check-in for an event' })
   @ApiResponse({
@@ -49,32 +63,15 @@ export class PocController {
     description: 'Point of check-in created successfully',
   })
   async createPoc(
-    @Param('eventCode') eventCode: string,
+    @Query('eventCode') eventCode: string,
     @Body() createPocDto: CreatePocDto,
   ) {
     return this.pocService.create(eventCode, createPocDto);
   }
 
-  @Get(':pocId')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
-  @ApiOperation({ summary: 'Get details of a specific point of check-in' })
-  @ApiParam({ name: 'pocId', description: 'Point of check-in ID or code' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Returns the point of check-in details',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Point of check-in not found',
-  })
-  async getPocDetails(@Param('pocId') pocId: string) {
-    return this.pocService.findOne(pocId);
-  }
-
-  @Put(':pocId')
+  @Put('poc')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a point of check-in' })
-  @ApiParam({ name: 'pocId', description: 'Point of check-in ID or code' })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Point of check-in updated successfully',
@@ -84,13 +81,13 @@ export class PocController {
     description: 'Point of check-in not found',
   })
   async updatePoc(
-    @Param('pocId') pocId: string,
+    @Query('pocId') pocId: string,
     @Body() updatePocDto: UpdatePocDto,
   ) {
     return this.pocService.update(pocId, updatePocDto);
   }
 
-  @Delete(':pocId')
+  @Delete('poc')
   @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a point of check-in (soft delete)' })
@@ -103,21 +100,7 @@ export class PocController {
     status: HttpStatus.NOT_FOUND,
     description: 'Point of check-in not found',
   })
-  async deletePoc(@Param('pocId') pocId: string) {
+  async deletePoc(@Query('pocId') pocId: string) {
     return this.pocService.remove(pocId);
-  }
-
-  @Post('validate-poc')
-  @Roles(UserRole.POC)
-  @ApiOperation({ summary: 'Validate poc account' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Point of check-in validated successfully',
-  })
-  async validatePoc(
-    @CurrentUser() user: JwtPayload,
-    @Body() validatePocDto: any,
-  ): Promise<PointOfCheckin> {
-    return this.pocService.validatePoc(user, validatePocDto);
   }
 }

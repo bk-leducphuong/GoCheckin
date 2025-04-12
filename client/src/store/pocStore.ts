@@ -7,7 +7,7 @@ interface PocStore {
   poc: Poc | null;
   setPoc: (poc: Poc | null) => void;
   validatePoc: (
-    pocId: string,
+    pointCode: string,
     eventCode: string
   ) => Promise<{ success: boolean }>;
   getAllPocs: (eventCode: string) => Promise<Poc[]>;
@@ -19,12 +19,12 @@ export const usePocStore = create<PocStore>()(
       poc: null,
       setPoc: (poc) => set({ poc }),
       validatePoc: async (
-        pocId: string,
+        pointCode: string,
         eventCode: string
       ): Promise<{ success: boolean }> => {
         try {
           const response = await PocService.validatePoc({
-            pocId: pocId,
+            pointCode: pointCode,
             eventCode: eventCode,
           });
           if (!response) {

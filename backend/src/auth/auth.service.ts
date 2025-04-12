@@ -100,7 +100,7 @@ export class AuthService {
           role: user.role,
         }),
         refreshToken: refreshToken,
-        pocId: poc.pocId,
+        pointCode: poc.pointCode,
         eventCode: poc.eventCode,
       };
     } catch (error) {
@@ -200,12 +200,11 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    // Update POC
-    const poc = await this.pocService.getPocByCode(
+    await this.pocService.updatePocManager(
       registerDto.eventCode,
       registerDto.pointCode,
+      newUser.userId,
     );
-    await this.pocService.updatePocManager(poc.pocId, newUser.userId);
 
     // Create refresh token
     const refreshToken = await this.refreshTokenService.generateRefreshToken(
@@ -219,8 +218,8 @@ export class AuthService {
         role: newUser.role,
       }),
       refreshToken: refreshToken,
-      pocId: poc.pocId,
-      eventCode: poc.eventCode,
+      pointCode: registerDto.pointCode,
+      eventCode: registerDto.eventCode,
     };
   }
 

@@ -11,7 +11,7 @@ export interface LoginCredentials {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  pocId?: string;
+  pointCode?: string;
   eventCode?: string;
 }
 

@@ -19,7 +19,7 @@ export interface Poc {
 }   
 
 export interface PocValidationData {
-    pocId: string;
+    pointCode: string;
     eventCode: string;
 }
 

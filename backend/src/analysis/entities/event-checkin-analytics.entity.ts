@@ -9,7 +9,7 @@ export class EventCheckinAnalytics {
   @Column({ name: 'event_code', type: 'varchar' })
   eventCode: string;
 
-  @Column({ name: 'time_interval', type: 'datetime' })
+  @Column({ name: 'time_interval' })
   timeInterval: Date;
 
   @Column({ name: 'interval_duration', type: 'varchar' })
@@ -18,10 +18,10 @@ export class EventCheckinAnalytics {
   @Column({ name: 'checkin_count', type: 'int', default: 0 })
   checkinCount: number;
 
-  @Column({ name: 'created_at', type: 'datetime' })
+  @Column({ name: 'created_at' })
   createdAt: Date;
 
-  @Column({ name: 'updated_at', type: 'datetime' })
+  @Column({ name: 'updated_at' })
   updatedAt: Date;
 
   @ManyToOne(() => Event, (event) => event.eventCheckinAnalytics, {

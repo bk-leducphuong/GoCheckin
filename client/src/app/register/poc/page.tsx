@@ -1,45 +1,48 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Link from 'next/link';
-import Input from '@/components/ui/Input';
-import Button from '@/components/ui/Button';
-import { PocRegisterData } from '@/types/auth';
-import { useAuthStore } from '@/store/authStore';
-import { useShallow } from 'zustand/react/shallow';
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
+import { useAuthStore } from "@/store/authStore";
+import { useShallow } from "zustand/react/shallow";
 
 // POC registration validation schema
-const pocRegisterSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  eventCode: z.string().min(3, 'Event code is required'),
-  pointCode: z.string().min(3, 'Point of checkin code is required'),
-  companyName: z.string().optional(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
+const pocRegisterSchema = z
+  .object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string(),
+    fullName: z.string().min(2, "Full name must be at least 2 characters"),
+    eventCode: z.string().min(3, "Event code is required"),
+    pointCode: z.string().min(3, "Point of checkin code is required"),
+    companyName: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type PocRegisterFormData = z.infer<typeof pocRegisterSchema>;
 
 export default function PocRegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { pocRegister } = useAuthStore(useShallow(state => ({
-    pocRegister: state.pocRegister,
-  })));
-  
-  const { 
-    register, 
-    handleSubmit, 
-    formState: { errors, isSubmitting } 
+  const { pocRegister } = useAuthStore(
+    useShallow((state) => ({
+      pocRegister: state.pocRegister,
+    }))
+  );
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
   } = useForm<PocRegisterFormData>({
     resolver: zodResolver(pocRegisterSchema),
   });
@@ -47,22 +50,22 @@ export default function PocRegisterPage() {
   const onSubmit = async (data: PocRegisterFormData) => {
     try {
       setErrorMessage(null);
-      
+
       // Extract data without confirmPassword
       const { confirmPassword, ...registerData } = data;
       // Unused variable is intentional - we're extracting and discarding confirmPassword
       void confirmPassword;
-      
-      await pocRegister(registerData as PocRegisterData);
-      
+
+      const { pointCode, eventCode } = await pocRegister(registerData);
+
       // Redirect to dashboard after successful registration
-      router.push('/poc');
+      router.push(`/poc?pointCode=${pointCode}&eventCode=${eventCode}`);
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error("Registration error:", error);
       setErrorMessage(
-        error instanceof Error 
-          ? error.message 
-          : 'Registration failed. Please try again.'
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again."
       );
     }
   };
@@ -88,7 +91,7 @@ export default function PocRegisterPage() {
             <Input
               label="Username"
               type="text"
-              {...register('username')}
+              {...register("username")}
               error={errors.username?.message}
               placeholder="johndoe"
             />
@@ -96,7 +99,7 @@ export default function PocRegisterPage() {
             <Input
               label="Email"
               type="email"
-              {...register('email')}
+              {...register("email")}
               error={errors.email?.message}
               placeholder="your@email.com"
             />
@@ -105,7 +108,7 @@ export default function PocRegisterPage() {
               <Input
                 label="Password"
                 type="password"
-                {...register('password')}
+                {...register("password")}
                 error={errors.password?.message}
                 placeholder="********"
               />
@@ -113,7 +116,7 @@ export default function PocRegisterPage() {
               <Input
                 label="Confirm Password"
                 type="password"
-                {...register('confirmPassword')}
+                {...register("confirmPassword")}
                 error={errors.confirmPassword?.message}
                 placeholder="********"
               />
@@ -122,7 +125,7 @@ export default function PocRegisterPage() {
             <Input
               label="Full Name"
               type="text"
-              {...register('fullName')}
+              {...register("fullName")}
               error={errors.fullName?.message}
               placeholder="John Doe"
             />
@@ -130,7 +133,7 @@ export default function PocRegisterPage() {
             <Input
               label="Event Code"
               type="text"
-              {...register('eventCode')}
+              {...register("eventCode")}
               error={errors.eventCode?.message}
               placeholder="EVENT123"
             />
@@ -138,7 +141,7 @@ export default function PocRegisterPage() {
             <Input
               label="Point of checkin Code"
               type="text"
-              {...register('pointCode')}
+              {...register("pointCode")}
               error={errors.pointCode?.message}
               placeholder="POINT123"
             />
@@ -146,7 +149,7 @@ export default function PocRegisterPage() {
             <Input
               label="Company Name (optional)"
               type="text"
-              {...register('companyName')}
+              {...register("companyName")}
               error={errors.companyName?.message}
               placeholder="Your Company Ltd."
             />
@@ -158,14 +161,17 @@ export default function PocRegisterPage() {
 
           <div className="text-center mt-4">
             <p className="text-sm text-gray-600">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link href="/login" className="text-blue-600 hover:underline">
                 Log in
               </Link>
             </p>
             <p className="text-sm text-gray-600 mt-2">
-              Are you an Admin?{' '}
-              <Link href="/register/tenant" className="text-blue-600 hover:underline">
+              Are you an Admin?{" "}
+              <Link
+                href="/register/tenant"
+                className="text-blue-600 hover:underline"
+              >
                 Register as Admin
               </Link>
             </p>
@@ -174,4 +180,4 @@ export default function PocRegisterPage() {
       </div>
     </div>
   );
-} 
+}

@@ -1,13 +1,4 @@
-import { IsObject, IsString, IsOptional } from 'class-validator';
-
-interface User {
-  userId: string;
-  username: string;
-  email: string;
-  role: string;
-  pocId?: string;
-  eventCode?: string;
-}
+import { IsString, IsOptional } from 'class-validator';
 
 export class AuthLoginResponseDto {
   @IsString()
@@ -16,12 +7,9 @@ export class AuthLoginResponseDto {
   @IsString()
   refreshToken: string;
 
-  // @IsObject()
-  // user: User;
-
   @IsString()
   @IsOptional()
-  pocId?: string;
+  pointCode?: string;
 
   @IsString()
   @IsOptional()

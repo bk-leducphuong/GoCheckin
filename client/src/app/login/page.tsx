@@ -56,8 +56,8 @@ export default function LoginPage() {
         await adminLogin(data.email, data.password, deviceInfo);
         router.push("/admin");
       } else {
-        const { pocId, eventCode } = await pocLogin(data.email, data.password);
-        router.push(`/poc?pocId=${pocId}&eventCode=${eventCode}`);
+        const { pointCode, eventCode } = await pocLogin(data.email, data.password);
+        router.push(`/poc?pointCode=${pointCode}&eventCode=${eventCode}`);
       }
     } catch (error) {
       console.error("Login error:", error);
