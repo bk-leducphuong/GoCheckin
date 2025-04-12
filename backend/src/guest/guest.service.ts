@@ -8,8 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Guest, IdentityType } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
-import { CreateGuestDto } from './dto/create-guest.dto';
-import { UpdateGuestDto } from './dto/update-guest.dto';
 import { CheckinDto } from './dto/checkin.dto';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
@@ -31,29 +29,6 @@ export class GuestService {
     // Create uploads directory if it doesn't exist
     if (!existsSync(this.uploadPath)) {
       mkdirSync(this.uploadPath);
-    }
-  }
-
-  async create(createGuestDto: CreateGuestDto): Promise<Guest> {
-    try {
-      // Check if guest already exists
-      const existingGuest = await this.guestRepository.findOne({
-        where: {
-          guestCode: createGuestDto.guestCode,
-          eventCode: createGuestDto.eventCode,
-        },
-      });
-
-      if (existingGuest) {
-        return existingGuest;
-      }
-
-      // Create a new guest record
-      const newGuest = this.guestRepository.create(createGuestDto);
-      return this.guestRepository.save(newGuest);
-    } catch (error) {
-      console.log(error);
-      throw error;
     }
   }
 
@@ -117,27 +92,6 @@ export class GuestService {
     return image.path;
   }
 
-  async getGuestCheckins(guestId: string): Promise<GuestCheckin[]> {
-    // Find all check-ins for a specific guest
-    return this.guestCheckinRepository.find({
-      where: { guestId, active: true },
-      relations: ['pointOfCheckin'],
-      order: { checkinTime: 'DESC' },
-    });
-  }
-
-  async getPocCheckins(
-    pointCode: string,
-    eventCode: string,
-  ): Promise<GuestCheckin[]> {
-    // Find all check-ins at a specific POC for a specific event
-    return this.guestCheckinRepository.find({
-      where: { pointCode, eventCode, active: true },
-      relations: ['guest'],
-      order: { checkinTime: 'DESC' },
-    });
-  }
-
   async getAllGuestsOfPoc(
     eventCode: string,
     pointCode: string,
@@ -168,14 +122,6 @@ export class GuestService {
     };
   }
 
-  async findAllByEvent(): Promise<Guest[]> {
-    return this.guestRepository.find({
-      where: {
-        enabled: true,
-      },
-    });
-  }
-
   async findOne(id: string): Promise<Guest> {
     const guest = await this.guestRepository.findOne({
       where: { guestId: id, enabled: true },
@@ -188,63 +134,9 @@ export class GuestService {
 
     return guest;
   }
-
-  async findByCodeAndEvent(guestCode: string): Promise<Guest> {
-    const guest = await this.guestRepository.findOne({
-      where: {
-        enabled: true,
-      },
-      relations: ['checkins', 'checkins.pointOfCheckin'],
-    });
-
-    if (!guest) {
-      throw new NotFoundException(
-        `Guest with code ${guestCode} not found for this event`,
-      );
-    }
-
-    return guest;
-  }
-
-  async update(id: string, updateGuestDto: UpdateGuestDto): Promise<Guest> {
-    const guest = await this.findOne(id);
-
-    // Update guest properties
-    Object.assign(guest, updateGuestDto);
-
-    return this.guestRepository.save(guest);
-  }
-
-  async remove(id: string): Promise<void> {
-    const guest = await this.findOne(id);
-
-    // Soft delete - just set enabled to false
-    guest.enabled = false;
-    await this.guestRepository.save(guest);
-
-    // Also mark all check-ins as inactive
-    await this.guestCheckinRepository.update(
-      { guestId: id },
-      { active: false },
-    );
-  }
-
   async getAllCheckinsByEvent(eventCode: string): Promise<GuestCheckin[]> {
     return this.guestCheckinRepository.find({
       where: { eventCode },
     });
   }
-
-  // async removeAllByEventAndPoint(): Promise<void> {
-  //   // Soft delete all guests for this event at this point
-  //   await this.guestRepository.update({ enabled: false });
-  // }
-
-  // async removeAllByEvent(eventCode: string): Promise<void> {
-  //   // Soft delete all guests for this event
-  //   await this.guestRepository.update({ eventCode }, { enabled: false });
-
-  //   // Also mark all check-ins for this event as inactive
-  //   await this.guestCheckinRepository.update({ eventCode }, { active: false });
-  // }
 }
