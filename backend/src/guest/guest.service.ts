@@ -229,6 +229,12 @@ export class GuestService {
     );
   }
 
+  async getAllCheckinsByEvent(eventCode: string): Promise<GuestCheckin[]> {
+    return this.guestCheckinRepository.find({
+      where: { eventCode },
+    });
+  }
+
   // async removeAllByEventAndPoint(): Promise<void> {
   //   // Soft delete all guests for this event at this point
   //   await this.guestRepository.update({ enabled: false });

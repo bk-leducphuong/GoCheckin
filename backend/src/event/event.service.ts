@@ -54,7 +54,7 @@ export class EventService {
     } catch (error) {
       console.error('Error creating event:', error);
       // Handle any errors that occur during the creation process
-      throw new BadRequestException('Failed to create event: ' + error.message);
+      throw new BadRequestException('Failed to create event');
     }
   }
 
