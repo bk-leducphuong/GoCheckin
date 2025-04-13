@@ -8,6 +8,7 @@ import { EventModule } from './event/event.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PocModule } from './poc/poc.module';
 import { GuestModule } from './guest/guest.module';
+import { SocketGateway } from './gateways/socket.gateway';
 
 @Module({
   imports: [
@@ -32,6 +33,6 @@ import { GuestModule } from './guest/guest.module';
     GuestModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [SocketGateway],
 })
 export class AppModule {}

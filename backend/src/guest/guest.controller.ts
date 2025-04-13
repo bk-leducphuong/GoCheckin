@@ -61,7 +61,7 @@ export class GuestController {
     return this.guestService.uploadImage(image);
   }
 
-  @Get()
+  @Get('poc')
   @Roles(UserRole.ADMIN, UserRole.POC)
   @ApiOperation({
     summary: 'Get all guests for a specific event and point of check-in',
@@ -76,5 +76,19 @@ export class GuestController {
     @Query('pointCode') pointCode: string,
   ): Promise<GetGuestsResponseDto> {
     return this.guestService.getAllGuestsOfPoc(eventCode, pointCode);
+  }
+
+  @Get('event')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @ApiOperation({
+    summary: 'Get all guests for a specific event',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all guests for the event',
+    type: [Guest],
+  })
+  async getAllGuestsOfEvent(@Query('eventCode') eventCode: string) {
+    return this.guestService.getAllGuestsOfEvent(eventCode);
   }
 }

@@ -122,6 +122,33 @@ export class GuestService {
     };
   }
 
+  async getAllGuestsOfEvent(eventCode: string): Promise<GetGuestsResponseDto> {
+    const checkins = await this.guestCheckinRepository.find({
+      where: { eventCode, active: true },
+      order: { checkinTime: 'DESC' },
+    });
+
+    const guestResponses = await Promise.all(
+      checkins.map(async (checkin) => {
+        const response = new GuestResponse();
+        const guestDetails = await this.guestRepository.findOne({
+          where: { guestId: checkin.guestId, enabled: true },
+        });
+        if (!guestDetails) return null;
+
+        response.guestInfo = guestDetails;
+        response.checkinInfo = checkin;
+        return response;
+      }),
+    );
+
+    return {
+      guests: guestResponses.filter(
+        (guest): guest is GuestResponse => guest !== null,
+      ),
+    };
+  }
+
   async findOne(id: string): Promise<Guest> {
     const guest = await this.guestRepository.findOne({
       where: { guestId: id, enabled: true },
