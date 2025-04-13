@@ -11,9 +11,9 @@ import EventStatusCheck from "@/components/poc/EventStatusCheck";
 
 export default function PocLayout({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const pointCode = searchParams.get("pointCode");
   const eventCode = searchParams.get("eventCode");
-  const router = useRouter();
 
   const { validatePoc } = usePocStore(
     useShallow((state) => ({
@@ -24,11 +24,9 @@ export default function PocLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const validatePocData = async () => {
       try {
-        if (pointCode && eventCode) {
-          const response = await validatePoc(pointCode, eventCode);
-          if (!response.success) {
-            router.push("/login");
-          }
+        const response = await validatePoc(pointCode|| "", eventCode|| "");
+        if (!response.success) {
+          router.push("/login");
         }
       } catch (error) {
         console.error("Error validating POC data:", error);
