@@ -35,6 +35,14 @@ export default function EventsPage() {
     fetchEvents();
   }, [getAllEvents]);
 
+  const isEventRunning = (startTime: string, endTime: string): boolean => {
+    const start = new Date(startTime).getTime();
+    const end = new Date(endTime).getTime();
+    const now = new Date().getTime();
+    
+    return now >= start && now <= end;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -189,16 +197,18 @@ export default function EventsPage() {
                     <span>0 Attendees</span>
                   </div>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/admin/events/${item.eventCode}/live`);
-                  }}
-                  type="button"
-                  className="border-2 border-black-200 mt-4 rounded-md px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
-                >
-                  View Realtime
-                </button>
+                {isEventRunning(item.startTime, item.endTime) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(`/admin/events/${item.eventCode}/live`);
+                    }}
+                    type="button"
+                    className="border-2 border-black-200 mt-4 rounded-md px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+                  >
+                    View Realtime
+                  </button>
+                )}
               </div>
             </li>
           ))}

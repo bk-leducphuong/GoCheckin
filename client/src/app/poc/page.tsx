@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 // import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import { useForm } from "react-hook-form";
@@ -14,6 +14,7 @@ import GuestList from "@/components/poc/GuestList";
 import { useUserStore } from "@/store/userStore";
 import { useCheckinStore } from "@/store/checkinStore";
 import MenuModal from "@/components/poc/MenuModal";
+import { useSocketStore } from "@/store/socketStore";
 
 // Guest check-in validation schema
 const checkInSchema = z.object({
@@ -26,6 +27,29 @@ const checkInSchema = z.object({
 type CheckInFormData = z.infer<typeof checkInSchema>;
 
 export default function POCDashboard() {
+  // Connect socket
+  const { socket, connect, disconnect, leaveRoom, joinRoom } = useSocketStore(
+    useShallow((state) => ({
+      socket: state.socket,
+      connect: state.connect,
+      disconnect: state.disconnect,
+      leaveRoom: state.leaveRoom,
+      joinRoom: state.joinRoom,
+    }))
+  );
+
+  useEffect(() => {
+    if (!socket) {
+      connect();
+    };
+
+    joinRoom(eventCode);
+
+    return () => {
+      leaveRoom(eventCode);
+      disconnect();
+    };
+  })
   const { user } = useUserStore(
     useShallow((state) => ({
       user: state.user,
@@ -39,8 +63,8 @@ export default function POCDashboard() {
     }))
   );
   const searchParams = useSearchParams();
-  const eventCode = searchParams.get("eventCode");
-  const pointCode = searchParams.get("pointCode");
+  const eventCode = searchParams.get("eventCode") as string;
+  const pointCode = searchParams.get("pointCode") as string;
   const [guestCode, setGuestCode] = useState("");
   const [note, setNote] = useState("");
   const [guestImage, setGuestImage] = useState<string | null>(null);
@@ -70,14 +94,16 @@ export default function POCDashboard() {
       // Prepare the check-in data
       const checkInData: GuestCheckinInfo = {
         guestCode,
-        eventCode: eventCode || "",
-        pointCode: pointCode || "",
-        notes: note || undefined,
+        eventCode: eventCode,
+        pointCode: pointCode,
+        notes: note,
         imageUrl,
       };
 
       // Call the check-in service
-      await checkinGuest(checkInData);
+      const response = await checkinGuest(checkInData);
+
+      socket?.emit('new_checkin', response);
 
       // Reset form and show success message
       reset();

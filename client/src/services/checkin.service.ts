@@ -52,14 +52,5 @@ export const CheckinService = {
       throw error;
     }
   },
-  async getAllGuestsOfPoc(eventCode: string, pointCode: string) {
-    try {
-      const response = await api.get(
-        `/guests?eventCode=${eventCode}&pointCode=${pointCode}`
-      );
-      return response.data.data.guests;
-    } catch (error) {
-      throw error;
-    }
-  },
+  
 };

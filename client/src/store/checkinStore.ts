@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { CheckinService } from "../services/checkin.service";
+import { GuestService } from "@/services/guest.service";
 import { CheckInResponse, GuestCheckinInfo } from "@/types/checkin";
 
 interface CheckinStore {
@@ -8,7 +9,7 @@ interface CheckinStore {
   isLoading: boolean;
   error: string | null;
   uploadGuestImage: (guestImage: string | null) => Promise<string>;
-  checkinGuest: (checkinDto: GuestCheckinInfo) => Promise<void>;
+  checkinGuest: (checkinDto: GuestCheckinInfo) => Promise<CheckInResponse>;
   fetchGuests: (eventCode: string, pointCode: string) => Promise<void>;
 }
 
@@ -28,6 +29,7 @@ export const useCheckinStore = create<CheckinStore>()(
       try {
         const response = await CheckinService.checkinGuest(checkinDto);
         set((state) => ({ guests: [...state.guests, response] }));
+        return response;
       } catch (error) {
         console.error("Error checking in guest:", error);
         throw error;
@@ -36,7 +38,7 @@ export const useCheckinStore = create<CheckinStore>()(
     async fetchGuests(eventCode: string, pointCode: string) {
       try {
         set({ isLoading: true, error: null });
-        const guests = await CheckinService.getAllGuestsOfPoc(eventCode, pointCode);
+        const guests = await GuestService.getAllGuestsOfPoc(eventCode, pointCode);
         set({ guests });
         set({ isLoading: false });
       } catch (error) {

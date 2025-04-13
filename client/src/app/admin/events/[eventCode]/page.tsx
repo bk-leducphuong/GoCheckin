@@ -12,7 +12,6 @@ import { useEventStore } from "@/store/eventStore";
 import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
-import { compareDesc } from "date-fns";
 import EventAnalysis from "@/components/admin/event/eventAnalysis";
 
 // Event update validation schema - similar to create but all fields optional
@@ -36,9 +35,6 @@ export default function EventDetailsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [event, setEvent] = useState<Event | null>(null);
-  // const [checkInPoints, setCheckInPoints] = useState<CreatePocRequest[]>([
-  //   { pointCode: "", pointName: "" },
-  // ]);
   const [checkInPoints, setCheckInPoints] = useState<Poc[]>([]);
   const [newCheckinPoints, setNewCheckInPoints] = useState<CreatePocRequest[]>(
     []
@@ -69,10 +65,14 @@ export default function EventDetailsPage() {
         const eventData = await getEventByCode(params.eventCode as string);
         setEvent(eventData);
         // Check if event is editable
-        compareDesc(new Date(eventData.startTime), new Date()) > 0
-          ? setIsEnabledEditing(false)
-          : setIsEnabledEditing(true);
-        // Pre-fill form with existing event data
+        const startTime = new Date(eventData.startTime).getTime();
+        const now = new Date(eventData.endTime).getTime();
+        if (now > startTime) {
+          setIsEnabledEditing(true);
+        }else {
+          setIsEnabledEditing(false);
+        }
+
         reset({
           eventName: eventData.eventName,
           eventCode: eventData.eventCode,
@@ -93,7 +93,7 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [params.eventCode, getEventByCode, reset]);
+  }, [params.eventCode, getEventByCode, reset, router]);
 
   // Fetch check-in points for the event
   useEffect(() => {
