@@ -9,6 +9,7 @@ import { TenantModule } from './tenant/tenant.module';
 import { PocModule } from './poc/poc.module';
 import { GuestModule } from './guest/guest.module';
 import { SocketGateway } from './gateways/socket.gateway';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SocketGateway } from './gateways/socket.gateway';
       isGlobal: true, // make configuration available throughout the app
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       // use async configuration to wait for eviroment variables to load
       imports: [ConfigModule], // inject ConfigModule to use configuration

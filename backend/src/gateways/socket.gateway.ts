@@ -14,10 +14,7 @@ import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
-  cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000', // Your Next.js frontend URL
-    credentials: true,
-  },
+  cors: process.env.CLIENT_URL || 'https://localhost:3000',
 })
 export class SocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -38,23 +35,23 @@ export class SocketGateway
   }
 
   @SubscribeMessage('join_room')
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() eventCode: string,
   ) {
-    client.join(eventCode);
-    console.log(`Client ${client.id} joined room: ${eventCode}`);
+    await client.join(eventCode);
+    this.logger.log(`Client ${client.id} joined room: ${eventCode}`);
 
     return { success: true, message: `Joined room ${eventCode}` };
   }
 
   @SubscribeMessage('leave_room')
-  handleLeaveRoom(
+  async handleLeaveRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() eventCode: string,
   ) {
-    client.leave(eventCode);
-    console.log(`Client ${client.id} left room: ${eventCode}`);
+    await client.leave(eventCode);
+    this.logger.log(`Client ${client.id} left room: ${eventCode}`);
     return { success: true, message: `Left room ${eventCode}` };
   }
 
@@ -64,7 +61,7 @@ export class SocketGateway
     @MessageBody() checkinData: any,
   ) {
     client.to(checkinData.eventCode).emit('new_checkin_received', checkinData);
-    console.log(`New checkin: ${JSON.stringify(checkinData)}`);
+    this.logger.log(`New checkin: ${JSON.stringify(checkinData)}`);
     return { success: true, message: `New checkin received` };
   }
 }

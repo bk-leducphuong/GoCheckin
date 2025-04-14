@@ -14,7 +14,6 @@ import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-ana
 import { EventCheckinAnalytics } from '../../analysis/entities/event-checkin-analytics.entity';
 
 export enum EventStatus {
-  DRAFT = 'draft',
   PUBLISHED = 'published',
   ACTIVE = 'active',
   COMPLETED = 'completed',
@@ -42,7 +41,7 @@ export class Event {
     name: 'event_status',
     type: 'enum',
     enum: EventStatus,
-    default: EventStatus.DRAFT,
+    default: EventStatus.PUBLISHED,
   })
   eventStatus: EventStatus;
 

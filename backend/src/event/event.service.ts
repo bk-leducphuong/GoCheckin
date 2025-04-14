@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { EventStatus } from './entities/event.entity';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class EventService {
@@ -20,6 +22,8 @@ export class EventService {
     @InjectRepository(AccountTenant)
     private readonly accountTenantRepository: Repository<AccountTenant>,
   ) {}
+
+  private readonly logger = new Logger('EventService');
 
   async validateEventCode(eventCode: string): Promise<boolean> {
     const event = await this.eventRepository.findOne({
@@ -50,6 +54,7 @@ export class EventService {
       const newEvent = this.eventRepository.create({
         ...newEventData,
         tenantCode: tenant.tenantCode,
+        eventStatus: EventStatus.PUBLISHED,
       });
       return this.eventRepository.save(newEvent);
     } catch (error) {
@@ -107,5 +112,27 @@ export class EventService {
       throw new NotFoundException(`Event with code ${eventCode} not found`);
     }
     return event.eventStatus === EventStatus.ACTIVE;
+  }
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async updateEventStatus() {
+    this.logger.log('Updating event status...');
+    const events = await this.eventRepository.find({
+      where: { eventStatus: EventStatus.ACTIVE && EventStatus.PUBLISHED },
+    });
+
+    for (const event of events) {
+      const startTime = new Date(event.startTime).getTime();
+      const endTime = new Date(event.endTime).getTime();
+      const now = new Date().getTime();
+
+      if (now >= startTime && now <= endTime) {
+        event.eventStatus = EventStatus.ACTIVE;
+      } else if (now > endTime) {
+        event.eventStatus = EventStatus.COMPLETED;
+      }
+    }
+
+    await this.eventRepository.save(events);
   }
 }

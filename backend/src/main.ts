@@ -7,7 +7,14 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const appOptions = { cors: true };
+  const appOptions = {
+    cors: {
+      origin: process.env.CLIENT_URL || 'https://localhost:3000',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    },
+  };
   const app = await NestFactory.create(AppModule, appOptions);
   app.setGlobalPrefix('api');
 
