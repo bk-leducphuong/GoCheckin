@@ -1,37 +1,50 @@
 import React, { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useEventStore } from "@/store/eventStore";
+import { EventStatus } from "@/types/event";
 interface EventStatusCheckProps {
   eventCode: string;
-  fallback: React.ReactNode;
+  eventNotStartedFallback: React.ReactNode;
+  eventCompletedFallback: React.ReactNode;
   children: React.ReactNode;
 }
 
 export default function EventStatusCheck({
   eventCode,
-  fallback,
+  eventNotStartedFallback,  
+  eventCompletedFallback,
   children,
 }: EventStatusCheckProps) {
   const [isEventStarted, setIsEventStarted] = useState(false);
+  const [isEventCompleted, setIsEventCompleted] = useState(false);
+  const [isEventNotStarted, setIsEventNotStarted] = useState(false);
 
-  const { checkEventStartingStatus } = useEventStore(
+  const { getEventStatus } = useEventStore(
     useShallow((state) => ({
-      checkEventStartingStatus: state.checkEventStartingStatus,
+      getEventStatus: state.getEventStatus,
     }))
   );
   useEffect(() => {
     const checkEventStatus = async () => {
       if (eventCode) {
-        const response = await checkEventStartingStatus(eventCode);
-        setIsEventStarted(response);
+        const eventStatus = await getEventStatus(eventCode);
+        if (eventStatus === EventStatus.ACTIVE) {
+          setIsEventStarted(true);
+        } else if (eventStatus === EventStatus.COMPLETED) {
+          setIsEventCompleted(true);
+        } else if (eventStatus === EventStatus.PUBLISHED) {
+          setIsEventNotStarted(true);
+        }
       }
     };
     checkEventStatus();
-  }, [eventCode, checkEventStartingStatus]);
+  }, [eventCode, getEventStatus]);
 
   if (isEventStarted) {
     return <>{children}</>;
-  } else {
-    return <>{fallback}</>;
+  } else if (isEventCompleted) {
+    return <>{eventCompletedFallback}</>;
+  } else if (isEventNotStarted) {
+    return <>{eventNotStartedFallback}</>;
   }
 }

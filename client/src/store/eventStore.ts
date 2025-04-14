@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { EventService } from "@/services/event.service";
 import { CreateEventRequest, Event } from "@/types/event";
+import { EventStatus } from "@/types/event";
 
 interface EventStore {
   events: Event[];
@@ -15,7 +16,7 @@ interface EventStore {
     eventCode: string,
     eventData: CreateEventRequest
   ) => Promise<Event>;
-  checkEventStartingStatus: (eventCode: string) => Promise<boolean>;
+  getEventStatus: (eventCode: string) => Promise<EventStatus>;
 }
 
 export const useEventStore = create<EventStore>()(
@@ -68,10 +69,10 @@ export const useEventStore = create<EventStore>()(
           throw error;
         }
       },
-      async checkEventStartingStatus(eventCode: string): Promise<boolean> {
+      async getEventStatus(eventCode: string): Promise<EventStatus> {
         try {
           set({ isLoading: true, error: null });
-          const response = await EventService.checkEventStartingStatus(eventCode);
+          const response = await EventService.getEventStatus(eventCode);
           set({ isLoading: false });
           return response;
         } catch (error) {

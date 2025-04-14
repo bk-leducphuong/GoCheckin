@@ -53,20 +53,26 @@ export default function RealtimeDashboard() {
 
   // Socket event handlers for real-time updates
   useEffect(() => {
-    if (!socket) {
-      connect();
+    try {
+      if (!socket) {
+        connect();
+      }
+
+      joinRoom(eventCode);
+
+      socket?.on("new_checkin_received", (newCheckin: CheckInResponse) => {
+        setGuests(prevGuests => [...prevGuests, newCheckin]);
+      });
+
+      return () => {
+        socket?.off("new_checkin_received");
+        leaveRoom(eventCode);
+      };
+    } catch (error) {
+      setError("Live checkin is not available");  
+      console.error("Error joining room:", error);
     }
-
-    joinRoom(eventCode);
-
-    socket?.on("new_checkin_received", (newCheckin: CheckInResponse) => {
-      guests.push(newCheckin);
-    });
-
-    return () => {
-      leaveRoom(eventCode);
-    };
-  }, [socket, eventCode, connect, joinRoom, leaveRoom, guests]);
+  }, [socket, eventCode, connect, joinRoom, leaveRoom]);
 
   const checkedInCount = guests.length;
   const totalCapacity = event?.capacity || 0;

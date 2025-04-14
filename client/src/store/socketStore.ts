@@ -16,63 +16,71 @@ export const useSocketStore = create<SocketStore>()(
     (set, get) => ({
       socket: null,
       isSocketConnected: false,
-      connect:  () => {
+      connect: () => {
         try {
           const socket = io(
-            process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
-            {
-              transports: ["websocket", "polling"],
-              // Avoid reconnection flood
-              reconnectionAttempts: 5,
-              reconnectionDelay: 1000,
-              reconnectionDelayMax: 5000,
-            }
+            process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:8000"
           );
+
           socket.on("connect", () => {
             console.log("Socket connected");
             set({ isSocketConnected: true });
           });
+
           socket.on("disconnect", () => {
             console.log("Socket disconnected");
             set({ isSocketConnected: false });
           });
+
           socket.on("connect_error", (error) => {
-            console.error("Socket connection error:", error);
-            get().disconnect();
-            set({ isSocketConnected: false });
+            if (get().isSocketConnected) {
+              get().disconnect();
+            }
+            throw error;
           });
+
           set({ socket });
         } catch (error) {
           console.error("Error connecting to socket:", error);
           throw error;
         }
       },
-      disconnect:  () => {
+      disconnect: () => {
+        const socket = get().socket;
+        if (!socket) return;
+
         try {
-          get().socket?.disconnect();
-          set({ socket: null });
-          set({ isSocketConnected: false });
+          socket.disconnect();
+          set({ socket: null, isSocketConnected: false });
         } catch (error) {
           console.error("Error disconnecting from socket:", error);
           throw error;
         }
       },
       joinRoom: (eventCode: string) => {
+        const socket = get().socket;
+        if (!socket) return;
+
         try {
-          const {socket} = get();
-          if (!socket) return;
-          socket.emit("join_room", eventCode, (response: { success: boolean, message: string }) => {
-            if (!response.success) throw new Error("Live checkin is not available");
-          });
+          socket.emit(
+            "join_room",
+            eventCode,
+            (response: { success: boolean; message: string }) => {
+              if (!response.success) {
+                throw new Error(`Live checkin failed: ${response.message}`);
+              }
+            }
+          );
         } catch (error) {
           console.error("Error joining room:", error);
           throw error;
         }
       },
       leaveRoom: (eventCode: string) => {
+        const socket = get().socket;
+        if (!socket) return;
+
         try {
-          const {socket} = get();
-          if (!socket) return;
           socket.emit("leave_room", eventCode);
         } catch (error) {
           console.error("Error leaving room:", error);

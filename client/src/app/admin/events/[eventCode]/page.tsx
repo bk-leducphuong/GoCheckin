@@ -13,6 +13,7 @@ import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
 import EventAnalysis from "@/components/admin/event/eventAnalysis";
+import { EventStatus } from "@/types/event";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -40,7 +41,6 @@ export default function EventDetailsPage() {
     []
   );
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
-  const [isEnabledEditing, setIsEnabledEditing] = useState(true);
 
   const { updateEvent, getEventByCode } = useEventStore(
     useShallow((state) => ({
@@ -64,14 +64,6 @@ export default function EventDetailsPage() {
       try {
         const eventData = await getEventByCode(params.eventCode as string);
         setEvent(eventData);
-        // Check if event is editable
-        const startTime = new Date(eventData.startTime).getTime();
-        const now = new Date(eventData.endTime).getTime();
-        if (now > startTime) {
-          setIsEnabledEditing(true);
-        }else {
-          setIsEnabledEditing(false);
-        }
 
         reset({
           eventName: eventData.eventName,
@@ -210,7 +202,7 @@ export default function EventDetailsPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
           Edit Event: {event.eventName}
           <span className="ml-2">
-            {isEnabledEditing ? (
+            {event.eventStatus == EventStatus.PUBLISHED ? (
               <span className="text-green-500">(Editable)</span>
             ) : (
               <span className="text-red-500">(Viewonly)</span>
@@ -223,7 +215,7 @@ export default function EventDetailsPage() {
             <Input
               label="Event Name"
               type="text"
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               {...register("eventName")}
               error={errors.eventName?.message}
             />
@@ -239,7 +231,7 @@ export default function EventDetailsPage() {
             <Input
               label="Start Date"
               type="datetime-local"
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               {...register("startTime")}
               error={errors.startTime?.message}
             />
@@ -247,7 +239,7 @@ export default function EventDetailsPage() {
             <Input
               label="End Date"
               type="datetime-local"
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               {...register("endTime")}
               error={errors.endTime?.message}
             />
@@ -255,7 +247,7 @@ export default function EventDetailsPage() {
             <Input
               label="Venue Name"
               type="text"
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               {...register("venueName")}
               error={errors.venueName?.message}
             />
@@ -263,7 +255,7 @@ export default function EventDetailsPage() {
             <Input
               label="Venue Address"
               type="text"
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               {...register("venueAddress")}
               error={errors.venueAddress?.message}
             />
@@ -271,7 +263,7 @@ export default function EventDetailsPage() {
             <Input
               label="Capacity"
               type="number"
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               {...register("capacity", { valueAsNumber: true })}
               error={errors.capacity?.message}
             />
@@ -279,7 +271,7 @@ export default function EventDetailsPage() {
             <Input
               label="Event Type"
               type="text"
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               {...register("eventType")}
               error={errors.eventType?.message}
             />
@@ -291,7 +283,7 @@ export default function EventDetailsPage() {
             </label>
             <textarea
               {...register("eventDescription")}
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               rows={4}
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
             />
@@ -303,7 +295,7 @@ export default function EventDetailsPage() {
             </label>
             <textarea
               {...register("termsConditions")}
-              disabled={!isEnabledEditing}
+              disabled={event.eventStatus != EventStatus.PUBLISHED}
               rows={4}
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
             />
@@ -314,7 +306,7 @@ export default function EventDetailsPage() {
               <h2 className="text-lg font-medium text-gray-900">
                 Check-in Points
               </h2>
-              {isEnabledEditing && (
+              {event.eventStatus == EventStatus.PUBLISHED && (
                 <button
                   type="button"
                   onClick={addCheckInPoint}
@@ -332,7 +324,7 @@ export default function EventDetailsPage() {
                     <h3 className="text-sm font-medium text-gray-900">
                       Check-in Point {index + 1}
                     </h3>
-                    {checkInPoints.length > 1 && isEnabledEditing && (
+                    {checkInPoints.length > 1 && event.eventStatus == EventStatus.PUBLISHED && (
                       <button
                         type="button"
                         onClick={() => removeCheckInPoint(index)}
@@ -347,7 +339,7 @@ export default function EventDetailsPage() {
                     <Input
                       label="Name"
                       type="text"
-                      disabled={!isEnabledEditing}
+                      disabled={event.eventStatus != EventStatus.PUBLISHED}
                       value={point.pointName}
                       onChange={(e) =>
                         updateCheckInPoint(index, "pointName", e.target.value)
@@ -358,7 +350,7 @@ export default function EventDetailsPage() {
                     <Input
                       label="POC Code"
                       type="text"
-                      disabled={!isEnabledEditing}
+                      disabled={event.eventStatus != EventStatus.PUBLISHED}
                       value={point.pointCode}
                       onChange={(e) =>
                         updateCheckInPoint(index, "pointCode", e.target.value)
@@ -420,7 +412,7 @@ export default function EventDetailsPage() {
             </div>
           </div>
 
-          {isEnabledEditing && (
+          {event.eventStatus == EventStatus.PUBLISHED && (
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
