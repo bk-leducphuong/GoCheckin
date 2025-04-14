@@ -106,12 +106,12 @@ export class EventService {
     await this.eventRepository.remove(event);
   }
 
-  async getEventStatus(eventCode: string): Promise<boolean> {
+  async getEventStatus(eventCode: string): Promise<EventStatus> {
     const event = await this.findOne(eventCode);
     if (!event) {
       throw new NotFoundException(`Event with code ${eventCode} not found`);
     }
-    return event.eventStatus === EventStatus.ACTIVE;
+    return event.eventStatus;
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
