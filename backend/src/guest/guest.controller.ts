@@ -19,10 +19,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Guest } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  GetGuestsResponseDto,
-  GuestResponse,
-} from './dto/get-guests-response.dto';
+import { GuestResponse } from './dto/get-guests-response.dto';
 
 @ApiTags('guests')
 @Controller('guests')
@@ -74,7 +71,7 @@ export class GuestController {
   async getAllGuestsOfPoc(
     @Query('eventCode') eventCode: string,
     @Query('pointCode') pointCode: string,
-  ): Promise<GetGuestsResponseDto> {
+  ): Promise<GuestResponse[]> {
     return this.guestService.getAllGuestsOfPoc(eventCode, pointCode);
   }
 

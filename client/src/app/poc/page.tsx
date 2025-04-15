@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
 import { GuestCheckinInfo } from "@/types/checkin";
@@ -16,40 +12,19 @@ import { useCheckinStore } from "@/store/checkinStore";
 import MenuModal from "@/components/poc/MenuModal";
 import { useSocketStore } from "@/store/socketStore";
 
-// Guest check-in validation schema
-const checkInSchema = z.object({
-  name: z.string().optional(),
-  email: z.string().optional(),
-  phoneNumber: z.string().optional(),
-  purpose: z.string().optional(),
-});
-
-type CheckInFormData = z.infer<typeof checkInSchema>;
-
 export default function POCDashboard() {
   // Connect socket
-  const { socket, connect, disconnect, leaveRoom, joinRoom } = useSocketStore(
-    useShallow((state) => ({
-      socket: state.socket,
-      connect: state.connect,
-      disconnect: state.disconnect,
-      leaveRoom: state.leaveRoom,
-      joinRoom: state.joinRoom,
-    }))
-  );
+  const { socket, connect, disconnect, leaveRoom, joinRoom } =
+    useSocketStore(
+      useShallow((state) => ({
+        socket: state.socket,
+        connect: state.connect,
+        disconnect: state.disconnect,
+        leaveRoom: state.leaveRoom,
+        joinRoom: state.joinRoom,
+      }))
+    );
 
-  useEffect(() => {
-    if (!socket) {
-      connect();
-    };
-
-    joinRoom(eventCode);
-
-    return () => {
-      leaveRoom(eventCode);
-      disconnect();
-    };
-  })
   const { user } = useUserStore(
     useShallow((state) => ({
       user: state.user,
@@ -71,17 +46,24 @@ export default function POCDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CheckInFormData>({
-    resolver: zodResolver(checkInSchema),
-  });
+  useEffect(() => {
+    try {
+      connect();
+      joinRoom(eventCode);
 
-  const onSubmit = async () => {
+      return () => {
+        leaveRoom(eventCode);
+        disconnect();
+      };
+    } catch (error) {
+      setError("Checkin service is not available! Please try again later.");
+      console.error("Error in useEffect:", error);
+    }
+  }, [eventCode, connect, joinRoom, leaveRoom, disconnect]);
+
+  const submitCheckin = async () => {
     try {
       setIsLoading(true);
 
@@ -103,10 +85,9 @@ export default function POCDashboard() {
       // Call the check-in service
       const response = await checkinGuest(checkInData);
 
-      socket?.emit('new_checkin', response);
+      socket?.emit("new_checkin", response);
 
       // Reset form and show success message
-      reset();
       setGuestImage(null);
       setGuestCode("");
       setNote("");
@@ -135,6 +116,15 @@ export default function POCDashboard() {
     setShowMenu(false);
   };
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen flex-col">
+        <div className="text-2xl font-bold mb-4">Error</div>
+        <div className="text-gray-600">{error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Section 1: Event and POC Information */}
@@ -149,7 +139,10 @@ export default function POCDashboard() {
             </p>
           </div>
           <div className="mt-4 md:mt-0">
-            <div className="flex items-center bg-blue-50 px-4 py-2 rounded-md cursor-pointer" onClick={openMenu}>
+            <div
+              className="flex items-center bg-blue-50 px-4 py-2 rounded-md cursor-pointer"
+              onClick={openMenu}
+            >
               <div className="mr-3">
                 <svg
                   className="h-6 w-6 text-blue-500"
@@ -185,10 +178,7 @@ export default function POCDashboard() {
           Guest Check-in
         </h2>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Guest Image Capture */}
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -265,77 +255,6 @@ export default function POCDashboard() {
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col space-y-4">
-            {/* Guest Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Guest Name (Optional)
-                </label>
-                <input
-                  type="text"
-                  {...register("name")}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="John Doe"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email (Optional)
-                </label>
-                <input
-                  type="email"
-                  {...register("email")}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="john@example.com"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number (Optional)
-                </label>
-                <input
-                  type="tel"
-                  {...register("phoneNumber")}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="+1234567890"
-                />
-                {errors.phoneNumber && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.phoneNumber.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Purpose of Visit (Optional)
-                </label>
-                <input
-                  type="text"
-                  {...register("purpose")}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Meeting"
-                />
-                {errors.purpose && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.purpose.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
             {/* Guest Code Input */}
             <div>
               <label
@@ -375,12 +294,16 @@ export default function POCDashboard() {
 
             {/* Submit Button */}
             <div className="pt-2">
-              <Button type="submit" isLoading={isLoading} className="w-full">
+              <Button
+                onClick={submitCheckin}
+                isLoading={isLoading}
+                className="w-full"
+              >
                 Check In Guest
               </Button>
             </div>
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Section 3: Guest List */}

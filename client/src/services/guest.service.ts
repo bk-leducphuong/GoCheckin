@@ -7,7 +7,7 @@ export const GuestService = {
       const response = await api.get(
         `/guests/poc?eventCode=${eventCode}&pointCode=${pointCode}`
       );
-      return response.data.data.guests;
+      return response.data.data;
     } catch (error) {
       throw error;
     }
@@ -16,7 +16,7 @@ export const GuestService = {
   async getAllGuestsOfEvent(eventCode: string): Promise<CheckInResponse[]> {
     try {
       const response = await api.get(`/guests/event?eventCode=${eventCode}`);
-      return response.data.data.guests;
+      return response.data.data;
     } catch (error) {
       throw error;
     }

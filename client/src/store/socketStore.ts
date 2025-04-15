@@ -26,7 +26,7 @@ export const useSocketStore = create<SocketStore>()(
             console.log("Socket connected");
             set({ isSocketConnected: true });
           });
-
+          
           socket.on("disconnect", () => {
             console.log("Socket disconnected");
             set({ isSocketConnected: false });

@@ -11,10 +11,7 @@ import { GuestCheckin } from './entities/guest-checkin.entity';
 import { CheckinDto } from './dto/checkin.dto';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
-import {
-  GetGuestsResponseDto,
-  GuestResponse,
-} from './dto/get-guests-response.dto';
+import { GuestResponse } from './dto/get-guests-response.dto';
 
 @Injectable()
 export class GuestService {
@@ -95,7 +92,7 @@ export class GuestService {
   async getAllGuestsOfPoc(
     eventCode: string,
     pointCode: string,
-  ): Promise<GetGuestsResponseDto> {
+  ): Promise<GuestResponse[]> {
     const checkins = await this.guestCheckinRepository.find({
       where: { pointCode, eventCode, active: true },
       order: { checkinTime: 'DESC' },
@@ -115,14 +112,13 @@ export class GuestService {
       }),
     );
 
-    return {
-      guests: guestResponses.filter(
-        (guest): guest is GuestResponse => guest !== null,
-      ),
-    };
+    // Filter out null values
+    return guestResponses.filter(
+      (response): response is GuestResponse => response !== null,
+    );
   }
 
-  async getAllGuestsOfEvent(eventCode: string): Promise<GetGuestsResponseDto> {
+  async getAllGuestsOfEvent(eventCode: string): Promise<GuestResponse[]> {
     const checkins = await this.guestCheckinRepository.find({
       where: { eventCode, active: true },
       order: { checkinTime: 'DESC' },
@@ -142,11 +138,9 @@ export class GuestService {
       }),
     );
 
-    return {
-      guests: guestResponses.filter(
-        (guest): guest is GuestResponse => guest !== null,
-      ),
-    };
+    return guestResponses.filter(
+      (response): response is GuestResponse => response !== null,
+    );
   }
 
   async findOne(id: string): Promise<Guest> {

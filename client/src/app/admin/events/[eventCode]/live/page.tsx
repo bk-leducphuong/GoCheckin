@@ -15,7 +15,7 @@ export default function RealtimeDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { socket, connect, leaveRoom, joinRoom } = useSocketStore(
+  const { socket, connect, leaveRoom, joinRoom, disconnect } = useSocketStore(
     useShallow((state) => ({
       socket: state.socket,
       connect: state.connect,
@@ -54,25 +54,24 @@ export default function RealtimeDashboard() {
   // Socket event handlers for real-time updates
   useEffect(() => {
     try {
-      if (!socket) {
-        connect();
-      }
-
+      connect();
       joinRoom(eventCode);
 
-      socket?.on("new_checkin_received", (newCheckin: CheckInResponse) => {
-        setGuests(prevGuests => [...prevGuests, newCheckin]);
-      });
-
       return () => {
-        socket?.off("new_checkin_received");
         leaveRoom(eventCode);
+        disconnect();
       };
     } catch (error) {
-      setError("Live checkin is not available");  
+      setError("Live checkin is not available");
       console.error("Error joining room:", error);
     }
-  }, [socket, eventCode, connect, joinRoom, leaveRoom]);
+  }, [eventCode, connect, joinRoom, leaveRoom, disconnect]);
+
+  useEffect(() => {
+    socket?.on("new_checkin_received", (newCheckin: CheckInResponse) => {
+      setGuests((prevGuests) => [...prevGuests, newCheckin]);
+    });
+  }, [socket]);
 
   const checkedInCount = guests.length;
   const totalCapacity = event?.capacity || 0;

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { GuestResponse } from 'src/guest/dto/get-guests-response.dto';
 
 @WebSocketGateway({
   cors: process.env.CLIENT_URL || 'https://localhost:3000',
@@ -58,9 +59,11 @@ export class SocketGateway
   @SubscribeMessage('new_checkin')
   handleNewCheckin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() checkinData: any,
+    @MessageBody() checkinData: GuestResponse,
   ) {
-    client.to(checkinData.eventCode).emit('new_checkin_received', checkinData);
+    client
+      .to(checkinData.guestInfo.eventCode)
+      .emit('new_checkin_received', checkinData);
     this.logger.log(`New checkin: ${JSON.stringify(checkinData)}`);
     return { success: true, message: `New checkin received` };
   }
