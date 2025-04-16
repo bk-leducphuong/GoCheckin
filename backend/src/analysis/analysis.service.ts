@@ -24,73 +24,78 @@ export class AnalysisService {
     eventCode: string,
     intervalDuration: 'hourly' | '15min' | '30min' | 'daily' = 'hourly',
   ): Promise<EventCheckinAnalytics[]> {
-    const oldAnalytics = await this.eventCheckinAnalyticsRepository.find({
-      where: { eventCode },
-    });
-    if (oldAnalytics.length > 0) {
-      return oldAnalytics;
-    }
-
-    const transactions =
-      await this.guestService.getAllCheckinsByEvent(eventCode);
-    if (transactions.length === 0) return [];
-
-    const intervalMap = new Map<string, GuestCheckin[]>();
-
-    transactions.forEach((checkin) => {
-      const date = new Date(checkin.checkinTime);
-      let intervalKey: string;
-
-      // Determine the interval key based on intervalDuration
-      switch (intervalDuration) {
-        case '15min':
-          date.setMinutes(Math.floor(date.getMinutes() / 15) * 15, 0, 0);
-          intervalKey = date.toISOString();
-          break;
-        case '30min':
-          date.setMinutes(Math.floor(date.getMinutes() / 30) * 30, 0, 0);
-          intervalKey = date.toISOString();
-          break;
-        case 'hourly':
-          date.setMinutes(0, 0, 0);
-          intervalKey = date.toISOString();
-          break;
-        case 'daily':
-          date.setHours(0, 0, 0, 0);
-          intervalKey = date.toISOString();
-          break;
+    try {
+      const oldAnalytics = await this.eventCheckinAnalyticsRepository.find({
+        where: { eventCode },
+      });
+      if (oldAnalytics.length > 0) {
+        return oldAnalytics;
       }
 
-      if (!intervalMap.has(intervalKey)) {
-        intervalMap.set(intervalKey, []);
-      }
-      intervalMap.get(intervalKey)!.push(checkin);
-    });
+      const transactions =
+        await this.guestService.getAllCheckinsByEvent(eventCode);
+      if (transactions.length === 0) return [];
 
-    // Calculate analytics for each interval
-    const analytics: EventCheckinAnalytics[] = [];
-    for (const [intervalKey, transactions] of intervalMap.entries()) {
-      const intervalStart = new Date(intervalKey);
-      // Count total check-ins
-      const checkinCount = transactions.length;
+      const intervalMap = new Map<string, GuestCheckin[]>();
 
-      const analytic = this.eventCheckinAnalyticsRepository.create({
-        eventCode,
-        timeInterval: intervalStart,
-        intervalDuration,
-        checkinCount,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+      transactions.forEach((checkin) => {
+        const date = new Date(checkin.checkinTime);
+        let intervalKey: string;
+
+        // Determine the interval key based on intervalDuration
+        switch (intervalDuration) {
+          case '15min':
+            date.setMinutes(Math.floor(date.getMinutes() / 15) * 15, 0, 0);
+            intervalKey = date.toISOString();
+            break;
+          case '30min':
+            date.setMinutes(Math.floor(date.getMinutes() / 30) * 30, 0, 0);
+            intervalKey = date.toISOString();
+            break;
+          case 'hourly':
+            date.setMinutes(0, 0, 0);
+            intervalKey = date.toISOString();
+            break;
+          case 'daily':
+            date.setHours(0, 0, 0, 0);
+            intervalKey = date.toISOString();
+            break;
+        }
+
+        if (!intervalMap.has(intervalKey)) {
+          intervalMap.set(intervalKey, []);
+        }
+        intervalMap.get(intervalKey)!.push(checkin);
       });
 
-      await this.eventCheckinAnalyticsRepository.save(analytic);
+      // Calculate analytics for each interval
+      const analytics: EventCheckinAnalytics[] = [];
+      for (const [intervalKey, transactions] of intervalMap.entries()) {
+        const intervalStart = new Date(intervalKey);
+        // Count total check-ins
+        const checkinCount = transactions.length;
 
-      analytics.push(analytic);
+        const analytic = this.eventCheckinAnalyticsRepository.create({
+          eventCode,
+          timeInterval: intervalStart,
+          intervalDuration,
+          checkinCount,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+
+        await this.eventCheckinAnalyticsRepository.save(analytic);
+
+        analytics.push(analytic);
+      }
+
+      return analytics.sort(
+        (a, b) => a.timeInterval.getTime() - b.timeInterval.getTime(),
+      );
+    } catch (error) {
+      console.log(error);
+      return [];
     }
-
-    return analytics.sort(
-      (a, b) => a.timeInterval.getTime() - b.timeInterval.getTime(),
-    );
   }
 
   async analyzePointCheckin(

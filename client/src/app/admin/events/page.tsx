@@ -115,17 +115,21 @@ export default function EventsPage() {
                     {item.eventName}
                   </div>
                   <div className="ml-2 flex-shrink-0 flex">
-                    <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        item.eventStatus === EventStatus.ACTIVE
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {item.eventStatus === EventStatus.ACTIVE
-                        ? "Active"
-                        : "Upcoming"}
-                    </span>
+                    {item.eventStatus === EventStatus.ACTIVE && (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    )}
+                    {item.eventStatus === EventStatus.COMPLETED && (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Completed
+                      </span>
+                    )}
+                    {item.eventStatus === EventStatus.PUBLISHED && (
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        Incoming
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-2 sm:flex sm:justify-between">

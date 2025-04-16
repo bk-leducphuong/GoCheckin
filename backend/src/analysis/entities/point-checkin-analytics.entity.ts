@@ -1,10 +1,10 @@
-import { Column, Entity, PrimaryColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Event } from '../../event/entities/event.entity'; // Adjust the import path as necessary
 import { PointOfCheckin } from '../../poc/entities/poc.entity'; // Adjust the import path as necessary
 
 @Entity('point_checkin_analytics')
 export class PointCheckinAnalytics {
-  @PrimaryColumn({ name: 'analytics_id', type: 'uuid' })
+  @PrimaryGeneratedColumn('uuid')
   analyticsId: string;
 
   @Column({ name: 'point_code', type: 'varchar' })

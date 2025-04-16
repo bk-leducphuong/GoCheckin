@@ -10,6 +10,7 @@ import { PocModule } from './poc/poc.module';
 import { GuestModule } from './guest/guest.module';
 import { SocketGateway } from './gateways/socket.gateway';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AnalysisModule } from './analysis/analysis.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     TenantModule,
     PocModule,
     GuestModule,
+    AnalysisModule,
   ],
   controllers: [],
   providers: [SocketGateway],
