@@ -27,10 +27,9 @@ export default function AuthCheck({
   fallback,
 }: AuthCheckProps) {
   const router = useRouter();
-  const { isAuthenticated, accessToken, clearAuth, refreshAccessToken } =
+  const { accessToken, clearAuth, refreshAccessToken } =
     useAuthStore(
       useShallow((state) => ({
-        isAuthenticated: state.isAuthenticated,
         accessToken: state.accessToken,
         clearAuth: state.clearAuth,
         refreshAccessToken: state.refreshAccessToken,
@@ -43,7 +42,7 @@ export default function AuthCheck({
 
   useEffect(() => {
     const verifyToken = async () => {
-      if (isAuthenticated && accessToken) {
+      if (accessToken) {
         try {
           const response = await AuthService.verifyToken();
           if (!response.valid) {
@@ -68,7 +67,6 @@ export default function AuthCheck({
 
     verifyToken();
   }, [
-    isAuthenticated,
     accessToken,
     refreshAccessToken,
     clearAuth,

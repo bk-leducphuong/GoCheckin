@@ -48,15 +48,6 @@ export default function PocLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       }
-      eventCompletedFallback={
-        <div className="flex items-center justify-center min-h-screen flex-col">
-          <div className="text-2xl font-bold mb-4">Event Completed</div>
-          <div className="text-gray-600">
-            The event you are trying to access has been completed. Please check
-            back later.
-          </div>
-        </div>
-      }
     >
       <AuthCheck
         allowedRoles={[UserRole.POC]}

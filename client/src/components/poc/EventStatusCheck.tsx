@@ -5,18 +5,14 @@ import { EventStatus } from "@/types/event";
 interface EventStatusCheckProps {
   eventCode: string;
   eventNotStartedFallback: React.ReactNode;
-  eventCompletedFallback: React.ReactNode;
   children: React.ReactNode;
 }
 
 export default function EventStatusCheck({
   eventCode,
   eventNotStartedFallback,  
-  eventCompletedFallback,
   children,
 }: EventStatusCheckProps) {
-  const [isEventStarted, setIsEventStarted] = useState(false);
-  const [isEventCompleted, setIsEventCompleted] = useState(false);
   const [isEventNotStarted, setIsEventNotStarted] = useState(false);
 
   const { getEventStatus } = useEventStore(
@@ -28,11 +24,7 @@ export default function EventStatusCheck({
     const checkEventStatus = async () => {
       if (eventCode) {
         const eventStatus = await getEventStatus(eventCode);
-        if (eventStatus === EventStatus.ACTIVE) {
-          setIsEventStarted(true);
-        } else if (eventStatus === EventStatus.COMPLETED) {
-          setIsEventCompleted(true);
-        } else if (eventStatus === EventStatus.PUBLISHED) {
+        if (eventStatus === EventStatus.PUBLISHED) {
           setIsEventNotStarted(true);
         }
       }
@@ -40,11 +32,9 @@ export default function EventStatusCheck({
     checkEventStatus();
   }, [eventCode, getEventStatus]);
 
-  if (isEventStarted) {
-    return <>{children}</>;
-  } else if (isEventCompleted) {
-    return <>{eventCompletedFallback}</>;
-  } else if (isEventNotStarted) {
+  if (isEventNotStarted) {
     return <>{eventNotStartedFallback}</>;
+  }else {
+    return <>{children}</>;
   }
 }
