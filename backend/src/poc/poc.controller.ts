@@ -22,7 +22,6 @@ import { CurrentUser } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { PointOfCheckin } from './entities/poc.entity';
 import { ValidatePocDto } from './dto/validate-poc.dto';
-// import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @ApiTags('points-of-checkin')
 @Controller('pocs')
@@ -63,10 +62,11 @@ export class PocController {
     description: 'Point of check-in created successfully',
   })
   async createPoc(
+    @CurrentUser() user: JwtPayload,
     @Query('eventCode') eventCode: string,
     @Body() createPocDto: CreatePocDto,
   ) {
-    return this.pocService.create(eventCode, createPocDto);
+    return this.pocService.create(user, eventCode, createPocDto);
   }
 
   @Put('poc')
