@@ -12,6 +12,8 @@ import { Guest } from '../../guest/entities/guest.entity';
 import { Token } from 'src/auth/entities/token.entity';
 import { EventCheckinAnalytics } from 'src/analysis/entities/event-checkin-analytics.entity';
 import { PointCheckinAnalytics } from 'src/analysis/entities/point-checkin-analytics.entity';
+import { Otp } from 'src/auth/entities/otp.entity';
+import { ResetToken } from 'src/auth/entities/reset-token.entity';
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../../logs');
@@ -73,6 +75,8 @@ export const getDatabaseConfig = (
     Token,
     EventCheckinAnalytics,
     PointCheckinAnalytics,
+    Otp,
+    ResetToken,
   ],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'], // looks for migration files in the migrations directory
   synchronize: configService.get('NODE_ENV') === 'development', // automatically updates database schema

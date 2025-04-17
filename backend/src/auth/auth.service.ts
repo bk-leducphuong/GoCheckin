@@ -18,6 +18,13 @@ import { TenantService } from 'src/tenant/tenant.service';
 import { PocService } from 'src/poc/poc.service';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from './refresh-token.service';
+import { RequestResetPassword } from './dto/request-reset-password';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { MailService } from 'src/mail/mail.service';
+import { OtpService } from './otp.service';
+import { ResetToken } from './entities/reset-token.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, MoreThan } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +36,10 @@ export class AuthService {
     private readonly pocService: PocService,
     private config: ConfigService,
     private refreshTokenService: RefreshTokenService,
+    private mailService: MailService,
+    private otpService: OtpService,
+    @InjectRepository(ResetToken)
+    private readonly resetTokenRepository: Repository<ResetToken>,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
@@ -225,7 +236,7 @@ export class AuthService {
     return null;
   }
 
-  async refreshTokens(refreshToken: string, deviceInfo?: string) {
+  async refreshTokens(refreshToken: string) {
     // Validate refresh token
     const payload =
       await this.refreshTokenService.validateRefreshToken(refreshToken);
@@ -291,5 +302,53 @@ export class AuthService {
 
     await this.refreshTokenService.revokeRefreshToken(validToken.refreshToken);
     return { success: true };
+  }
+
+  async requestResetPassword(requestResetPasswordDto: RequestResetPassword) {
+    const account = await this.accountService.findByEmail(
+      requestResetPasswordDto.email,
+    );
+
+    if (account) {
+      const otp = await this.otpService.generateOtp(account.userId); // generate and store OTP
+      await this.mailService.sendOtpMail(account, otp);
+    }
+
+    return {
+      message:
+        'If an account with that email exists, we have sent a reset code to your email.',
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { userId, resetToken, password } = resetPasswordDto;
+    const resetTokenRecord = await this.resetTokenRepository.findOne({
+      where: { userId: userId, expriedAt: MoreThan(new Date()) },
+    });
+
+    if (!resetTokenRecord) {
+      throw new BadRequestException('Invalid or expired code');
+    }
+
+    const isValidResetToken = await compare(
+      resetToken,
+      resetTokenRecord.hashedResetToken,
+    );
+
+    if (!isValidResetToken) {
+      throw new BadRequestException('Invalid or expired code');
+    }
+
+    await this.resetTokenRepository.remove(resetTokenRecord);
+
+    // Update password
+    const hashedPassword = await hash(password, 10);
+    const account = await this.accountService.updateAccount(userId, {
+      userId: userId,
+      password: hashedPassword,
+    });
+
+    // send confirmation email
+    await this.mailService.sendPasswordChangedMail(account);
   }
 }

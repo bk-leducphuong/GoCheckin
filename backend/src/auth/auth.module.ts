@@ -14,6 +14,10 @@ import { Token } from './entities/token.entity';
 import { RefreshTokenService } from './refresh-token.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { MailModule } from 'src/mail/mail.module';
+import { Otp } from './entities/otp.entity';
+import { OtpService } from './otp.service';
+import { ResetToken } from './entities/reset-token.entity';
 
 @Module({
   imports: [
@@ -33,7 +37,8 @@ import { RefreshTokenGuard } from './guards/refresh-token.guard';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Token]),
+    TypeOrmModule.forFeature([Token, Otp, ResetToken]),
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -42,7 +47,8 @@ import { RefreshTokenGuard } from './guards/refresh-token.guard';
     RefreshTokenService,
     JwtAuthGuard,
     RefreshTokenGuard,
+    OtpService,
   ],
-  exports: [AuthService, RefreshTokenService],
+  exports: [AuthService, RefreshTokenService, OtpService],
 })
 export class AuthModule {}

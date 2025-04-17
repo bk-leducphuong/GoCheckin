@@ -5,8 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany,
+  OneToMany,
 } from 'typeorm';
 import { Token } from '../../auth/entities/token.entity';
+import { Otp } from '../../auth/entities/otp.entity';
+import { ResetToken } from '../../auth/entities/reset-token.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -57,4 +60,10 @@ export class Account {
 
   @ManyToMany(() => Token, (token) => token.user)
   refreshTokens: Token[];
+
+  @OneToMany(() => Token, (token) => token.user)
+  otp: Otp[];
+
+  @OneToMany(() => ResetToken, (resetToken) => resetToken.account)
+  resetTokens: ResetToken[];
 }

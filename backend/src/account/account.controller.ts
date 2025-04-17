@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Put,
-  Body,
-  UseGuards,
-  Delete,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Delete } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -33,13 +25,6 @@ export class AccountController {
     @CurrentUser() user: JwtPayload,
     @Body() updateAccountDto: UpdateAccountDto,
   ) {
-    // Only admins can update other accounts
-    if (
-      user.role !== UserRole.ADMIN &&
-      user.userId !== updateAccountDto.userId
-    ) {
-      throw new UnauthorizedException('You can only update your own account');
-    }
     return this.accountService.updateAccount(user.userId, updateAccountDto);
   }
 

@@ -24,11 +24,18 @@ import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
+import { RequestResetPassword } from './dto/request-reset-password';
+import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { OtpService } from './otp.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly service: AuthService) {}
+  constructor(
+    private readonly service: AuthService,
+    private readonly otpService: OtpService,
+  ) {}
 
   @ApiOperation({ summary: 'Admin login' })
   @ApiResponse({
@@ -187,5 +194,20 @@ export class AuthController {
     @Param('id') tokenId: string,
   ) {
     return this.service.revokeSession(user.userId, tokenId);
+  }
+
+  @Post('request-reset-password')
+  requestResetPassword(@Body() requestResetPasswordDto: RequestResetPassword) {
+    return this.service.requestResetPassword(requestResetPasswordDto);
+  }
+
+  @Post('reset-password')
+  resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.service.resetPassword(resetPasswordDto);
+  }
+
+  @Post('verify-otp')
+  verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return this.otpService.verifyOtp(verifyOtpDto.email, verifyOtpDto.otp);
   }
 }

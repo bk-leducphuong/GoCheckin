@@ -11,6 +11,7 @@ import { GuestModule } from './guest/guest.module';
 import { SocketGateway } from './gateways/socket.gateway';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AnalysisModule } from './analysis/analysis.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AnalysisModule } from './analysis/analysis.module';
     PocModule,
     GuestModule,
     AnalysisModule,
+    MailModule,
   ],
   controllers: [],
   providers: [SocketGateway],

@@ -9,7 +9,7 @@ import {
 export class UpdateAccountDto {
   @IsOptional()
   @IsString()
-  userId?: string;
+  userId: string;
 
   @IsOptional()
   @IsString()
@@ -37,10 +37,5 @@ export class UpdateAccountDto {
   @IsOptional()
   @IsString()
   @MinLength(6)
-  currentPassword?: string;
-
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  newPassword?: string;
+  password?: string;
 }
