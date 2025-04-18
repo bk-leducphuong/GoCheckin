@@ -24,7 +24,7 @@ export class OtpService {
     const storedOtp = this.otpRepository.create({
       userId: userId,
       hashedOtp: hashedOtp,
-      expriedAt: new Date(),
+      expriedAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       attempts: 0,
     });
     await this.otpRepository.save(storedOtp);
@@ -51,9 +51,10 @@ export class OtpService {
       throw new BadRequestException('Invalid or expired code');
     }
 
-    await this.otpRepository.update(userId, {
-      attempts: otpRecord.attempts + 1,
-    });
+    await this.otpRepository.update(
+      { userId: userId },
+      { attempts: otpRecord.attempts + 1 },
+    );
 
     if (otpRecord.attempts >= 3) {
       await this.otpRepository.remove(otpRecord);

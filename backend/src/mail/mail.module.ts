@@ -8,7 +8,6 @@ import { join } from 'path';
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      imports: [ConfigService],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         transport: {
@@ -21,7 +20,7 @@ import { join } from 'path';
           },
         },
         defaults: {
-          from: configService.get<string>('MAIL_FROM'),
+          from: `"${configService.get<string>('MAIL_FROM_NAME')}" <${configService.get<string>('MAIL_FROM_EMAIL')}>`,
         },
         template: {
           dir: join(__dirname, 'templates'),

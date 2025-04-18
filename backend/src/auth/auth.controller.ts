@@ -95,11 +95,8 @@ export class AuthController {
   })
   @Post('refresh')
   @UseGuards(RefreshTokenGuard)
-  async refreshTokens(
-    @Body('refreshToken') refreshToken: string,
-    @Body('deviceInfo') deviceInfo: string,
-  ) {
-    return this.service.refreshTokens(refreshToken, deviceInfo);
+  async refreshTokens(@Body('refreshToken') refreshToken: string) {
+    return this.service.refreshTokens(refreshToken);
   }
 
   @ApiOperation({ summary: 'Logout (revoke refresh token)' })
@@ -208,6 +205,6 @@ export class AuthController {
 
   @Post('verify-otp')
   verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    return this.otpService.verifyOtp(verifyOtpDto.email, verifyOtpDto.otp);
+    return this.otpService.verifyOtp(verifyOtpDto.userId, verifyOtpDto.otp);
   }
 }
