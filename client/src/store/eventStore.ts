@@ -5,10 +5,12 @@ import { CreateEventRequest, Event } from "@/types/event";
 import { EventStatus } from "@/types/event";
 
 interface EventStore {
+  selectedEvent: Event | null;
   events: Event[];
   isLoading: boolean;
   error: string | null;
   setEvents: (events: Event[]) => void;
+  setSelectedEvent: (event: Event | null) => void;
   getAllEvents: () => Promise<Event[]>;
   createEvent: (eventData: CreateEventRequest) => Promise<Event>;
   getEventByCode: (eventCode: string) => Promise<Event>;
@@ -23,6 +25,10 @@ export const useEventStore = create<EventStore>()(
   devtools(
     (set) => ({
       events: [],
+      selectedEvent: null,
+      isLoading: false,
+      error: null,
+      setSelectedEvent: (event) => set({ selectedEvent: event }),
       setEvents: (events) => set({ events }),
       getAllEvents: async () => {
         try {

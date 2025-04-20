@@ -36,6 +36,7 @@ export default function EventDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [event, setEvent] = useState<Event | null>(null);
   const [checkInPoints, setCheckInPoints] = useState<Poc[]>([]);
   const [newCheckinPoints, setNewCheckInPoints] = useState<CreatePocRequest[]>(
@@ -43,8 +44,9 @@ export default function EventDetailsPage() {
   );
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
 
-  const { updateEvent, getEventByCode } = useEventStore(
+  const { updateEvent, getEventByCode, setSelectedEvent } = useEventStore(
     useShallow((state) => ({
+      setSelectedEvent: state.setSelectedEvent,
       updateEvent: state.updateEvent,
       getEventByCode: state.getEventByCode,
     }))
@@ -63,8 +65,12 @@ export default function EventDetailsPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
+        setError(null);
+        setIsLoading(true);
+
         const eventData = await getEventByCode(params.eventCode as string);
         setEvent(eventData);
+        setSelectedEvent(eventData);
 
         reset({
           eventName: eventData.eventName,
@@ -78,25 +84,36 @@ export default function EventDetailsPage() {
           eventType: eventData.eventType || "",
           termsConditions: eventData.termsConditions || "",
         });
+
+        setIsLoading(false);
       } catch (error) {
+        setError("Failed to fetch event details. Please try again.");
+        setEvent(null);
         console.error("Error fetching event:", error);
         alert("Failed to load event details. Please try again.");
-        router.push("/admin/events");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEvent();
-  }, [params.eventCode, getEventByCode, reset, router]);
+  }, [params.eventCode, getEventByCode, reset, router, setSelectedEvent]);
 
   // Fetch check-in points for the event
   useEffect(() => {
     const fetchCheckInPoints = async () => {
       try {
+        setError(null);
+        setIsLoading(true);
+
         const pocList = await PocService.getAllPocs(params.eventCode as string);
         setCheckInPoints(pocList);
       } catch (error) {
+        setError("Failed to fetch POCs. Please try again.");
         console.error("Error fetching POCs:", error);
         alert("Failed to load POCs. Please try again.");
+      }finally {
+        setIsLoading(false);
       }
     };
     fetchCheckInPoints();
@@ -193,8 +210,16 @@ export default function EventDetailsPage() {
     }
   };
 
-  if (!event) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return <div className="flex justify-center text-xl">Loading...</div>;
+  }
+
+  if (error || !event) {
+    return (
+      <div className="flex justify-center text-xl text-red-500 mt-4">
+        {error}
+      </div>
+    );
   }
 
   return (

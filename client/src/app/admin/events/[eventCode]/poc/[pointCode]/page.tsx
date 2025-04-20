@@ -9,6 +9,8 @@ import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { PocService } from "@/services/poc.service";
 import { Poc, PocManager, UpdatePocRequest } from "@/types/poc";
+import { useEventStore } from "@/store/eventStore";
+import { EventStatus } from "@/types/event";  
 
 // POC update validation schema
 const pocSchema = z.object({
@@ -32,6 +34,7 @@ export default function PocDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pocManager, setPocManager] = useState<PocManager | null>(null);
+  const selectedEvent  = useEventStore((state) => state.selectedEvent);
 
   const {
     register,
@@ -107,10 +110,16 @@ export default function PocDetailsPage() {
 
   const onSubmit = async (data: PocFormData) => {
     setIsLoading(true);
+    if (selectedEvent?.eventStatus !== EventStatus.PUBLISHED) {
+      alert("You cannot edit POC details when the event is not published.");
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       // Update POC
       const pocData: UpdatePocRequest = { ...data };
-      await PocService.updatePoc(params.pocId as string, pocData);
+      await PocService.updatePoc(poc?.pocId as string, pocData);
       setIsEditing(false);
       router.refresh();
     } catch (error) {
@@ -144,13 +153,15 @@ export default function PocDetailsPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             POC Details: {poc.pointName}
           </h1>
-          <button
-            type="button"
-            onClick={() => setIsEditing(!isEditing)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            {isEditing ? "Cancel" : "Edit"}
-          </button>
+          {selectedEvent?.eventStatus === EventStatus.PUBLISHED && (
+            <button
+              type="button"
+              onClick={() => setIsEditing(!isEditing)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {isEditing ? "Cancel" : "Edit"}
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -244,7 +255,9 @@ export default function PocDetailsPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center text-orange-500">This POC is not assigned to any manager.</div>
+              <div className="text-center text-orange-500">
+                This POC is not assigned to any manager.
+              </div>
             )}
           </div>
 
