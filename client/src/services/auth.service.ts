@@ -15,44 +15,24 @@ const TOKEN_NAME = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "token";
 export const AuthService = {
   // Admin Authentication
   async adminLogin(credentials: LoginCredentials): Promise<AuthResponse> {
-    try {
-      const response = await api.post("/auth/admin/login", credentials);
-      return response.data.data;
-    } catch (error) {
-      console.error("Admin login error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/admin/login", credentials);
+    return response.data.data;
   },
 
   async adminRegister(data: AdminRegisterData): Promise<AuthResponse> {
-    try {
-      const response = await api.post("/auth/admin/register", data);
-      return response.data.data;
-    } catch (error) {
-      console.error("Admin registration error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/admin/register", data);
+    return response.data.data;
   },
 
   // POC Authentication
   async pocLogin(credentials: LoginCredentials): Promise<AuthResponse> {
-    try {
-      const response = await api.post("/auth/poc/login", credentials);
-      return response.data.data;
-    } catch (error) {
-      console.error("POC login error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/poc/login", credentials);
+    return response.data.data;
   },
 
   async pocRegister(data: PocRegisterData): Promise<AuthResponse> {
-    try {
-      const response = await api.post("/auth/poc/register", data);
-      return response.data.data;
-    } catch (error) {
-      console.error("POC registration error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/poc/register", data);
+    return response.data.data;
   },
 
   // Token Management
@@ -60,68 +40,38 @@ export const AuthService = {
     refreshToken: string,
     deviceInfo?: string
   ): Promise<TokenRefreshResponse> {
-    try {
-      const response = await api.post("/auth/refresh", {
-        refreshToken,
-        deviceInfo,
-      });
-      return response.data.data;
-    } catch (error) {
-      console.error("Token refresh error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/refresh", {
+      refreshToken,
+      deviceInfo,
+    });
+    return response.data.data;
   },
 
   async verifyToken(): Promise<{ valid: boolean; user: TokenPayload }> {
-    try {
-      const response = await api.post("/auth/verify");
-      return response.data.data;
-    } catch (error) {
-      console.error("Token verification error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/verify");
+    return response.data.data;
   },
 
   // Session Management
   async getSessions(): Promise<SessionInfo[]> {
-    try {
-      const response = await api.get("/auth/sessions");
-      return response.data.data;
-    } catch (error) {
-      console.error("Get sessions error:", error);
-      throw error;
-    }
+    const response = await api.get("/auth/sessions");
+    return response.data.data;
   },
 
   async revokeSession(sessionId: string): Promise<{ success: boolean }> {
-    try {
-      const response = await api.delete(`/auth/sessions/${sessionId}`);
-      return response.data.data;
-    } catch (error) {
-      console.error("Revoke session error:", error);
-      throw error;
-    }
+    const response = await api.delete(`/auth/sessions/${sessionId}`);
+    return response.data.data;
   },
 
   // Logout
   async logout(refreshToken: string): Promise<{ success: boolean }> {
-    try {
-      const response = await api.post("/auth/logout", { refreshToken });
-      return response.data.data;
-    } catch (error) {
-      console.error("Logout error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/logout", { refreshToken });
+    return response.data.data;
   },
 
   async logoutAll(): Promise<{ success: boolean }> {
-    try {
-      const response = await api.post("/auth/logout-all");
-      return response.data.data;
-    } catch (error) {
-      console.error("Logout all error:", error);
-      throw error;
-    }
+    const response = await api.post("/auth/logout-all");
+    return response.data.data;
   },
 
   // Common methods
