@@ -205,6 +205,6 @@ export class AuthController {
 
   @Post('verify-otp')
   verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    return this.otpService.verifyOtp(verifyOtpDto.userId, verifyOtpDto.otp);
+    return this.otpService.verifyOtp(verifyOtpDto);
   }
 }

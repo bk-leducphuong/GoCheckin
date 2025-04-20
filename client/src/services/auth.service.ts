@@ -135,4 +135,32 @@ export const AuthService = {
   isAuthenticated(): boolean {
     return !!AuthService.getToken();
   },
+
+  async requestResetPassword(email: string): Promise<{ message: string }> {
+    const response = await api.post("/auth/request-reset-password", {
+      email,
+    });
+
+    return response.data.data;
+  },
+
+  async verifyOtp(
+    email: string,
+    otp: string
+  ): Promise<{ userId: string; resetToken: string }> {
+    const response = await api.post("/auth/verify-otp", {
+      email,
+      otp,
+    });
+
+    return response.data.data;
+  },
+
+  async resetPassword(userId: string, resetToken: string, password: string) {
+    await api.post("/auth/reset-password", {
+      userId,
+      resetToken,
+      password,
+    });
+  },
 };

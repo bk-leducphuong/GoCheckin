@@ -56,15 +56,16 @@ export default function LoginPage() {
         await adminLogin(data.email, data.password, deviceInfo);
         router.push("/admin");
       } else {
-        const { pointCode, eventCode } = await pocLogin(data.email, data.password);
+        const { pointCode, eventCode } = await pocLogin(
+          data.email,
+          data.password
+        );
         router.push(`/poc?pointCode=${pointCode}&eventCode=${eventCode}`);
       }
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Login failed. Please check your credentials and try again."
+        "Login failed. Please check your credentials and try again."
       );
     }
   };
@@ -79,13 +80,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {errorMessage && (
-          <div className="bg-red-50 text-red-800 p-3 rounded-md text-sm">
-            {errorMessage}
-          </div>
-        )}
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
+        <form
+          className="mt-8 space-y-6"
+          onSubmit={handleSubmit(onSubmit)}
+          autoComplete="off"
+        >
           <div className="space-y-4">
             <div className="flex gap-4 border border-gray-300 rounded-md p-2">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -131,11 +130,23 @@ export default function LoginPage() {
               error={errors.password?.message}
               placeholder="********"
             />
+
+            {errorMessage && (
+              <p className="text-red-500 text-sm">{errorMessage}</p>
+            )}
           </div>
 
           <Button type="submit" isLoading={isLoading} className="w-full">
             {selectedUserType === "admin" ? "Login as Admin" : "Login as POC"}
           </Button>
+
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-600">
+              <Link href="/forgot-password" className="text-blue-600">
+                Forgot your password?
+              </Link>
+            </p>
+          </div>
 
           <div className="text-center mt-4">
             <p className="text-sm text-gray-600">

@@ -6,6 +6,7 @@ import { ResetToken } from './entities/reset-token.entity';
 import { hash, compare } from 'bcrypt';
 import { randomInt, randomBytes } from 'crypto';
 import { AccountService } from 'src/account/account.service';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
 export class OtpService {
@@ -32,17 +33,16 @@ export class OtpService {
   }
 
   async verifyOtp(
-    userId: string,
-    otp: string,
+    verifyOtpDto: VerifyOtpDto,
   ): Promise<{ resetToken: string; userId: string }> {
-    const account = await this.accountService.findById(userId);
+    const account = await this.accountService.findByEmail(verifyOtpDto.email);
     if (!account) {
       throw new BadRequestException('Invalid or expired code');
     }
 
     const otpRecord = await this.otpRepository.findOne({
       where: {
-        userId: userId,
+        userId: account.userId,
         expriedAt: MoreThan(new Date()),
       },
     });
@@ -52,7 +52,7 @@ export class OtpService {
     }
 
     await this.otpRepository.update(
-      { userId: userId },
+      { userId: account.userId },
       { attempts: otpRecord.attempts + 1 },
     );
 
@@ -61,7 +61,7 @@ export class OtpService {
       throw new BadRequestException('Too many attempts');
     }
 
-    const isValidOtp = await compare(otp, otpRecord.hashedOtp);
+    const isValidOtp = await compare(verifyOtpDto.otp, otpRecord.hashedOtp);
 
     if (!isValidOtp) {
       throw new BadRequestException('Invalid or expired code');
@@ -71,7 +71,7 @@ export class OtpService {
     const resetToken = randomBytes(32).toString('hex');
     const hashedResetToken = await hash(resetToken, 10);
     const storedResetToken = this.resetTokenRepository.create({
-      userId: userId,
+      userId: account.userId,
       hashedResetToken: hashedResetToken,
       expriedAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
     });
@@ -80,7 +80,7 @@ export class OtpService {
     await this.otpRepository.remove(otpRecord);
 
     return {
-      userId: userId,
+      userId: account.userId,
       resetToken: resetToken,
     };
   }
