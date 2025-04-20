@@ -14,6 +14,7 @@ import { PocService } from "@/services/poc.service";
 import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
 import EventAnalysis from "@/components/admin/event/eventAnalysis";
 import { EventStatus } from "@/types/event";
+import Link from "next/link";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -323,19 +324,26 @@ export default function EventDetailsPage() {
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-sm font-medium text-gray-900">
                       Check-in Point {index + 1}
-                    </h3>
-                    {checkInPoints.length > 1 && event.eventStatus == EventStatus.PUBLISHED && (
-                      <button
-                        type="button"
-                        onClick={() => removeCheckInPoint(index)}
-                        className="text-red-600 hover:text-red-800"
+                      <Link 
+                        href={`/admin/events/${params.eventCode}/poc/${point.pointCode}`} 
+                        className="text-blue-600 ml-2"
                       >
-                        Remove
-                      </button>
-                    )}
+                        View details
+                      </Link>
+                    </h3>
+                    {checkInPoints.length > 1 &&
+                      event.eventStatus == EventStatus.PUBLISHED && (
+                        <button
+                          type="button"
+                          onClick={() => removeCheckInPoint(index)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Input
                       label="Name"
                       type="text"
@@ -356,6 +364,15 @@ export default function EventDetailsPage() {
                         updateCheckInPoint(index, "pointCode", e.target.value)
                       }
                       placeholder="POC001"
+                    />
+                    <Input
+                      label="Location"
+                      type="text"
+                      // value={point.location}
+                      // onChange={(e) =>
+                      //   updateCheckInPoint(index, "location", e.target.value)
+                      // }
+                      placeholder="Main Entrance"
                     />
                   </div>
                 </div>
@@ -378,7 +395,7 @@ export default function EventDetailsPage() {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Input
                       label="Name"
                       type="text"
@@ -405,6 +422,20 @@ export default function EventDetailsPage() {
                         )
                       }
                       placeholder="POC001"
+                    />
+
+                    <Input
+                      label="Location"
+                      type="text"
+                      // value={point.location}
+                      // onChange={(e) =>
+                      //   updateNewCheckInPoint(
+                      //     index,
+                      //     "location",
+                      //     e.target.value
+                      //   )
+                      // }
+                      placeholder="Main Entrance"
                     />
                   </div>
                 </div>

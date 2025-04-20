@@ -69,6 +69,24 @@ export class PocController {
     return this.pocService.create(user, eventCode, createPocDto);
   }
 
+  @Get('poc')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @ApiOperation({ summary: 'Get a point of check-in' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Point of check-in found successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Point of check-in not found',
+  })
+  async getPoc(
+    @Query('pointCode') pointCode: string,
+    @Query('eventCode') eventCode: string,
+  ) {
+    return this.pocService.getPocByPocCode(eventCode, pointCode);
+  }
+
   @Put('poc')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update a point of check-in' })
@@ -102,5 +120,20 @@ export class PocController {
   })
   async deletePoc(@Query('pocId') pocId: string) {
     return this.pocService.remove(pocId);
+  }
+
+  @Get('poc/manager')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @ApiOperation({ summary: 'Get POC manager' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POC manager found successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'POC manager not found',
+  })
+  async getPocManager(@Query('userId') userId: string) {
+    return this.pocService.getPocManager(userId);
   }
 }

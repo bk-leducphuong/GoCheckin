@@ -13,6 +13,8 @@ import { EventService } from 'src/event/event.service';
 import { UpdatePocDto } from './dto/update-poc.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { ValidatePocDto } from './dto/validate-poc.dto';
+import { PocManagerDto } from './dto/poc-manager.dto';
+import { AccountService } from 'src/account/account.service';
 
 @Injectable()
 export class PocService {
@@ -20,6 +22,7 @@ export class PocService {
     @InjectRepository(PointOfCheckin)
     private pocRepository: Repository<PointOfCheckin>,
     private eventService: EventService,
+    private accountService: AccountService,
   ) {}
 
   async create(
@@ -73,7 +76,7 @@ export class PocService {
     });
   }
 
-  async findOne(pocId: string): Promise<PointOfCheckin> {
+  async getPocByPocId(pocId: string): Promise<PointOfCheckin> {
     const poc = await this.pocRepository.findOne({
       where: { pocId, enabled: true },
       relations: ['account', 'event'],
@@ -82,6 +85,23 @@ export class PocService {
     if (!poc) {
       throw new NotFoundException(
         `Point of Check-in with ID ${pocId} not found`,
+      );
+    }
+
+    return poc;
+  }
+
+  async getPocByPocCode(
+    eventCode: string,
+    pointCode: string,
+  ): Promise<PointOfCheckin> {
+    const poc = await this.pocRepository.findOne({
+      where: { eventCode, pointCode },
+    });
+
+    if (!poc) {
+      throw new NotFoundException(
+        `Point of Check-in with code ${pointCode} not found`,
       );
     }
 
@@ -105,7 +125,7 @@ export class PocService {
     pocId: string,
     updatePocDto: UpdatePocDto,
   ): Promise<PointOfCheckin> {
-    const poc = await this.findOne(pocId);
+    const poc = await this.getPocByPocId(pocId);
     if (!poc) {
       throw new NotFoundException(
         `Point of Check-in with ID ${pocId} not found`,
@@ -118,7 +138,7 @@ export class PocService {
   }
 
   async remove(id: string): Promise<void> {
-    const poc = await this.findOne(id);
+    const poc = await this.getPocByPocId(id);
 
     // Soft delete - just set enabled to false
     poc.enabled = false;
@@ -143,6 +163,14 @@ export class PocService {
     }
 
     return poc;
+  }
+
+  async getPocManager(userId: string): Promise<PocManagerDto | null> {
+    const pocManager = await this.accountService.findById(userId);
+    if (!pocManager) {
+      return null;
+    }
+    return pocManager;
   }
 
   async updatePocManager(

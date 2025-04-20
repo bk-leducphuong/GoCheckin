@@ -49,3 +49,13 @@ export interface UpdatePocRequest {
     locationDescription?: string;
     floorLevel?: string;
 }
+
+export interface PocManager {
+    userId: string;
+    username: string;
+    fullName?: string;
+    email: string;
+    phoneNumber?: string;
+    companyName?: string;
+    createdAt: string;
+}

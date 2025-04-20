@@ -4,6 +4,7 @@ import {
   PocValidationData,
   CreatePocRequest,
   UpdatePocRequest,
+  PocManager,
 } from "@/types/poc";
 
 export const PocService = {
@@ -26,7 +27,7 @@ export const PocService = {
     const response = await api.get(`/pocs/event?eventCode=${eventCode}`);
     return response.data.data;
   },
-  async getPoc(pointCode: string, eventCode: string) {
+  async getPoc(pointCode: string, eventCode: string): Promise<Poc> {
     const response = await api.get(
       `/pocs/poc?pointCode=${pointCode}&eventCode=${eventCode}`
     );
@@ -39,4 +40,8 @@ export const PocService = {
   async removePoc(pocId: string): Promise<void> {
     await api.delete(`/pocs/poc?pocId=${pocId}`);
   },
+  async getPocManager(userId: string): Promise<PocManager> {
+    const response = await api.get(`/pocs/poc/manager?userId=${userId}`);
+    return response.data.data;
+  }
 };
