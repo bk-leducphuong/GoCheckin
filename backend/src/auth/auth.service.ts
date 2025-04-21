@@ -43,83 +43,68 @@ export class AuthService {
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
-    try {
-      const user = await this.accountService.findByEmail(loginDto.email);
+    const user = await this.accountService.findByEmail(loginDto.email);
 
-      // Check if user is an admin
-      if (user.role !== UserRole.ADMIN) {
-        throw new UnauthorizedException('User is not an admin');
-      }
-
-      const isValidPassword = await compare(loginDto.password, user.password);
-
-      if (!isValidPassword) {
-        throw new UnauthorizedException('Invalid password');
-      }
-
-      // Create refresh token
-      const refreshToken = await this.refreshTokenService.generateRefreshToken(
-        user.userId,
-        loginDto.deviceInfo,
-      );
-
-      return {
-        accessToken: this.jwtService.sign({
-          userId: user.userId,
-          role: user.role,
-        }),
-        refreshToken: refreshToken,
-      };
-    } catch (error) {
-      console.log(error);
-      if (error instanceof NotFoundException) {
-        throw new UnauthorizedException('User not found');
-      }
-      throw error;
+    // Check if user is an admin
+    if (user.role !== UserRole.ADMIN) {
+      throw new UnauthorizedException('User is not an admin');
     }
+
+    const isValidPassword = await compare(loginDto.password, user.password);
+
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    // Create refresh token
+    const refreshToken = await this.refreshTokenService.generateRefreshToken(
+      user.userId,
+      loginDto.deviceInfo,
+    );
+
+    return {
+      accessToken: this.jwtService.sign({
+        userId: user.userId,
+        role: user.role,
+      }),
+      refreshToken: refreshToken,
+    };
   }
 
   async pocLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
-    try {
-      const user = await this.accountService.findByEmail(loginDto.email);
+    const user = await this.accountService.findByEmail(loginDto.email);
 
-      // Check if user is a POC
-      if (user.role !== UserRole.POC) {
-        throw new UnauthorizedException('User is not a POC');
-      }
-
-      const isValidPassword = await compare(loginDto.password, user.password);
-
-      if (!isValidPassword) {
-        throw new UnauthorizedException('Invalid password');
-      }
-
-      // Get eventcode and point code
-      const poc = await this.pocService.getPocByUserId(user.userId);
-      if (!poc) {
-        throw new UnauthorizedException('User is not a POC');
-      }
-
-      // Create refresh token
-      const refreshToken = await this.refreshTokenService.generateRefreshToken(
-        user.userId,
-      );
-
-      return {
-        accessToken: this.jwtService.sign({
-          userId: user.userId,
-          role: user.role,
-        }),
-        refreshToken: refreshToken,
-        pointCode: poc.pointCode,
-        eventCode: poc.eventCode,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new UnauthorizedException('User not found');
-      }
-      throw error;
+    // Check if user is a POC
+    if (user.role !== UserRole.POC) {
+      throw new UnauthorizedException('User is not a POC');
     }
+
+    const isValidPassword = await compare(loginDto.password, user.password);
+
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    // Get eventcode and point code
+    const poc = await this.pocService.getPocByUserId(user.userId);
+    if (!poc) {
+      throw new UnauthorizedException('User is not a POC');
+    }
+
+    // Create refresh token
+    const refreshToken = await this.refreshTokenService.generateRefreshToken(
+      user.userId,
+    );
+
+    return {
+      accessToken: this.jwtService.sign({
+        userId: user.userId,
+        role: user.role,
+      }),
+      refreshToken: refreshToken,
+      pointCode: poc.pointCode,
+      eventCode: poc.eventCode,
+    };
   }
 
   async registerAdmin(
@@ -347,6 +332,9 @@ export class AuthService {
       userId: userId,
       password: hashedPassword,
     });
+
+    // Revoke all sessions
+    await this.refreshTokenService.revokeAllUserTokens(userId);
 
     // send confirmation email
     await this.mailService.sendPasswordChangedMail(account);
