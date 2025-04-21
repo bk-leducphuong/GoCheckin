@@ -7,11 +7,13 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Guest } from '../../guest/entities/guest.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 import { EventCheckinAnalytics } from '../../analysis/entities/event-checkin-analytics.entity';
+import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
 
 export enum EventStatus {
   PUBLISHED = 'published',
@@ -99,4 +101,7 @@ export class Event {
     (eventCheckinAnalytics) => eventCheckinAnalytics.event,
   )
   eventCheckinAnalytics: EventCheckinAnalytics[];
+
+  @OneToOne(() => FloorPlan, (floorPlan) => floorPlan.event)
+  floorPlan: FloorPlan;
 }

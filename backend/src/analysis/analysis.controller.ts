@@ -3,7 +3,7 @@ import { AnalysisService } from './analysis.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../account/entities/account.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { EventCheckinAnalytics } from './entities/event-checkin-analytics.entity';
 import { PointCheckinAnalytics } from './entities/point-checkin-analytics.entity';

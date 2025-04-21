@@ -22,7 +22,7 @@ import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
 import { AuthLoginResponseDto } from './dto/login-response.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { RequestResetPassword } from './dto/request-reset-password';
 import { ResetPasswordDto } from './dto/reset-password.dto';

@@ -5,7 +5,6 @@ import {
   IsEnum,
   IsDate,
   Min,
-  Max,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -26,20 +25,6 @@ export class UpdatePocDto {
   @IsOptional()
   @ApiPropertyOptional({ description: 'Additional notes about the point' })
   pointNote?: string;
-
-  @IsNumber()
-  @IsOptional()
-  @Min(-90)
-  @Max(90)
-  @ApiPropertyOptional({ description: 'Latitude coordinate' })
-  latitude?: number;
-
-  @IsNumber()
-  @IsOptional()
-  @Min(-180)
-  @Max(180)
-  @ApiPropertyOptional({ description: 'Longitude coordinate' })
-  longitude?: number;
 
   @IsNumber()
   @IsOptional()

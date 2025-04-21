@@ -12,7 +12,6 @@ import { PocModule } from 'src/poc/poc.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Token } from './entities/token.entity';
 import { RefreshTokenService } from './refresh-token.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { MailModule } from 'src/mail/mail.module';
 import { Otp } from './entities/otp.entity';
@@ -45,7 +44,6 @@ import { ResetToken } from './entities/reset-token.entity';
     AuthService,
     JwtStrategy,
     RefreshTokenService,
-    JwtAuthGuard,
     RefreshTokenGuard,
     OtpService,
   ],

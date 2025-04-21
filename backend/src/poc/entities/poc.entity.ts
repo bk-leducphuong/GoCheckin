@@ -7,10 +7,12 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { Event } from '../../event/entities/event.entity';
 import { Account } from '../../account/entities/account.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
+import { PocLocation } from 'src/floor-plan/entities/poc-location.entity';
 
 export enum PointStatus {
   ACTIVE = 'active',
@@ -37,12 +39,6 @@ export class PointOfCheckin {
 
   @Column({ name: 'user_id', type: 'varchar', nullable: true })
   userId: string;
-
-  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
-  latitude: number;
-
-  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
-  longitude: number;
 
   @Column({ type: 'integer', nullable: true })
   capacity: number;
@@ -89,4 +85,7 @@ export class PointOfCheckin {
     (pointCheckinAnalytics) => pointCheckinAnalytics.point,
   )
   pointCheckinAnalytics: PointCheckinAnalytics[];
+
+  @OneToOne(() => PocLocation, (floorPlan) => floorPlan.poc)
+  location: PocLocation;
 }

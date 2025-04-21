@@ -2,7 +2,7 @@ import { UserRole } from '../../account/entities/account.entity';
 
 export interface JwtPayload {
   userId: string;
-  role?: UserRole;
+  role: UserRole;
   iat?: number;
   exp?: number;
 }

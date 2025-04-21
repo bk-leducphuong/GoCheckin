@@ -12,6 +12,7 @@ import { SocketGateway } from './gateways/socket.gateway';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AnalysisModule } from './analysis/analysis.module';
 import { MailModule } from './mail/mail.module';
+import { FloorPlan } from './floor-plan/entities/floor-plan.entity';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MailModule } from './mail/mail.module';
     GuestModule,
     AnalysisModule,
     MailModule,
+    FloorPlan,
   ],
   controllers: [],
   providers: [SocketGateway],
