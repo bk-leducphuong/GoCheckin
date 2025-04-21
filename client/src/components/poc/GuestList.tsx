@@ -22,7 +22,7 @@ export default function GuestList() {
   useEffect(() => {
     if (!poc) return;
     fetchGuests(poc.eventCode, poc.pointCode);
-  }, [poc]);
+  }, [poc, fetchGuests]);
 
   if (!poc) {
     return (

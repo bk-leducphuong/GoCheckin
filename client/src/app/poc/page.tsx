@@ -11,6 +11,7 @@ import { useUserStore } from "@/store/userStore";
 import { useCheckinStore } from "@/store/checkinStore";
 import MenuModal from "@/components/poc/MenuModal";
 import { useSocketStore } from "@/store/socketStore";
+import PocAnalysis from "@/components/poc/PocAnalysis";
 
 export default function POCDashboard() {
   // Connect socket
@@ -308,6 +309,8 @@ export default function POCDashboard() {
 
       {/* Section 3: Guest List */}
       <GuestList></GuestList>
+
+      <PocAnalysis eventCode={eventCode} pointCode={pointCode}></PocAnalysis>
 
       {showCamera && (
         <Camera
