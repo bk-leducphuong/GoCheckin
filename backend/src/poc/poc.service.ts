@@ -26,7 +26,6 @@ export class PocService {
   ) {}
 
   async create(
-    user: JwtPayload,
     eventCode: string,
     createPocDto: CreatePocDto,
   ): Promise<PointOfCheckin> {
@@ -53,7 +52,6 @@ export class PocService {
     const newPoc = this.pocRepository.create({
       ...createPocDto,
       eventCode: eventCode,
-      userId: user.userId,
     });
     return this.pocRepository.save(newPoc);
   }

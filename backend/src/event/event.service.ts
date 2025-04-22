@@ -13,6 +13,7 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { EventStatus } from './entities/event.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { FloorPlanService } from '../floor-plan/floor-plan.service';
 
 @Injectable()
 export class EventService {
@@ -21,6 +22,7 @@ export class EventService {
     private readonly eventRepository: Repository<Event>,
     @InjectRepository(AccountTenant)
     private readonly accountTenantRepository: Repository<AccountTenant>,
+    private readonly floorPlanService: FloorPlanService,
   ) {}
 
   private readonly logger = new Logger('EventService');
@@ -35,9 +37,10 @@ export class EventService {
 
   async create(user: JwtPayload, newEventData: CreateEventDto): Promise<Event> {
     try {
+      const { floorPlanImg, ...eventData } = newEventData;
       // check if event code is already in use
       const event = await this.eventRepository.findOne({
-        where: { eventCode: newEventData.eventCode },
+        where: { eventCode: eventData.eventCode },
       });
       if (event) {
         throw new BadRequestException('Event code already in use');
@@ -51,8 +54,16 @@ export class EventService {
         throw new NotFoundException('Tenant not found');
       }
 
+      // Save floor plan image
+      if (floorPlanImg) {
+        await this.floorPlanService.saveFloorPlan(
+          eventData.eventCode,
+          floorPlanImg,
+        );
+      }
+
       const newEvent = this.eventRepository.create({
-        ...newEventData,
+        ...eventData,
         tenantCode: tenant.tenantCode,
         eventStatus: EventStatus.PUBLISHED,
       });

@@ -53,9 +53,6 @@ export class Event {
   @Column({ name: 'end_time', type: 'timestamp' })
   endTime: Date;
 
-  @Column({ name: 'event_img', type: 'bytea', nullable: true })
-  eventImg: Buffer;
-
   @Column({ name: 'venue_name', length: 255, nullable: true })
   venueName: string;
 
@@ -70,9 +67,6 @@ export class Event {
 
   @Column({ name: 'terms_conditions', type: 'text', nullable: true })
   termsConditions: string;
-
-  @Column({ name: 'floor_plan_img', type: 'bytea', nullable: true })
-  floorPlanImg: Buffer;
 
   @Column({ default: true })
   enabled: boolean;

@@ -19,10 +19,10 @@ export class FloorPlan {
   @Column({ name: 'floor_plan_image_url' })
   floorPlanImageUrl: string;
 
-  @Column({ name: 'created_at' })
+  @Column({ name: 'created_at', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ name: 'updated_at' })
+  @Column({ name: 'updated_at', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
   @OneToOne(() => Event, (event) => event.floorPlan)

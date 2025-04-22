@@ -41,7 +41,6 @@ export interface CreateEventRequest {
   endTime: string;
   eventDescription?: string;
   eventStatus?: EventStatus;
-  eventImg?: string;
   venueName?: string;
   venueAddress?: string;
   capacity?: number;

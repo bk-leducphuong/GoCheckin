@@ -37,9 +37,6 @@ export class CreateEventDto {
   @IsNotEmpty()
   endTime: Date;
 
-  @IsOptional()
-  eventImg?: Buffer;
-
   @IsString()
   @IsOptional()
   venueName?: string;
@@ -60,8 +57,8 @@ export class CreateEventDto {
   @IsOptional()
   termsConditions?: string;
 
-  @IsOptional()
-  floorPlanImg?: Buffer;
+  @IsString()
+  floorPlanImg: string;
 
   @IsBoolean()
   @IsOptional()

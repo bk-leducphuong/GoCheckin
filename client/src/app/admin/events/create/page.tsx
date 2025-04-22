@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,6 +13,7 @@ import { useEventStore } from "@/store/eventStore";
 import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest } from "@/types/poc";
+import { FloorPlanService } from "@/services/floor-plan.service";
 
 // Event creation validation schema
 const eventSchema = z.object({
@@ -25,11 +27,14 @@ const eventSchema = z.object({
 type EventFormData = z.infer<typeof eventSchema>;
 
 export default function CreateEventPage() {
+  const uploadFloorPlan = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [checkInPoints, setCheckInPoints] = useState<CreatePocRequest[]>([
     { pointCode: "", pointName: "" },
   ]);
+  const [floorPlanImage, setFloorPlanImage] = useState<string | null>(null);
+
   const { createEvent } = useEventStore(
     useShallow((state) => ({
       createEvent: state.createEvent,
@@ -65,8 +70,28 @@ export default function CreateEventPage() {
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     try {
-      // Create event first
-      const eventData: CreateEventRequest = { ...data };
+      // Upload floor plan image if exists
+      let floorPlanUrl = "";
+      if (floorPlanImage) {
+        try {
+          floorPlanUrl = await FloorPlanService.uploadFloorPlanImage(
+            floorPlanImage
+          );
+        } catch (error) {
+          console.error("Failed to upload floor plan:", error);
+          alert("Failed to upload floor plan. Please try again.");
+          return;
+        }
+      }else {
+        alert("Please upload a floor plan image.");
+        return;
+      }
+
+      // Create event with floor plan URL
+      const eventData: CreateEventRequest = {
+        ...data,
+        floorPlanImg: floorPlanUrl,
+      };
       const newEvent = await createEvent(eventData);
 
       // Create POCs sequentially
@@ -75,22 +100,39 @@ export default function CreateEventPage() {
           await PocService.createPoc(newEvent.eventCode, point);
         } catch (pocError) {
           console.error(`Failed to create POC: ${point.pointCode}`, pocError);
-          // Continue with other POCs even if one fails
           alert(`Failed to create POC: ${point.pointCode}. Please try again.`);
-        }finally {
-          setIsLoading(false);
-          router.push("/admin/events");
         }
       }
 
       router.push("/admin/events");
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to create event. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to create event. Please try again.";
       console.error("Create event error:", error);
       alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleUploadClick = () => {
+    if (uploadFloorPlan.current) {
+      uploadFloorPlan.current.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFloorPlanImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -143,6 +185,48 @@ export default function CreateEventPage() {
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
               placeholder="Add any additional notes about the event"
             />
+          </div>
+
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">
+              Event Floor Plan
+            </h2>
+            <p className="text-sm text-gray-500 mb-2">
+              Upload a floor plan image for the event.
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              ref={uploadFloorPlan}
+              onChange={handleFileChange}
+            />
+            {floorPlanImage ? (
+              <div className="mt-2 relative">
+                <Image
+                  src={floorPlanImage}
+                  alt="Floor plan preview"
+                  width={600}
+                  height={300}
+                  className="max-h-[300px] object-contain rounded-md"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFloorPlanImage(null)}
+                  className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="mt-2 w-30 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={handleUploadClick}
+              >
+                Upload
+              </button>
+            )}
           </div>
 
           <div>

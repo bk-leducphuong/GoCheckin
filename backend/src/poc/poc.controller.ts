@@ -66,7 +66,7 @@ export class PocController {
     @Query('eventCode') eventCode: string,
     @Body() createPocDto: CreatePocDto,
   ) {
-    return this.pocService.create(user, eventCode, createPocDto);
+    return this.pocService.create(eventCode, createPocDto);
   }
 
   @Get('poc')

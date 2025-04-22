@@ -13,4 +13,12 @@ export class FloorPlanService {
   uploadFloorPlanImage(image: Express.Multer.File): string {
     return image.path;
   }
+
+  async saveFloorPlan(eventCode: string, floorPlanImageUrl: string) {
+    const floorPlan = this.floorPlanRepository.create({
+      eventCode,
+      floorPlanImageUrl,
+    });
+    return this.floorPlanRepository.save(floorPlan);
+  }
 }
