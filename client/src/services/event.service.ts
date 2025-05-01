@@ -30,4 +30,8 @@ export const EventService = {
     const response = await api.get(`/events/${eventCode}/status`);
     return response.data.data;
   },
+
+  async deleteEvent(eventCode: string) {
+    await api.delete(`/events/${eventCode}`);
+  },
 };

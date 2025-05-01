@@ -64,4 +64,16 @@ export class FloorPlanService {
     );
     return imagePath;
   }
+
+  async removeFloorPlan(eventCode: string): Promise<void> {
+    const floorPlan = await this.floorPlanRepository.findOne({
+      where: { eventCode },
+    });
+
+    if (!floorPlan) {
+      throw new NotFoundException('Floor plan not found');
+    }
+
+    await this.floorPlanRepository.remove(floorPlan);
+  }
 }

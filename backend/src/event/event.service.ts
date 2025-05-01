@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +16,7 @@ import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { EventStatus } from './entities/event.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { FloorPlanService } from '../floor-plan/floor-plan.service';
+import { PocService } from 'src/poc/poc.service';
 
 @Injectable()
 export class EventService {
@@ -23,6 +26,8 @@ export class EventService {
     @InjectRepository(AccountTenant)
     private readonly accountTenantRepository: Repository<AccountTenant>,
     private readonly floorPlanService: FloorPlanService,
+    @Inject(forwardRef(() => PocService))
+    private readonly pocService: PocService,
   ) {}
 
   private readonly logger = new Logger('EventService');
@@ -103,8 +108,15 @@ export class EventService {
     return this.eventRepository.save(event);
   }
 
-  async remove(eventId: string): Promise<void> {
-    const event = await this.findOne(eventId);
+  async remove(eventCode: string): Promise<void> {
+    const event = await this.findOne(eventCode);
+    if (!event) {
+      throw new NotFoundException(
+        `Event with event code ${eventCode} not found`,
+      );
+    }
+    await this.floorPlanService.removeFloorPlan(eventCode);
+    await this.pocService.removeAllPocs(eventCode);
     await this.eventRepository.remove(event);
   }
 

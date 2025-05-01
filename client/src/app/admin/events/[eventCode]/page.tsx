@@ -17,6 +17,7 @@ import { EventStatus } from "@/types/event";
 import Link from "next/link";
 import { usePocStore } from "@/store/pocStore";
 import { useFloorPlanStore } from "@/store/floorPlanStore";
+import DeleteEventValidation from "@/components/admin/event/deleteEventValidation";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -45,6 +46,8 @@ export default function EventDetailsPage() {
   );
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
   const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>();
+
+  const [deleteEvent, setDeleteEvent] = useState<boolean>(false);
 
   const { selectedEvent, updateEvent, getEventByCode } = useEventStore(
     useShallow((state) => ({
@@ -262,7 +265,7 @@ export default function EventDetailsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-4xl">
+    <div className="container mx-auto px-4 py-6 max-w-4xl relative">
       <div className="bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
           Edit Event: {selectedEvent.eventName}
@@ -558,9 +561,31 @@ export default function EventDetailsPage() {
           )}
         </form>
       </div>
-      <div className="mt-8">
-        <EventAnalysis eventCode={params.eventCode as string} />
-      </div>
+      {selectedEvent.eventStatus === EventStatus.PUBLISHED && (
+        <div className="mt-9">
+          <button
+            className="border-red-500 border-2 text-red-500 hover:bg-red-500 hover:text-white px-4 py-2 rounded-md w-full"
+            onClick={() => setDeleteEvent(true)}
+          >
+            Delete Event
+          </button>
+        </div>
+      )}
+
+      {deleteEvent && (
+        <DeleteEventValidation
+          isOpen={deleteEvent}
+          eventCode={params.eventCode as string}
+          onClose={() => setDeleteEvent(false)}
+        />
+      )}
+
+      {selectedEvent.eventStatus === EventStatus.COMPLETED ||
+        (selectedEvent.eventStatus === EventStatus.ACTIVE && (
+          <div className="mt-8">
+            <EventAnalysis eventCode={params.eventCode as string} />
+          </div>
+        ))}
     </div>
   );
 }

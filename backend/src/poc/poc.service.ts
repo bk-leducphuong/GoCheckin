@@ -3,6 +3,8 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -21,6 +23,7 @@ export class PocService {
   constructor(
     @InjectRepository(PointOfCheckin)
     private pocRepository: Repository<PointOfCheckin>,
+    @Inject(forwardRef(() => EventService))
     private eventService: EventService,
     private accountService: AccountService,
   ) {}
@@ -180,5 +183,9 @@ export class PocService {
       { eventCode, pointCode },
       { userId: userId },
     );
+  }
+
+  async removeAllPocs(eventCode: string): Promise<void> {
+    await this.pocRepository.delete({ eventCode });
   }
 }

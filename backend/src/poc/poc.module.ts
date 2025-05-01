@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PocController } from './poc.controller';
 import { PocService } from './poc.service';
@@ -8,7 +8,7 @@ import { AccountModule } from 'src/account/account.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([PointOfCheckin]),
-    EventModule,
+    forwardRef(() => EventModule),
     AccountModule,
   ],
   controllers: [PocController],

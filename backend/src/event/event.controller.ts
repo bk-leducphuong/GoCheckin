@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -59,5 +60,11 @@ export class EventController {
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   async getEventStatus(@Param('eventCode') eventCode: string) {
     return this.eventService.getEventStatus(eventCode);
+  }
+
+  @Delete(':eventCode')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  async deleteEvent(@Param('eventCode') eventCode: string) {
+    return this.eventService.remove(eventCode);
   }
 }
