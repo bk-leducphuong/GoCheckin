@@ -15,6 +15,8 @@ import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
 import EventAnalysis from "@/components/admin/event/eventAnalysis";
 import { EventStatus } from "@/types/event";
 import Link from "next/link";
+import { usePocStore } from "@/store/pocStore";
+import { useFloorPlanStore } from "@/store/floorPlanStore";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -43,12 +45,24 @@ export default function EventDetailsPage() {
     []
   );
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
+  const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>();
 
-  const { updateEvent, getEventByCode, setSelectedEvent } = useEventStore(
+  const { updateEvent, getEventByCode } = useEventStore(
     useShallow((state) => ({
-      setSelectedEvent: state.setSelectedEvent,
       updateEvent: state.updateEvent,
       getEventByCode: state.getEventByCode,
+    }))
+  );
+
+  const { getAllPocs } = usePocStore(
+    useShallow((state) => ({
+      getAllPocs: state.getAllPocs,
+    }))
+  );
+
+  const { getFloorPlanImage } = useFloorPlanStore(
+    useShallow((state) => ({
+      getFloorPlanImage: state.getFloorPlanImage,
     }))
   );
 
@@ -70,7 +84,6 @@ export default function EventDetailsPage() {
 
         const eventData = await getEventByCode(params.eventCode as string);
         setEvent(eventData);
-        setSelectedEvent(eventData);
 
         reset({
           eventName: eventData.eventName,
@@ -88,16 +101,41 @@ export default function EventDetailsPage() {
         setIsLoading(false);
       } catch (error) {
         setError("Failed to fetch event details. Please try again.");
+        console.error("Error fetching event details:", error);
         setEvent(null);
-        console.error("Error fetching event:", error);
-        alert("Failed to load event details. Please try again.");
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchEvent();
-  }, [params.eventCode, getEventByCode, reset, router, setSelectedEvent]);
+  }, [params.eventCode, getEventByCode, reset, router]);
+
+  // Get floor plan image
+  useEffect(() => {
+    let imageUrl: string;
+
+    const getFloorPlanImageUrl = async () => {
+      try {
+        const response = await getFloorPlanImage(params.eventCode as string);
+        const blob = new Blob([response], { type: "image/jpeg" });
+        imageUrl = URL.createObjectURL(blob);
+        setFloorPlanImageUrl(imageUrl);
+      } catch (error) {
+        console.error("Error loading floor plan:", error);
+        setError("Failed to load floor plan image");
+      }
+    };
+
+    getFloorPlanImageUrl();
+
+    // Cleanup function to revoke the Blob URL
+    return () => {
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
+    };
+  }, [params.eventCode, event, getFloorPlanImage]);
 
   // Fetch check-in points for the event
   useEffect(() => {
@@ -106,18 +144,17 @@ export default function EventDetailsPage() {
         setError(null);
         setIsLoading(true);
 
-        const pocList = await PocService.getAllPocs(params.eventCode as string);
+        const pocList = await getAllPocs(params.eventCode as string);
         setCheckInPoints(pocList);
       } catch (error) {
         setError("Failed to fetch POCs. Please try again.");
         console.error("Error fetching POCs:", error);
-        alert("Failed to load POCs. Please try again.");
-      }finally {
+      } finally {
         setIsLoading(false);
       }
     };
     fetchCheckInPoints();
-  }, [params.eventCode]);
+  }, [params.eventCode, getAllPocs]);
 
   const removeCheckInPoint = (index: number) => {
     setRemovedCheckinPoint([...removedCheckinPoint, checkInPoints[index]]);
@@ -327,6 +364,37 @@ export default function EventDetailsPage() {
             />
           </div>
 
+          {/* Floor Plan Section */}
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-medium text-gray-900">Floor Plan</h2>
+              {event.eventStatus === EventStatus.PUBLISHED && (
+                <Link
+                  href={`/admin/events/${params.eventCode}/floor-plan`}
+                  className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Manage Floor Plan
+                </Link>
+              )}
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-md">
+              {floorPlanImageUrl ? (
+                <div className="relative">
+                  <img
+                    src={floorPlanImageUrl}
+                    alt="Floor plan"
+                    className="max-h-[300px] w-auto object-contain rounded-md"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-[200px] border-2 border-dashed border-gray-300 rounded-md">
+                  <p className="text-gray-500">No floor plan uploaded</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium text-gray-900">
@@ -349,8 +417,8 @@ export default function EventDetailsPage() {
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-sm font-medium text-gray-900">
                       Check-in Point {index + 1}
-                      <Link 
-                        href={`/admin/events/${params.eventCode}/poc/${point.pointCode}`} 
+                      <Link
+                        href={`/admin/events/${params.eventCode}/poc/${point.pointCode}`}
                         className="text-blue-600 ml-2"
                       >
                         View details

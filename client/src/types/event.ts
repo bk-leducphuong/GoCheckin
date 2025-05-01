@@ -1,9 +1,8 @@
-
 export enum EventStatus {
-  PUBLISHED = 'published',
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
+  PUBLISHED = "published",
+  ACTIVE = "active",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
 }
 
 export interface Event {
@@ -21,7 +20,6 @@ export interface Event {
   capacity: number | null;
   eventType: string | null;
   termsConditions: string | null;
-  floorPlanImg: string | null;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -46,7 +44,6 @@ export interface CreateEventRequest {
   capacity?: number;
   eventType?: string;
   termsConditions?: string;
-  floorPlanImg?: string;
   enabled?: boolean;
 }
 
@@ -54,4 +51,4 @@ export interface EventResponse {
   success: boolean;
   message: string;
   data?: Event;
-} 
+}

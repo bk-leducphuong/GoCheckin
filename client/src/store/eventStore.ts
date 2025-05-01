@@ -55,6 +55,7 @@ export const useEventStore = create<EventStore>()(
       getEventByCode: async (eventCode: string) => {
         try {
           const response = await EventService.getEventByCode(eventCode);
+          set({ selectedEvent: response });
           return response;
         } catch (error) {
           console.error("Error getting event:", error);

@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { PointOfCheckin } from 'src/poc/entities/poc.entity';
 import { FloorPlan } from './floor-plan.entity';
@@ -32,5 +33,6 @@ export class PocLocation {
   poc: PointOfCheckin;
 
   @ManyToOne(() => FloorPlan, (floorPlan) => floorPlan.locations)
+  @JoinColumn({ name: 'floor_plan_id' })
   floorPlan: FloorPlan;
 }
