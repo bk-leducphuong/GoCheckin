@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { CreateEventRequest, Event } from "@/types/event";
+import { CreateEventRequest } from "@/types/event";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useEventStore } from "@/store/eventStore";
@@ -39,7 +39,6 @@ export default function EventDetailsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [event, setEvent] = useState<Event | null>(null);
   const [checkInPoints, setCheckInPoints] = useState<Poc[]>([]);
   const [newCheckinPoints, setNewCheckInPoints] = useState<CreatePocRequest[]>(
     []
@@ -47,21 +46,24 @@ export default function EventDetailsPage() {
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
   const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>();
 
-  const { updateEvent, getEventByCode } = useEventStore(
+  const { selectedEvent, updateEvent, getEventByCode } = useEventStore(
     useShallow((state) => ({
+      selectedEvent: state.selectedEvent,
       updateEvent: state.updateEvent,
       getEventByCode: state.getEventByCode,
     }))
   );
 
-  const { getAllPocs } = usePocStore(
+  const { pocList, getAllPocs } = usePocStore(
     useShallow((state) => ({
+      pocList: state.pocList,
       getAllPocs: state.getAllPocs,
     }))
   );
 
-  const { getFloorPlanImage } = useFloorPlanStore(
+  const { floorPlanImage, getFloorPlanImage } = useFloorPlanStore(
     useShallow((state) => ({
+      floorPlanImage: state.floorPlanImage,
       getFloorPlanImage: state.getFloorPlanImage,
     }))
   );
@@ -82,27 +84,27 @@ export default function EventDetailsPage() {
         setError(null);
         setIsLoading(true);
 
-        const eventData = await getEventByCode(params.eventCode as string);
-        setEvent(eventData);
+        await getEventByCode(params.eventCode as string);
 
         reset({
-          eventName: eventData.eventName,
-          eventCode: eventData.eventCode,
-          startTime: new Date(eventData.startTime).toISOString().slice(0, 16),
-          endTime: new Date(eventData.endTime).toISOString().slice(0, 16),
-          eventDescription: eventData.eventDescription || "",
-          venueName: eventData.venueName || "",
-          venueAddress: eventData.venueAddress || "",
-          capacity: eventData.capacity || undefined,
-          eventType: eventData.eventType || "",
-          termsConditions: eventData.termsConditions || "",
+          eventName: selectedEvent.eventName,
+          eventCode: selectedEvent.eventCode,
+          startTime: new Date(selectedEvent.startTime)
+            .toISOString()
+            .slice(0, 16),
+          endTime: new Date(selectedEvent.endTime).toISOString().slice(0, 16),
+          eventDescription: selectedEvent.eventDescription || "",
+          venueName: selectedEvent.venueName || "",
+          venueAddress: selectedEvent.venueAddress || "",
+          capacity: selectedEvent.capacity || undefined,
+          eventType: selectedEvent.eventType || "",
+          termsConditions: selectedEvent.termsConditions || "",
         });
 
         setIsLoading(false);
       } catch (error) {
         setError("Failed to fetch event details. Please try again.");
         console.error("Error fetching event details:", error);
-        setEvent(null);
       } finally {
         setIsLoading(false);
       }
@@ -117,8 +119,8 @@ export default function EventDetailsPage() {
 
     const getFloorPlanImageUrl = async () => {
       try {
-        const response = await getFloorPlanImage(params.eventCode as string);
-        const blob = new Blob([response], { type: "image/jpeg" });
+        await getFloorPlanImage(params.eventCode as string);
+        const blob = new Blob([floorPlanImage as Blob], { type: "image/jpeg" });
         imageUrl = URL.createObjectURL(blob);
         setFloorPlanImageUrl(imageUrl);
       } catch (error) {
@@ -135,7 +137,7 @@ export default function EventDetailsPage() {
         URL.revokeObjectURL(imageUrl);
       }
     };
-  }, [params.eventCode, event, getFloorPlanImage]);
+  }, [params.eventCode, getFloorPlanImage]);
 
   // Fetch check-in points for the event
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function EventDetailsPage() {
         setError(null);
         setIsLoading(true);
 
-        const pocList = await getAllPocs(params.eventCode as string);
+        await getAllPocs(params.eventCode as string);
         setCheckInPoints(pocList);
       } catch (error) {
         setError("Failed to fetch POCs. Please try again.");
@@ -247,11 +249,11 @@ export default function EventDetailsPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !selectedEvent) {
     return <div className="flex justify-center text-xl">Loading...</div>;
   }
 
-  if (error || !event) {
+  if (error) {
     return (
       <div className="flex justify-center text-xl text-red-500 mt-4">
         {error}
@@ -263,9 +265,9 @@ export default function EventDetailsPage() {
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          Edit Event: {event.eventName}
+          Edit Event: {selectedEvent.eventName}
           <span className="ml-2">
-            {event.eventStatus == EventStatus.PUBLISHED ? (
+            {selectedEvent.eventStatus == EventStatus.PUBLISHED ? (
               <span className="text-green-500">(Editable)</span>
             ) : (
               <span className="text-red-500">(Viewonly)</span>
@@ -278,7 +280,7 @@ export default function EventDetailsPage() {
             <Input
               label="Event Name"
               type="text"
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent?.eventStatus != EventStatus.PUBLISHED}
               {...register("eventName")}
               error={errors.eventName?.message}
             />
@@ -294,7 +296,7 @@ export default function EventDetailsPage() {
             <Input
               label="Start Date"
               type="datetime-local"
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               {...register("startTime")}
               error={errors.startTime?.message}
             />
@@ -302,7 +304,7 @@ export default function EventDetailsPage() {
             <Input
               label="End Date"
               type="datetime-local"
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               {...register("endTime")}
               error={errors.endTime?.message}
             />
@@ -310,7 +312,7 @@ export default function EventDetailsPage() {
             <Input
               label="Venue Name"
               type="text"
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               {...register("venueName")}
               error={errors.venueName?.message}
             />
@@ -318,7 +320,7 @@ export default function EventDetailsPage() {
             <Input
               label="Venue Address"
               type="text"
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               {...register("venueAddress")}
               error={errors.venueAddress?.message}
             />
@@ -326,7 +328,7 @@ export default function EventDetailsPage() {
             <Input
               label="Capacity"
               type="number"
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               {...register("capacity", { valueAsNumber: true })}
               error={errors.capacity?.message}
             />
@@ -334,7 +336,7 @@ export default function EventDetailsPage() {
             <Input
               label="Event Type"
               type="text"
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               {...register("eventType")}
               error={errors.eventType?.message}
             />
@@ -346,7 +348,7 @@ export default function EventDetailsPage() {
             </label>
             <textarea
               {...register("eventDescription")}
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               rows={4}
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
             />
@@ -358,7 +360,7 @@ export default function EventDetailsPage() {
             </label>
             <textarea
               {...register("termsConditions")}
-              disabled={event.eventStatus != EventStatus.PUBLISHED}
+              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               rows={4}
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
             />
@@ -368,7 +370,7 @@ export default function EventDetailsPage() {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium text-gray-900">Floor Plan</h2>
-              {event.eventStatus === EventStatus.PUBLISHED && (
+              {selectedEvent.eventStatus === EventStatus.PUBLISHED && (
                 <Link
                   href={`/admin/events/${params.eventCode}/floor-plan`}
                   className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -400,7 +402,7 @@ export default function EventDetailsPage() {
               <h2 className="text-lg font-medium text-gray-900">
                 Check-in Points
               </h2>
-              {event.eventStatus == EventStatus.PUBLISHED && (
+              {selectedEvent.eventStatus == EventStatus.PUBLISHED && (
                 <button
                   type="button"
                   onClick={addCheckInPoint}
@@ -425,7 +427,7 @@ export default function EventDetailsPage() {
                       </Link>
                     </h3>
                     {checkInPoints.length > 1 &&
-                      event.eventStatus == EventStatus.PUBLISHED && (
+                      selectedEvent.eventStatus == EventStatus.PUBLISHED && (
                         <button
                           type="button"
                           onClick={() => removeCheckInPoint(index)}
@@ -440,7 +442,9 @@ export default function EventDetailsPage() {
                     <Input
                       label="Name"
                       type="text"
-                      disabled={event.eventStatus != EventStatus.PUBLISHED}
+                      disabled={
+                        selectedEvent.eventStatus != EventStatus.PUBLISHED
+                      }
                       value={point.pointName}
                       onChange={(e) =>
                         updateCheckInPoint(index, "pointName", e.target.value)
@@ -451,7 +455,9 @@ export default function EventDetailsPage() {
                     <Input
                       label="POC Code"
                       type="text"
-                      disabled={event.eventStatus != EventStatus.PUBLISHED}
+                      disabled={
+                        selectedEvent.eventStatus != EventStatus.PUBLISHED
+                      }
                       value={point.pointCode}
                       onChange={(e) =>
                         updateCheckInPoint(index, "pointCode", e.target.value)
@@ -536,7 +542,7 @@ export default function EventDetailsPage() {
             </div>
           </div>
 
-          {event.eventStatus == EventStatus.PUBLISHED && (
+          {selectedEvent.eventStatus == EventStatus.PUBLISHED && (
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
