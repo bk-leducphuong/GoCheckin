@@ -6,7 +6,6 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { CreateEventRequest } from "@/types/event";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useEventStore } from "@/store/eventStore";
@@ -82,17 +81,18 @@ export default function CreateEventPage() {
           alert("Failed to upload floor plan. Please try again.");
           return;
         }
-      }else {
+      } else {
         alert("Please upload a floor plan image.");
         return;
       }
 
       // Create event with floor plan URL
-      const eventData: CreateEventRequest = {
-        ...data,
-        floorPlanImg: floorPlanUrl,
-      };
-      const newEvent = await createEvent(eventData);
+      const newEvent = await createEvent(data);
+
+      await FloorPlanService.saveFloorPlan({
+        eventCode: newEvent.eventCode,
+        floorPlanImageUrl: floorPlanUrl,
+      });
 
       // Create POCs sequentially
       for (const point of checkInPoints) {

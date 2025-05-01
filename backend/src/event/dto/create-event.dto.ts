@@ -57,9 +57,6 @@ export class CreateEventDto {
   @IsOptional()
   termsConditions?: string;
 
-  @IsString()
-  floorPlanImg: string;
-
   @IsBoolean()
   @IsOptional()
   enabled?: boolean;

@@ -37,10 +37,9 @@ export class EventService {
 
   async create(user: JwtPayload, newEventData: CreateEventDto): Promise<Event> {
     try {
-      const { floorPlanImg, ...eventData } = newEventData;
       // check if event code is already in use
       const event = await this.eventRepository.findOne({
-        where: { eventCode: eventData.eventCode },
+        where: { eventCode: newEventData.eventCode },
       });
       if (event) {
         throw new BadRequestException('Event code already in use');
@@ -54,16 +53,8 @@ export class EventService {
         throw new NotFoundException('Tenant not found');
       }
 
-      // Save floor plan image
-      if (floorPlanImg) {
-        await this.floorPlanService.saveFloorPlan(
-          eventData.eventCode,
-          floorPlanImg,
-        );
-      }
-
       const newEvent = this.eventRepository.create({
-        ...eventData,
+        ...newEventData,
         tenantCode: tenant.tenantCode,
         eventStatus: EventStatus.PUBLISHED,
       });

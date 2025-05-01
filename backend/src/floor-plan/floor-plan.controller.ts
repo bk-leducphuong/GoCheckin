@@ -8,6 +8,7 @@ import {
   Get,
   Param,
   Res,
+  Body,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -17,6 +18,7 @@ import { FloorPlanService } from './floor-plan.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { FloorPlanDto } from './dto/floor-plan.dto';
 
 @Controller('floor-plan')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -37,8 +39,21 @@ export class FloorPlanController {
     type: String,
   })
   @UseInterceptors(FileInterceptor('image'))
-  uploadImage(@UploadedFile() image: Express.Multer.File): string {
+  uploadImage(@UploadedFile() image: Express.Multer.File): Promise<string> {
     return this.floorPlanService.uploadFloorPlanImage(image);
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: 'Save floor plan',
+    description: 'Save a floor plan to the server',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Floor plan saved successfully',
+  })
+  async saveFloorPlan(@Body() floorPlanDto: FloorPlanDto) {
+    return this.floorPlanService.saveFloorPlan(floorPlanDto);
   }
 
   @Get(':eventCode')

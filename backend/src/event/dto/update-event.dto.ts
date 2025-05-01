@@ -59,9 +59,6 @@ export class UpdateEventDto {
   @IsOptional()
   termsConditions?: string;
 
-  @IsOptional()
-  floorPlanImg?: Buffer;
-
   @IsBoolean()
   @IsOptional()
   enabled?: boolean;

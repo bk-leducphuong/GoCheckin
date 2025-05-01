@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FloorPlan } from './entities/floor-plan.entity';
+import { FloorPlanDto } from './dto/floor-plan.dto';
 import { join } from 'path';
 import * as fs from 'fs/promises';
 
@@ -32,23 +33,17 @@ export class FloorPlanService {
       throw new BadRequestException('File size exceeds 5MB limit');
     }
 
-    try {
-      // Ensure uploads directory exists
-      const uploadsDir = join(__dirname, '..', '..', 'uploads');
-      await fs.mkdir(uploadsDir, { recursive: true });
+    // Ensure uploads directory exists
+    const uploadsDir = join(__dirname, '..', '..', 'uploads');
+    await fs.mkdir(uploadsDir, { recursive: true });
 
-      return image.filename;
-    } catch (error) {
-      throw new Error('Failed to process floor plan image');
-    }
+    return image.filename;
+    throw new Error('Failed to process floor plan image');
   }
 
-  async saveFloorPlan(eventCode: string, floorPlanImageUrl: string) {
-    const floorPlan = this.floorPlanRepository.create({
-      eventCode,
-      floorPlanImageUrl,
-    });
-    return this.floorPlanRepository.save(floorPlan);
+  async saveFloorPlan(floorPlan: FloorPlanDto) {
+    const newFloorPlan = this.floorPlanRepository.create(floorPlan);
+    await this.floorPlanRepository.save(newFloorPlan);
   }
 
   async getFloorPlanImage(eventCode: string): Promise<string> {
