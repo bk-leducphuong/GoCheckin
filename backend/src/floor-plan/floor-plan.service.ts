@@ -74,6 +74,15 @@ export class FloorPlanService {
       throw new NotFoundException('Floor plan not found');
     }
 
+    const imagePath = join(
+      __dirname,
+      '..',
+      '..',
+      'uploads',
+      floorPlan.floorPlanImageUrl,
+    );
+    await fs.unlink(imagePath);
+
     await this.floorPlanRepository.remove(floorPlan);
   }
 }
