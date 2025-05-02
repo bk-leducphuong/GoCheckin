@@ -61,6 +61,8 @@ export interface PocManager {
 }
 
 export interface PocLocation {
+  pocLocationId?: string;
+  floorPlanId?: string;
   pocId: string;
   label: string;
   xCoordinate: number;

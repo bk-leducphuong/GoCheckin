@@ -6,6 +6,7 @@ import {
   UpdatePocRequest,
   PocManager,
   PocLocations,
+  PocLocation,
 } from "@/types/poc";
 
 export const PocService = {
@@ -46,6 +47,10 @@ export const PocService = {
     return response.data.data;
   },
   async savePocLocations(pocLocations: PocLocations) {
-    await api.post(`/pocs/save-locations`, pocLocations);
+    await api.post(`/pocs/locations`, pocLocations);
+  },
+  async getPocLocations(eventCode: string): Promise<PocLocation[]> {
+    const response = await api.get(`/pocs/locations?eventCode=${eventCode}`);
+    return response.data.data;
   },
 };

@@ -110,6 +110,36 @@ export default function FloorPlanPage() {
     getPocs();
   }, [params.eventCode, pocList.length, eventCodeFromPoc, getAllPocs]); // Add dependencies
 
+  useEffect(() => {
+    const getPocLocations = async () => {
+      try {
+        const pocLocationsArray = await PocService.getPocLocations(
+          params.eventCode as string
+        );
+        const pocLocationsObject = pocLocationsArray.reduce(
+          (acc, location) => {
+            acc[location.pocId] = {
+              x: location.xCoordinate,
+              y: location.yCoordinate,
+            };
+            return acc;
+          },
+          {} as {
+            [key: string]: {
+              x: number;
+              y: number;
+            };
+          }
+        );
+        setMarkedPoints(pocLocationsObject);
+      } catch (error) {
+        console.error("Error loading POC locations:", error);
+        setError("Failed to load POC locations. Please try again.");
+      }
+    };
+    getPocLocations();
+  }, [params.eventCode, setMarkedPoints]); // Add dependencies
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;

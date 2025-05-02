@@ -138,7 +138,7 @@ export class PocController {
     return this.pocService.getPocManager(userId);
   }
 
-  @Post('save-locations')
+  @Post('locations')
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   @ApiOperation({ summary: 'Save POC location' })
   @ApiResponse({
@@ -151,5 +151,20 @@ export class PocController {
   })
   async savePocLocation(@Body() pocLocations: PocLocationsDto) {
     return this.pocService.savePocLocation(pocLocations);
+  }
+
+  @Get('locations')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @ApiOperation({ summary: 'Get POC locations' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POC locations found successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'POC locations not found',
+  })
+  async getPocLocations(@Query('eventCode') eventCode: string) {
+    return this.pocService.getPocLocations(eventCode);
   }
 }

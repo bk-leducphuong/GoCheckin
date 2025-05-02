@@ -211,4 +211,17 @@ export class PocService {
       })),
     );
   }
+
+  async getPocLocations(eventCode: string): Promise<PocLocation[]> {
+    const floorPlan =
+      await this.floorPlanService.getFloorPlanByEventCode(eventCode);
+    if (!floorPlan) {
+      throw new NotFoundException(
+        `Floor plan with event code ${eventCode} not found`,
+      );
+    }
+    return this.pocLocationRepository.find({
+      where: { floorPlanId: floorPlan.floorPlanId },
+    });
+  }
 }
