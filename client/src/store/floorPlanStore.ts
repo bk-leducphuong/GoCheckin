@@ -6,6 +6,7 @@ interface FloorPlanStore {
   floorPlanImage: Blob | null;
   eventCode: string | null;
   getFloorPlanImage: (eventCode: string) => Promise<Blob>;
+  getFloorPlan: (eventCode: string) => Promise<Blob>;
 }
 
 export const useFloorPlanStore = create<FloorPlanStore>()(
@@ -14,7 +15,7 @@ export const useFloorPlanStore = create<FloorPlanStore>()(
       floorPlanImage: null,
       eventCode: null,
       getFloorPlanImage: async (eventCode: string) => {
-        const response = await FloorPlanService.getFloorPlan(
+        const response = await FloorPlanService.getFloorPlanImage(
           eventCode as string
         );
         set({ floorPlanImage: response });

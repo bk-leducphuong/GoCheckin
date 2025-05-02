@@ -17,6 +17,18 @@ export class FloorPlanService {
     private readonly floorPlanRepository: Repository<FloorPlan>,
   ) {}
 
+  async getFloorPlanByEventCode(eventCode: string): Promise<FloorPlan> {
+    const floorPlan = await this.floorPlanRepository.findOne({
+      where: { eventCode },
+    });
+
+    if (!floorPlan) {
+      throw new NotFoundException('Floor plan not found');
+    }
+
+    return floorPlan;
+  }
+
   async uploadFloorPlanImage(image: Express.Multer.File): Promise<string> {
     if (!image) {
       throw new BadRequestException('No image file provided');

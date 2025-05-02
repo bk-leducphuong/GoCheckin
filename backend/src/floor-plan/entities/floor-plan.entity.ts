@@ -6,12 +6,12 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Event } from '../../event/entities/event.entity';
-import { PocLocation } from './poc-location.entity';
+import { PocLocation } from '../../poc/entities/poc-location.entity';
 
 @Entity('floor_plan')
 export class FloorPlan {
-  @PrimaryGeneratedColumn('uuid', { name: 'id' })
-  id: string;
+  @PrimaryGeneratedColumn('uuid', { name: 'floor_plan_id' })
+  floorPlanId: string;
 
   @Column({ name: 'event_code' })
   eventCode: string;

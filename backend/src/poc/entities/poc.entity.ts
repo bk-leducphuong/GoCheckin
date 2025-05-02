@@ -12,7 +12,7 @@ import {
 import { Event } from '../../event/entities/event.entity';
 import { Account } from '../../account/entities/account.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
-import { PocLocation } from 'src/floor-plan/entities/poc-location.entity';
+import { PocLocation } from '../entities/poc-location.entity';
 
 export enum PointStatus {
   ACTIVE = 'active',

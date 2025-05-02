@@ -41,7 +41,7 @@ export const FloorPlanService = {
     return response.data.data;
   },
 
-  async getFloorPlan(eventCode: string): Promise<Blob> {
+  async getFloorPlanImage(eventCode: string): Promise<Blob> {
     try {
       const response = await api.get(`/floor-plan/${eventCode}`, {
         responseType: "blob",

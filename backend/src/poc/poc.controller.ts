@@ -22,6 +22,7 @@ import { CurrentUser } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { PointOfCheckin } from './entities/poc.entity';
 import { ValidatePocDto } from './dto/validate-poc.dto';
+import { PocLocationsDto } from './dto/poc-locations.dto';
 
 @ApiTags('points-of-checkin')
 @Controller('pocs')
@@ -135,5 +136,20 @@ export class PocController {
   })
   async getPocManager(@Query('userId') userId: string) {
     return this.pocService.getPocManager(userId);
+  }
+
+  @Post('save-locations')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @ApiOperation({ summary: 'Save POC location' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POC location saved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'POC location not found',
+  })
+  async savePocLocation(@Body() pocLocations: PocLocationsDto) {
+    return this.pocService.savePocLocation(pocLocations);
   }
 }

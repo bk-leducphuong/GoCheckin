@@ -7,12 +7,12 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { PointOfCheckin } from 'src/poc/entities/poc.entity';
-import { FloorPlan } from './floor-plan.entity';
+import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
 
 @Entity('poc_locations')
 export class PocLocation {
-  @PrimaryGeneratedColumn('uuid', { name: 'id' })
-  id: string;
+  @PrimaryGeneratedColumn('uuid', { name: 'poc_location_id' })
+  pocLocationId: string;
 
   @Column({ name: 'floor_plan_id', type: 'uuid' })
   floorPlanId: string;

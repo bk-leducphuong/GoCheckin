@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import { useEventStore } from "@/store/eventStore";
 import { useFloorPlanStore } from "@/store/floorPlanStore";
 import { usePocStore } from "@/store/pocStore";
 import { useShallow } from "zustand/shallow";
+import { PocService } from "@/services/poc.service";
 
 export default function FloorPlanPage() {
   const params = useParams();
@@ -21,6 +22,7 @@ export default function FloorPlanPage() {
     [key: string]: { x: number; y: number };
   }>({});
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const { getEventByCode, selectedEvent } = useEventStore(
     useShallow((state) => ({
@@ -143,19 +145,30 @@ export default function FloorPlanPage() {
   };
 
   const handleSave = async () => {
-    // setIsLoading(true);
-    // try {
-    //   if (floorPlanImage) {
-    //     await FloorPlanService.uploadFloorPlanImage(floorPlanImage);
-    //   }
-    //   // TODO: Save marked points to backend when API is ready
-    //   router.push(`/admin/events/${params.eventCode}`);
-    // } catch (error) {
-    //   console.error("Error saving floor plan:", error);
-    //   alert("Failed to save floor plan. Please try again.");
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    setIsLoading(true);
+    try {
+      // if (floorPlanImage) {
+      //   await FloorPlanService.uploadFloorPlanImage(floorPlanImage);
+      // }
+
+      if (Object.keys(markedPoints).length > 0) {
+        await PocService.savePocLocations({
+          eventCode: params.eventCode as string,
+          locations: Object.entries(markedPoints).map(([pocId, pos]) => ({
+            pocId: pocId,
+            label: "",
+            xCoordinate: pos.x,
+            yCoordinate: pos.y,
+          })),
+        });
+      }
+      router.push(`/admin/events/${params.eventCode}`);
+    } catch (error) {
+      console.error("Error saving floor plan:", error);
+      alert("Failed to save floor plan. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (error) {
@@ -190,11 +203,11 @@ export default function FloorPlanPage() {
                   <div
                     key={point.pocId}
                     className={`p-2 rounded cursor-pointer ${
-                      selectedPoint === point.pointCode
+                      selectedPoint === point.pocId
                         ? "bg-blue-100 border border-blue-500"
                         : "bg-gray-50 hover:bg-gray-100"
                     }`}
-                    onClick={() => setSelectedPoint(point.pointCode)}
+                    onClick={() => setSelectedPoint(point.pocId)}
                   >
                     <p className="font-medium">{point.pointName}</p>
                     <p className="text-sm text-gray-500">{point.pointCode}</p>
@@ -226,13 +239,11 @@ export default function FloorPlanPage() {
                     onClick={handleImageClick}
                   />
                   {/* Render marked points */}
-                  {Object.entries(markedPoints).map(([pointCode, pos]) => {
-                    const point = pocList.find(
-                      (p) => p.pointCode === pointCode
-                    );
+                  {Object.entries(markedPoints).map(([pocId, pos]) => {
+                    const point = pocList.find((p) => p.pocId === pocId);
                     return (
                       <div
-                        key={pointCode}
+                        key={pocId}
                         className="absolute w-4 h-4 bg-blue-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"
                         style={{
                           left: `${pos.x}%`,

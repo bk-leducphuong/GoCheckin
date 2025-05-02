@@ -15,7 +15,7 @@ import { PointCheckinAnalytics } from 'src/analysis/entities/point-checkin-analy
 import { Otp } from 'src/auth/entities/otp.entity';
 import { ResetToken } from 'src/auth/entities/reset-token.entity';
 import { FloorPlan } from 'src/floor-plan/entities/floor-plan.entity';
-import { PocLocation } from 'src/floor-plan/entities/poc-location.entity';
+import { PocLocation } from '../../poc/entities/poc-location.entity';
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../../logs');

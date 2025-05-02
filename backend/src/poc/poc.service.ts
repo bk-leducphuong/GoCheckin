@@ -17,15 +17,21 @@ import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { ValidatePocDto } from './dto/validate-poc.dto';
 import { PocManagerDto } from './dto/poc-manager.dto';
 import { AccountService } from 'src/account/account.service';
+import { PocLocationsDto } from './dto/poc-locations.dto';
+import { PocLocation } from './entities/poc-location.entity';
+import { FloorPlanService } from 'src/floor-plan/floor-plan.service';
 
 @Injectable()
 export class PocService {
   constructor(
     @InjectRepository(PointOfCheckin)
     private pocRepository: Repository<PointOfCheckin>,
+    @InjectRepository(PocLocation)
+    private pocLocationRepository: Repository<PocLocation>,
     @Inject(forwardRef(() => EventService))
     private eventService: EventService,
     private accountService: AccountService,
+    private floorPlanService: FloorPlanService,
   ) {}
 
   async create(
@@ -187,5 +193,22 @@ export class PocService {
 
   async removeAllPocs(eventCode: string): Promise<void> {
     await this.pocRepository.delete({ eventCode });
+  }
+
+  async savePocLocation(pocLocations: PocLocationsDto): Promise<void> {
+    const { eventCode, locations } = pocLocations;
+    const floorPlan =
+      await this.floorPlanService.getFloorPlanByEventCode(eventCode);
+    if (!floorPlan) {
+      throw new NotFoundException(
+        `Floor plan with event code ${eventCode} not found`,
+      );
+    }
+    await this.pocLocationRepository.save(
+      locations.map((location) => ({
+        ...location,
+        floorPlanId: floorPlan.floorPlanId,
+      })),
+    );
   }
 }
