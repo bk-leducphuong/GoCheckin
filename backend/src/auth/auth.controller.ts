@@ -28,12 +28,13 @@ import { RequestResetPassword } from './dto/request-reset-password';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { OtpService } from './otp.service';
+import { UserRole } from 'src/account/entities/account.entity';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
-    private readonly service: AuthService,
+    private readonly authService: AuthService,
     private readonly otpService: OtpService,
   ) {}
 
@@ -46,7 +47,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('admin/login')
   adminLogin(@Body() loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
-    return this.service.adminLogin(loginDto);
+    return this.authService.adminLogin(loginDto);
   }
 
   @ApiOperation({ summary: 'POC login' })
@@ -58,7 +59,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('poc/login')
   pocLogin(@Body() loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
-    return this.service.pocLogin(loginDto);
+    return this.authService.pocLogin(loginDto);
   }
 
   @ApiOperation({ summary: 'Admin registration' })
@@ -71,7 +72,7 @@ export class AuthController {
   adminRegister(
     @Body() registerDto: AuthAdminRegisterDto,
   ): Promise<AuthLoginResponseDto> {
-    return this.service.registerAdmin(registerDto);
+    return this.authService.registerAdmin(registerDto);
   }
 
   @ApiOperation({ summary: 'POC registration' })
@@ -84,7 +85,7 @@ export class AuthController {
   pocRegister(
     @Body() registerDto: AuthPocRegisterDto,
   ): Promise<AuthLoginResponseDto> {
-    return this.service.registerPoc(registerDto);
+    return this.authService.registerPoc(registerDto);
   }
 
   @ApiOperation({ summary: 'Refresh access token' })
@@ -93,10 +94,10 @@ export class AuthController {
     description: 'New access token generated',
     type: AuthLoginResponseDto,
   })
-  @Post('refresh')
+  @Post('refresh-access-token')
   @UseGuards(RefreshTokenGuard)
-  async refreshTokens(@Body('refreshToken') refreshToken: string) {
-    return this.service.refreshTokens(refreshToken);
+  async refreshAccessToken(@Body('refreshToken') refreshToken: string) {
+    return this.authService.refreshAccessToken(refreshToken);
   }
 
   @ApiOperation({ summary: 'Logout (revoke refresh token)' })
@@ -114,7 +115,7 @@ export class AuthController {
   })
   @Post('logout')
   async logout(@Body('refreshToken') refreshToken: string) {
-    return this.service.logout(refreshToken);
+    return this.authService.logout(refreshToken);
   }
 
   @ApiOperation({ summary: 'Logout from all devices' })
@@ -133,7 +134,7 @@ export class AuthController {
   @Post('logout-all')
   @UseGuards(JwtAuthGuard)
   async logoutAll(@CurrentUser() user: JwtPayload) {
-    return this.service.logoutAll(user.userId);
+    return this.authService.logoutAll(user.userId);
   }
 
   @ApiOperation({ summary: 'Verify token validity' })
@@ -152,10 +153,14 @@ export class AuthController {
       },
     },
   })
-  @Post('verify')
+  @Post('verify-access-token')
   @UseGuards(JwtAuthGuard)
-  verifyToken(@CurrentUser() user: JwtPayload) {
-    return { valid: true, user };
+  verifyToken(@CurrentUser() user: JwtPayload, @Body() role: UserRole) {
+    if (role === user.role) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @ApiOperation({ summary: 'Get all active sessions for current user' })
@@ -167,7 +172,7 @@ export class AuthController {
   @Get('sessions')
   @UseGuards(JwtAuthGuard)
   async getSessions(@CurrentUser() user: JwtPayload) {
-    return this.service.getUserSessions(user.userId);
+    return this.authService.getUserSessions(user.userId);
   }
 
   @ApiOperation({ summary: 'Revoke a specific session' })
@@ -190,17 +195,17 @@ export class AuthController {
     @CurrentUser() user: JwtPayload,
     @Param('id') tokenId: string,
   ) {
-    return this.service.revokeSession(user.userId, tokenId);
+    return this.authService.revokeSession(user.userId, tokenId);
   }
 
   @Post('request-reset-password')
   requestResetPassword(@Body() requestResetPasswordDto: RequestResetPassword) {
-    return this.service.requestResetPassword(requestResetPasswordDto);
+    return this.authService.requestResetPassword(requestResetPasswordDto);
   }
 
   @Post('reset-password')
   resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.service.resetPassword(resetPasswordDto);
+    return this.authService.resetPassword(resetPasswordDto);
   }
 
   @Post('verify-otp')

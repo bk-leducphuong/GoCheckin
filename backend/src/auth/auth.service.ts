@@ -221,7 +221,9 @@ export class AuthService {
     return null;
   }
 
-  async refreshTokens(refreshToken: string) {
+  async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<{ accessToken: string }> {
     // Validate refresh token
     const payload =
       await this.refreshTokenService.validateRefreshToken(refreshToken);

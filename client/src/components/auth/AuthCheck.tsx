@@ -1,99 +1,60 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { AuthService } from "@/services/auth.service";
 import { UserRole } from "@/types/user";
-import { TokenPayload } from "@/types/auth";
 import { useShallow } from "zustand/shallow";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 interface AuthCheckProps {
   children: React.ReactNode;
-  allowedRoles?: UserRole[];
+  allowedRoles?: UserRole;
   redirectTo?: string;
   fallback?: React.ReactNode;
 }
 
-/**
- * A component that checks if the user is authenticated and has the correct role
- * If not, redirects to the specified page or shows a fallback component
- * Automatically handles token refresh if needed
- */
 export default function AuthCheck({
   children,
-  allowedRoles = [],
+  allowedRoles,
   redirectTo = "/login",
   fallback,
 }: AuthCheckProps) {
-  const router = useRouter();
-  const { accessToken, clearAuth, refreshAccessToken } =
-    useAuthStore(
-      useShallow((state) => ({
-        accessToken: state.accessToken,
-        clearAuth: state.clearAuth,
-        refreshAccessToken: state.refreshAccessToken,
-      }))
-    );
-
-  const [isValidating, setIsValidating] = useState(true);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [user, setUser] = useState<TokenPayload | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated, verifyAccessToken } = useAuthStore(
+    useShallow((state) => ({
+      isAuthenticated: state.isAuthenticated,
+      verifyAccessToken: state.verifyAccessToken,
+    }))
+  );
 
   useEffect(() => {
     const verifyToken = async () => {
-      if (accessToken) {
-        try {
-          const response = await AuthService.verifyToken();
-          if (!response.valid) {
-            const deviceInfo = navigator.userAgent;
-            await refreshAccessToken(deviceInfo);
-          }
-          if (!response.user) {
-            throw new Error("User not found");
-          }
-          setUser(response.user);
-        } catch (error) {
-          console.error("Error verifying token:", error);
-          clearAuth();
-          router.push(redirectTo);
-        } finally {
-          setIsValidating(false);
-        }
-      } else {
-        setIsValidating(false);
+      try {
+        setIsLoading(true);
+        await verifyAccessToken(allowedRoles as UserRole);
+        setIsLoading(false);
+      } catch (error) {
+        setIsLoading(false);
+        setError("System is having issues. Please try again later.");
+        console.error("Error verifying access token:", error);
       }
     };
-
     verifyToken();
-  }, [
-    accessToken,
-    refreshAccessToken,
-    clearAuth,
-    router,
-    redirectTo,
-  ]);
+  }, [isAuthenticated, verifyAccessToken, allowedRoles]);
 
-  // Authorization check effect
-  useEffect(() => {
-    if (user && user.role && allowedRoles.includes(user.role)) {
-      setIsAuthorized(true);
-    } else {
-      setIsAuthorized(false);
-    }
-  }, [user, allowedRoles]);
-
-  if (isValidating) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+  if (isLoading) {
+    return <Loading />;
   }
 
-  if (!isAuthorized && fallback) {
+  if (error) {
+    return <Error message={error} redirectTo={redirectTo} />;
+  }
+
+  if (!isAuthenticated) {
     return <>{fallback}</>;
   }
 
-  return isAuthorized ? <>{children}</> : null;
+  return <>{children}</>;
 }

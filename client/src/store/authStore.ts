@@ -2,13 +2,12 @@ import { create } from "zustand";
 import { persist, createJSONStorage, devtools } from "zustand/middleware";
 import { AuthService } from "@/services/auth.service";
 import { AdminRegisterData, PocRegisterData } from "@/types/auth";
+import { UserRole } from "@/types/user";
 
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
   adminLogin: (
     email: string,
     password: string,
@@ -25,145 +24,99 @@ interface AuthState {
   logout: () => Promise<void>;
   clearAuth: () => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
-  refreshAccessToken: (deviceInfo?: string) => Promise<boolean>;
+  verifyAccessToken: (role: UserRole) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
-        // user: null,
         accessToken: null,
         refreshToken: null,
         isAuthenticated: false,
-        isLoading: false,
-        error: null,
 
         adminLogin: async (
           email: string,
           password: string,
           deviceInfo?: string
         ) => {
-          try {
-            set({ isLoading: true, error: null });
-            const response = await AuthService.adminLogin({
-              email,
-              password,
-              deviceInfo,
-            });
+          const response = await AuthService.adminLogin({
+            email,
+            password,
+            deviceInfo,
+          });
 
-            const newState = {
-              accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              isAuthenticated: true,
-              isLoading: false,
-            };
+          const newState = {
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+          };
 
-            set(newState);
-          } catch (error) {
-            set({
-              error: error instanceof Error ? error.message : "Login failed",
-              isLoading: false,
-            });
-            throw error;
-          }
+          set(newState);
         },
 
         pocLogin: async (email: string, password: string) => {
-          try {
-            set({ isLoading: true, error: null });
-            const response = await AuthService.pocLogin({ email, password });
+          const response = await AuthService.pocLogin({ email, password });
 
-            const newState = {
-              accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              isAuthenticated: true,
-              isLoading: false,
-            };
-            set(newState);
+          const newState = {
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+          };
+          set(newState);
 
-            if (!response.pointCode || !response.eventCode) {
-              throw new Error("Invalid response from server");
-            }
-
-            return {
-              pointCode: response.pointCode,
-              eventCode: response.eventCode,
-            };
-          } catch (error) {
-            set({
-              error: error instanceof Error ? error.message : "Login failed",
-              isLoading: false,
-            });
-            throw error;
+          if (!response.pointCode || !response.eventCode) {
+            throw new Error("Invalid response from server");
           }
+
+          return {
+            pointCode: response.pointCode,
+            eventCode: response.eventCode,
+          };
         },
 
         adminRegister: async (data: AdminRegisterData) => {
-          try {
-            set({ isLoading: true, error: null });
-            const response = await AuthService.adminRegister(data);
+          const response = await AuthService.adminRegister(data);
 
-            const newState = {
-              accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              isAuthenticated: true,
-              isLoading: false,
-            };
+          const newState = {
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+          };
 
-            set(newState);
-          } catch (error) {
-            set({
-              error:
-                error instanceof Error ? error.message : "Registration failed",
-              isLoading: false,
-            });
-            throw error;
-          }
+          set(newState);
         },
 
         pocRegister: async (data: PocRegisterData) => {
-          try {
-            set({ isLoading: true, error: null });
-            const response = await AuthService.pocRegister(data);
+          const response = await AuthService.pocRegister(data);
 
-            const newState = {
-              pointCode: response.pointCode,
-              eventCode: response.eventCode,
-              accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              isAuthenticated: true,
-              isLoading: false,
-            };
+          const newState = {
+            pointCode: response.pointCode,
+            eventCode: response.eventCode,
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            isAuthenticated: true,
+          };
 
-            set(newState);
-            if (!response.pointCode || !response.eventCode) {
-              throw new Error("Invalid response from server");
-            }
-            
-            return {
-              pointCode: response.pointCode,
-              eventCode: response.eventCode,
-            };
-          } catch (error) {
-            set({
-              error:
-                error instanceof Error ? error.message : "Registration failed",
-              isLoading: false,
-            });
-            throw error;
+          set(newState);
+          if (!response.pointCode || !response.eventCode) {
+            throw new Error("Invalid response from server");
           }
+
+          return {
+            pointCode: response.pointCode,
+            eventCode: response.eventCode,
+          };
         },
 
         logout: async () => {
           const { refreshToken } = get();
           if (refreshToken) {
-            try {
-              // Call the logout endpoint via AuthService
-              await AuthService.logout(refreshToken);
-            } catch (error) {
-              console.error("Logout error:", error);
-            }
+            // Call the logout endpoint via AuthService
+            await AuthService.logout(refreshToken);
           }
           // Clear the auth state regardless of API call success
           get().clearAuth();
@@ -174,7 +127,6 @@ export const useAuthStore = create<AuthState>()(
             accessToken: null,
             refreshToken: null,
             isAuthenticated: false,
-            error: null,
           });
         },
 
@@ -182,33 +134,32 @@ export const useAuthStore = create<AuthState>()(
           set({ accessToken, refreshToken });
         },
 
-        refreshAccessToken: async (deviceInfo?: string) => {
-          const { refreshToken } = get();
-          if (!refreshToken) {
-            get().clearAuth();
-            return false;
+        verifyAccessToken: async (role: UserRole, deviceInfo?: string) => {
+          const { accessToken, refreshToken } = get();
+          if (accessToken) {
+            const isValid = await AuthService.verifyAccessToken(role);
+            if (isValid) {
+              set({
+                isAuthenticated: true,
+              });
+              return;
+            } else {
+              if (refreshToken) {
+                const response = await AuthService.refreshAccessToken(
+                  refreshToken,
+                  deviceInfo
+                );
+
+                set({
+                  accessToken: response.accessToken,
+                  isAuthenticated: true,
+                });
+                return;
+              }
+            }
           }
-
-          try {
-            const response = await AuthService.refreshToken(
-              refreshToken,
-              deviceInfo
-            );
-
-            const updatedState = {
-              accessToken: response.accessToken,
-            };
-
-            set(updatedState);
-
-            return true;
-          } catch (error) {
-            console.error("Token refresh error:", error);
-            get().clearAuth();
-            return false;
-          }
+          get().clearAuth();
         },
-        
       }),
       {
         name: "auth-storage",

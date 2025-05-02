@@ -1,3 +1,4 @@
+import { UserRole } from "@/types/user";
 import api from "./api";
 import {
   LoginCredentials,
@@ -6,7 +7,6 @@ import {
   PocRegisterData,
   TokenRefreshResponse,
   SessionInfo,
-  TokenPayload,
 } from "@/types/auth";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "token";
@@ -36,19 +36,21 @@ export const AuthService = {
   },
 
   // Token Management
-  async refreshToken(
+  async refreshAccessToken(
     refreshToken: string,
     deviceInfo?: string
   ): Promise<TokenRefreshResponse> {
-    const response = await api.post("/auth/refresh", {
+    const response = await api.post("/auth/refresh-access-token", {
       refreshToken,
       deviceInfo,
     });
-    return response.data.data;
+    return response.data.data; // return access token
   },
 
-  async verifyToken(): Promise<{ valid: boolean; user: TokenPayload }> {
-    const response = await api.post("/auth/verify");
+  async verifyAccessToken(role: UserRole): Promise<boolean> {
+    const response = await api.post("/auth/verify-access-token", {
+      role,
+    });
     return response.data.data;
   },
 
