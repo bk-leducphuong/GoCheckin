@@ -9,6 +9,7 @@ interface EventStore {
   events: Event[];
   isLoading: boolean;
   error: string | null;
+  setSelectedEvent: (event: Event) => void;
   setEvents: (events: Event[]) => void;
   getAllEvents: () => Promise<Event[]>;
   createEvent: (eventData: CreateEventRequest) => Promise<Event>;
@@ -27,16 +28,12 @@ export const useEventStore = create<EventStore>()(
       selectedEvent: null,
       isLoading: false,
       error: null,
+      setSelectedEvent: (event) => set({ selectedEvent: event }),
       setEvents: (events) => set({ events }),
       getAllEvents: async () => {
-        try {
-          const response = await EventService.getAllEvents();
-          set({ events: response });
-          return response;
-        } catch (error) {
-          console.error("Error getting all events:", error);
-          throw error;
-        }
+        const response = await EventService.getAllEvents();
+        set({ events: response });
+        return response;
       },
       createEvent: async (eventData: CreateEventRequest) => {
         try {
@@ -51,40 +48,23 @@ export const useEventStore = create<EventStore>()(
         }
       },
       getEventByCode: async (eventCode: string) => {
-        try {
-          const response = await EventService.getEventByCode(eventCode);
-          set({ selectedEvent: response });
-          return response;
-        } catch (error) {
-          console.error("Error getting event:", error);
-          throw error;
-        }
+        const event = await EventService.getEventByCode(eventCode);
+        return event;
       },
       updateEvent: async (eventCode: string, eventData: CreateEventRequest) => {
-        try {
-          const response = await EventService.updateEvent(eventCode, eventData);
-          set((state) => ({
-            events: state.events.map((event) =>
-              event.eventCode === eventCode ? response : event
-            ),
-          }));
-          return response;
-        } catch (error) {
-          console.error("Error updating event:", error);
-          throw error;
-        }
+        const response = await EventService.updateEvent(eventCode, eventData);
+        set((state) => ({
+          events: state.events.map((event) =>
+            event.eventCode === eventCode ? response : event
+          ),
+        }));
+        return response;
       },
       async getEventStatus(eventCode: string): Promise<EventStatus> {
-        try {
-          set({ isLoading: true, error: null });
-          const response = await EventService.getEventStatus(eventCode);
-          set({ isLoading: false });
-          return response;
-        } catch (error) {
-          set({ isLoading: false, error: "Failed to check event status" });
-          console.error("Error checking event status:", error);
-          throw error;
-        }
+        set({ isLoading: true, error: null });
+        const response = await EventService.getEventStatus(eventCode);
+        set({ isLoading: false });
+        return response;
       },
     }),
     {

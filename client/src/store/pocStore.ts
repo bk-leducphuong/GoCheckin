@@ -13,10 +13,7 @@ interface PocStore {
   // Store a single POC (POC site)
   poc: Poc | null;
   setPoc: (poc: Poc | null) => void;
-  validatePoc: (
-    pointCode: string,
-    eventCode: string
-  ) => Promise<{ success: boolean }>;
+  validatePoc: (pointCode: string, eventCode: string) => Promise<void>;
 }
 
 export const usePocStore = create<PocStore>()(
@@ -26,25 +23,12 @@ export const usePocStore = create<PocStore>()(
       setPoc: (poc) => set({ poc }),
       pocList: [],
       setPocList: (pocList) => set({ pocList }),
-      validatePoc: async (
-        pointCode: string,
-        eventCode: string
-      ): Promise<{ success: boolean }> => {
-        try {
-          const response = await PocService.validatePoc({
-            pointCode: pointCode,
-            eventCode: eventCode,
-          });
-          if (!response) {
-            return { success: false };
-          }
-
-          set({ poc: response });
-          return { success: true };
-        } catch (error) {
-          console.error("Error validating POC:", error);
-          return { success: false };
-        }
+      validatePoc: async (pointCode: string, eventCode: string) => {
+        const poc = await PocService.validatePoc({
+          pointCode: pointCode,
+          eventCode: eventCode,
+        });
+        set({ poc: poc });
       },
       getAllPocs: async (eventCode: string) => {
         try {

@@ -6,19 +6,18 @@ import { UserRole } from "@/types/user";
 import { useShallow } from "zustand/shallow";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
+import AuthenticationFail from "@/components/ui/AuthenticationFail";
 
 interface AuthCheckProps {
   children: React.ReactNode;
   allowedRoles?: UserRole;
   redirectTo?: string;
-  fallback?: React.ReactNode;
 }
 
 export default function AuthCheck({
   children,
   allowedRoles,
   redirectTo = "/login",
-  fallback,
 }: AuthCheckProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +52,7 @@ export default function AuthCheck({
   }
 
   if (!isAuthenticated) {
-    return <>{fallback}</>;
+    return <AuthenticationFail />;
   }
 
   return <>{children}</>;

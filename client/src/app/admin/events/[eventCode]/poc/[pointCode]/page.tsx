@@ -10,7 +10,9 @@ import Input from "@/components/ui/Input";
 import { PocService } from "@/services/poc.service";
 import { Poc, PocManager, UpdatePocRequest } from "@/types/poc";
 import { useEventStore } from "@/store/eventStore";
-import { EventStatus } from "@/types/event";  
+import { EventStatus } from "@/types/event";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 // POC update validation schema
 const pocSchema = z.object({
@@ -34,7 +36,7 @@ export default function PocDetailsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pocManager, setPocManager] = useState<PocManager | null>(null);
-  const selectedEvent  = useEventStore((state) => state.selectedEvent);
+  const selectedEvent = useEventStore((state) => state.selectedEvent);
 
   const {
     register,
@@ -49,7 +51,6 @@ export default function PocDetailsPage() {
   useEffect(() => {
     const fetchPoc = async () => {
       try {
-        setError(null);
         setIsLoading(true);
 
         const currentPoc = await PocService.getPoc(
@@ -90,7 +91,6 @@ export default function PocDetailsPage() {
         if (!poc || !poc.userId) return;
 
         setIsLoading(true);
-        setError(null);
 
         const pocManager = await PocService.getPocManager(poc.userId);
         if (pocManager) {
@@ -115,7 +115,7 @@ export default function PocDetailsPage() {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       // Update POC
       const pocData: UpdatePocRequest = { ...data };
@@ -135,15 +135,11 @@ export default function PocDetailsPage() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center text-xl">Loading...</div>;
+    return <Loading />;
   }
 
   if (error || !poc) {
-    return (
-      <div className="flex justify-center text-xl text-red-500 mt-4">
-        {error}
-      </div>
-    );
+    return <Error message={error || "POC not found"} redirectTo="/login" />;
   }
 
   return (

@@ -8,6 +8,8 @@ import { EventService } from "@/services/event.service";
 import { useShallow } from "zustand/shallow";
 import { useParams } from "next/navigation";
 import { CheckInResponse } from "@/types/checkin";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 export default function RealtimeDashboard() {
   const [guests, setGuests] = useState<CheckInResponse[]>([]);
@@ -31,7 +33,6 @@ export default function RealtimeDashboard() {
     const fetchEventData = async () => {
       try {
         setIsLoading(true);
-        setError(null);
 
         // Fetch event details
         const eventData = await EventService.getEventByCode(eventCode);
@@ -79,21 +80,11 @@ export default function RealtimeDashboard() {
     totalCapacity > 0 ? Math.round((checkedInCount / totalCapacity) * 100) : 0;
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error || !event) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <p className="text-sm text-red-600">{error || "Event not found"}</p>
-        </div>
-      </div>
-    );
+    return <Error message={error || "Event not found"} redirectTo="/login" />;
   }
 
   return (

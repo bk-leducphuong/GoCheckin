@@ -18,6 +18,8 @@ import Link from "next/link";
 import { usePocStore } from "@/store/pocStore";
 import { useFloorPlanStore } from "@/store/floorPlanStore";
 import DeleteEventValidation from "@/components/admin/event/deleteEventValidation";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -49,13 +51,15 @@ export default function EventDetailsPage() {
 
   const [deleteEvent, setDeleteEvent] = useState<boolean>(false);
 
-  const { selectedEvent, updateEvent, getEventByCode } = useEventStore(
-    useShallow((state) => ({
-      selectedEvent: state.selectedEvent,
-      updateEvent: state.updateEvent,
-      getEventByCode: state.getEventByCode,
-    }))
-  );
+  const { selectedEvent, updateEvent, getEventByCode, setSelectedEvent } =
+    useEventStore(
+      useShallow((state) => ({
+        selectedEvent: state.selectedEvent,
+        setSelectedEvent: state.setSelectedEvent,
+        updateEvent: state.updateEvent,
+        getEventByCode: state.getEventByCode,
+      }))
+    );
 
   const { pocList, getAllPocs } = usePocStore(
     useShallow((state) => ({
@@ -84,10 +88,12 @@ export default function EventDetailsPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        setError(null);
         setIsLoading(true);
 
-        await getEventByCode(params.eventCode as string);
+        if (!selectedEvent) {
+          const event = await getEventByCode(params.eventCode as string);
+          setSelectedEvent(event);
+        }
 
         reset({
           eventName: selectedEvent.eventName,
@@ -114,7 +120,7 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [params.eventCode, getEventByCode, reset, router]);
+  }, [params.eventCode, getEventByCode, reset, router, setSelectedEvent]);
 
   // Get floor plan image
   useEffect(() => {
@@ -146,7 +152,6 @@ export default function EventDetailsPage() {
   useEffect(() => {
     const fetchCheckInPoints = async () => {
       try {
-        setError(null);
         setIsLoading(true);
 
         await getAllPocs(params.eventCode as string);
@@ -241,27 +246,18 @@ export default function EventDetailsPage() {
 
       router.push("/admin/events");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to update event. Please try again.";
-      console.error("Update event error:", error);
-      alert(errorMessage);
+      setError("Failed to update event. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   if (isLoading || !selectedEvent) {
-    return <div className="flex justify-center text-xl">Loading...</div>;
+    return <Loading />;
   }
 
   if (error) {
-    return (
-      <div className="flex justify-center text-xl text-red-500 mt-4">
-        {error}
-      </div>
-    );
+    return <Error message={error} redirectTo="/login" />;
   }
 
   return (

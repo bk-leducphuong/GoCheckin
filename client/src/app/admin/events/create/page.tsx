@@ -13,6 +13,8 @@ import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest } from "@/types/poc";
 import { FloorPlanService } from "@/services/floor-plan.service";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 // Event creation validation schema
 const eventSchema = z.object({
@@ -29,6 +31,7 @@ export default function CreateEventPage() {
   const uploadFloorPlan = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [checkInPoints, setCheckInPoints] = useState<CreatePocRequest[]>([
     { pointCode: "", pointName: "" },
   ]);
@@ -77,8 +80,7 @@ export default function CreateEventPage() {
             floorPlanImage
           );
         } catch (error) {
-          console.error("Failed to upload floor plan:", error);
-          alert("Failed to upload floor plan. Please try again.");
+          setError("Failed to upload floor plan image. Please try again.");
           return;
         }
       } else {
@@ -99,19 +101,17 @@ export default function CreateEventPage() {
         try {
           await PocService.createPoc(newEvent.eventCode, point);
         } catch (pocError) {
-          console.error(`Failed to create POC: ${point.pointCode}`, pocError);
-          alert(`Failed to create POC: ${point.pointCode}. Please try again.`);
+          setError(
+            `Failed to create POC: ${point.pointCode}. Please try again.`
+          );
         }
       }
 
+      setIsLoading(false);
+
       router.push("/admin/events");
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to create event. Please try again.";
-      console.error("Create event error:", error);
-      alert(errorMessage);
+      setError("Failed to create event. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -134,6 +134,14 @@ export default function CreateEventPage() {
     };
     reader.readAsDataURL(file);
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <Error message={error} redirectTo="/login" />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">

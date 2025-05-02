@@ -1,20 +1,14 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useAuthStore } from '@/store/authStore';
-import { useShallow } from 'zustand/react/shallow'
+import React from "react";
 export default function AdminDashboard() {
-  const { user } = useAuthStore(useShallow(state => ({
-    user: state.user
-  })));
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Admin Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Welcome back, { user?.username || 'Admin'}!
-        </p>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Admin Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">Welcome back, {"Admin"}!</p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -127,7 +121,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-2 flex-shrink-0 flex">
                   <span className="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800">
-                    {item} hour{item === 1 ? '' : 's'} ago
+                    {item} hour{item === 1 ? "" : "s"} ago
                   </span>
                 </div>
               </div>
@@ -148,4 +142,4 @@ export default function AdminDashboard() {
       </div>
     </div>
   );
-} 
+}

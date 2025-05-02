@@ -9,6 +9,8 @@ import { useFloorPlanStore } from "@/store/floorPlanStore";
 import { usePocStore } from "@/store/pocStore";
 import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 export default function FloorPlanPage() {
   const params = useParams();
@@ -201,12 +203,12 @@ export default function FloorPlanPage() {
     }
   };
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
   if (error) {
-    return (
-      <div className="flex justify-center text-xl text-red-500 mt-4">
-        {error}
-      </div>
-    );
+    return <Error message={error} redirectTo="/login" />;
   }
 
   return (

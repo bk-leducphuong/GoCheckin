@@ -12,19 +12,20 @@ import { useCheckinStore } from "@/store/checkinStore";
 import MenuModal from "@/components/poc/MenuModal";
 import { useSocketStore } from "@/store/socketStore";
 import PocAnalysis from "@/components/poc/PocAnalysis";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 export default function POCDashboard() {
   // Connect socket
-  const { socket, connect, disconnect, leaveRoom, joinRoom } =
-    useSocketStore(
-      useShallow((state) => ({
-        socket: state.socket,
-        connect: state.connect,
-        disconnect: state.disconnect,
-        leaveRoom: state.leaveRoom,
-        joinRoom: state.joinRoom,
-      }))
-    );
+  const { socket, connect, disconnect, leaveRoom, joinRoom } = useSocketStore(
+    useShallow((state) => ({
+      socket: state.socket,
+      connect: state.connect,
+      disconnect: state.disconnect,
+      leaveRoom: state.leaveRoom,
+      joinRoom: state.joinRoom,
+    }))
+  );
 
   const { user } = useUserStore(
     useShallow((state) => ({
@@ -117,13 +118,12 @@ export default function POCDashboard() {
     setShowMenu(false);
   };
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
   if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen flex-col">
-        <div className="text-2xl font-bold mb-4">Error</div>
-        <div className="text-gray-600">{error}</div>
-      </div>
-    );
+    return <Error message={error} redirectTo="/login" />;
   }
 
   return (
