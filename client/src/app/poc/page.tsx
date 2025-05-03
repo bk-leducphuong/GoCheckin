@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
@@ -11,6 +12,7 @@ import { useUserStore } from "@/store/userStore";
 import { useCheckinStore } from "@/store/checkinStore";
 import MenuModal from "@/components/poc/MenuModal";
 import { useSocketStore } from "@/store/socketStore";
+import { useEventStore } from "@/store/eventStore";
 import PocAnalysis from "@/components/poc/PocAnalysis";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
@@ -39,6 +41,15 @@ export default function POCDashboard() {
       guests: state.guests,
     }))
   );
+
+  const { selectedEvent, setSelectedEvent, getEventByCode } = useEventStore(
+    useShallow((state) => ({
+      selectedEvent: state.selectedEvent,
+      setSelectedEvent: state.setSelectedEvent,
+      getEventByCode: state.getEventByCode,
+    }))
+  );
+
   const searchParams = useSearchParams();
   const eventCode = searchParams.get("eventCode") as string;
   const pointCode = searchParams.get("pointCode") as string;
@@ -49,6 +60,8 @@ export default function POCDashboard() {
   const [showCamera, setShowCamera] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
     try {
@@ -64,6 +77,21 @@ export default function POCDashboard() {
       console.error("Error in useEffect:", error);
     }
   }, [eventCode, connect, joinRoom, leaveRoom, disconnect]);
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        if (!selectedEvent) {
+          const event = await getEventByCode(eventCode);
+          setSelectedEvent(event);
+        }
+      } catch (error) {
+        setError("Failed to fetch event details. Please try again.");
+      }
+    };
+
+    fetchEvent();
+  });
 
   const submitCheckin = async () => {
     try {
@@ -95,12 +123,7 @@ export default function POCDashboard() {
       setNote("");
       alert("Guest checked in successfully!");
     } catch (error) {
-      console.error("Check-in error:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to check in guest. Please try again."
-      );
+      setError("Failed to check in guest. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -114,11 +137,16 @@ export default function POCDashboard() {
     setShowMenu(true);
   };
 
+  const viewEventDetails = () => {
+    const url = `/poc/event-details?pointCode=${pointCode}&eventCode=${eventCode}`;
+    router.push(url);
+  };
+
   const closeMenu = () => {
     setShowMenu(false);
   };
 
-  if (isLoading) {
+  if (isLoading || !selectedEvent) {
     return <Loading />;
   }
 
@@ -133,11 +161,18 @@ export default function POCDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Tech Conference 2023
+              {selectedEvent.eventName}
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              Date: November 15, 2023 • Location: Convention Center
+              Date: {new Date(selectedEvent.startTime).toLocaleString()} •
+              Location: {selectedEvent.venueName}
             </p>
+            <a
+              onClick={() => viewEventDetails()}
+              className="text-blue-500 cursor-pointer"
+            >
+              View event details
+            </a>
           </div>
           <div className="mt-4 md:mt-0">
             <div

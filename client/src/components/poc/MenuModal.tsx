@@ -1,5 +1,5 @@
 import React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
 
@@ -8,6 +8,9 @@ interface MenuModalProps {
 }
 
 export default function MenuModal({ onClose }: MenuModalProps) {
+  const pointCode = useSearchParams().get("pointCode") as string;
+  const eventCode = useSearchParams().get("eventCode") as string;
+
   const router = useRouter();
   const { logout } = useAuthStore(
     useShallow((state) => ({
@@ -27,7 +30,7 @@ export default function MenuModal({ onClose }: MenuModalProps) {
 
   return (
     <>
-      <div 
+      <div
         className="fixed top-0 left-0 z-10 h-screen w-screen bg-transparent bg-opacity-50"
         onClick={onClose}
       />
@@ -35,10 +38,14 @@ export default function MenuModal({ onClose }: MenuModalProps) {
         <div className="px-4 py-2 border-b border-gray-100">
           <p className="text-sm font-medium text-gray-900">Account Menu</p>
         </div>
-        
+
         <div className="py-1">
           <button
-            onClick={() => handleNavigate("/poc/profile")}
+            onClick={() =>
+              handleNavigate(
+                `/poc/profile?pointCode=${pointCode}&eventCode=${eventCode}`
+              )
+            }
             className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
           >
             <svg
@@ -59,7 +66,11 @@ export default function MenuModal({ onClose }: MenuModalProps) {
           </button>
 
           <button
-            onClick={() => handleNavigate("/poc/settings")}
+            onClick={() =>
+              handleNavigate(
+                `/poc/settings?pointCode=${pointCode}&eventCode=${eventCode}`
+              )
+            }
             className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
           >
             <svg
