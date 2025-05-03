@@ -26,10 +26,11 @@ export default function FloorPlanPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const { getEventByCode, selectedEvent } = useEventStore(
+  const { getEventByCode, selectedEvent, setSelectedEvent } = useEventStore(
     useShallow((state) => ({
       selectedEvent: state.selectedEvent,
       getEventByCode: state.getEventByCode,
+      setSelectedEvent: state.setSelectedEvent,
     }))
   );
 
@@ -55,7 +56,8 @@ export default function FloorPlanPage() {
     const getEvent = async () => {
       try {
         if (!selectedEvent || selectedEvent.eventCode !== params.eventCode) {
-          await getEventByCode(params.eventCode as string);
+          const event = await getEventByCode(params.eventCode as string);
+          setSelectedEvent(event);
         }
       } catch (error) {
         console.error("Error loading floor plan data:", error);
@@ -63,7 +65,7 @@ export default function FloorPlanPage() {
       }
     };
     getEvent();
-  }, [params.eventCode, selectedEvent, getEventByCode]); // Add dependencies
+  }, [params.eventCode, getEventByCode, setSelectedEvent]); // Add dependencies
 
   // Get floor plan image
   useEffect(() => {

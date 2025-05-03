@@ -41,6 +41,11 @@ export default function EventsPage() {
     router.push(`/admin/events/${event.eventCode}`);
   };
 
+  const viewEventRealtime = (event: Event) => {
+    setSelectedEvent(event);
+    router.push(`/admin/events/${event.eventCode}/live`);
+  };
+
   if (isLoading) {
     return <Loading />;
   }
@@ -182,7 +187,7 @@ export default function EventsPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push(`/admin/events/${item.eventCode}/live`);
+                      viewEventRealtime(item);
                     }}
                     type="button"
                     className="border-2 border-black-200 mt-4 rounded-md px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"

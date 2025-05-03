@@ -1,19 +1,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Event } from "@/types/event";
 import { useSocketStore } from "@/store/socketStore";
 import { GuestService } from "@/services/guest.service";
-import { EventService } from "@/services/event.service";
 import { useShallow } from "zustand/shallow";
 import { useParams } from "next/navigation";
 import { CheckInResponse } from "@/types/checkin";
+import { useEventStore } from "@/store/eventStore";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 
 export default function RealtimeDashboard() {
   const [guests, setGuests] = useState<CheckInResponse[]>([]);
-  const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,6 +25,14 @@ export default function RealtimeDashboard() {
     }))
   );
 
+  const { selectedEvent, setSelectedEvent, getEventByCode } = useEventStore(
+    useShallow((state) => ({
+      selectedEvent: state.selectedEvent,
+      setSelectedEvent: state.setSelectedEvent,
+      getEventByCode: state.getEventByCode,
+    }))
+  );
+
   const eventCode = useParams().eventCode as string;
 
   useEffect(() => {
@@ -34,9 +40,11 @@ export default function RealtimeDashboard() {
       try {
         setIsLoading(true);
 
-        // Fetch event details
-        const eventData = await EventService.getEventByCode(eventCode);
-        setEvent(eventData);
+        if (!selectedEvent) {
+          // Fetch event details
+          const event = await getEventByCode(eventCode);
+          setSelectedEvent(event);
+        }
 
         // Fetch guest list
         const guestList = await GuestService.getAllGuestsOfEvent(eventCode);
@@ -50,7 +58,7 @@ export default function RealtimeDashboard() {
     };
 
     fetchEventData();
-  }, [eventCode]);
+  }, [eventCode, getEventByCode]);
 
   // Socket event handlers for real-time updates
   useEffect(() => {
@@ -75,15 +83,15 @@ export default function RealtimeDashboard() {
   }, [socket]);
 
   const checkedInCount = guests.length;
-  const totalCapacity = event?.capacity || 0;
+  const totalCapacity = selectedEvent?.capacity || 0;
   const checkInRate =
     totalCapacity > 0 ? Math.round((checkedInCount / totalCapacity) * 100) : 0;
 
-  if (isLoading) {
+  if (isLoading || !selectedEvent) {
     return <Loading />;
   }
 
-  if (error || !event) {
+  if (error) {
     return <Error message={error || "Event not found"} redirectTo="/login" />;
   }
 
@@ -94,18 +102,19 @@ export default function RealtimeDashboard() {
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              {event.eventName}
+              {selectedEvent.eventName}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              {new Date(event.startTime).toLocaleString()} -{" "}
-              {new Date(event.endTime).toLocaleString()}
+              {new Date(selectedEvent.startTime).toLocaleString()} -{" "}
+              {new Date(selectedEvent.endTime).toLocaleString()}
             </p>
-            <p className="text-sm text-gray-500">{event.venueName}</p>
+            <p className="text-sm text-gray-500">{selectedEvent.venueName}</p>
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-blue-600">
               {Math.floor(
-                (Date.now() - new Date(event.startTime).getTime()) / 60000
+                (Date.now() - new Date(selectedEvent.startTime).getTime()) /
+                  60000
               )}{" "}
               min
             </div>
