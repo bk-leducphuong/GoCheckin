@@ -74,11 +74,18 @@ export default function FloorPlanPage() {
     const getFloorPlanImageUrl = async () => {
       try {
         if (!floorPlanImage || eventCodeFromFloorPlan !== params.eventCode) {
-          await getFloorPlanImage(params.eventCode as string);
+          const response = await getFloorPlanImage(params.eventCode as string);
+          if (!response) {
+            return;
+          }
+          const blob = new Blob([response], { type: "image/jpeg" });
+          imageUrl = URL.createObjectURL(blob);
+          setFloorPlanImageUrl(imageUrl);
+        } else if (floorPlanImage) {
+          const blob = new Blob([floorPlanImage], { type: "image/jpeg" });
+          imageUrl = URL.createObjectURL(blob);
+          setFloorPlanImageUrl(imageUrl);
         }
-        const blob = new Blob([floorPlanImage as Blob], { type: "image/jpeg" });
-        imageUrl = URL.createObjectURL(blob);
-        setFloorPlanImageUrl(imageUrl);
       } catch (error) {
         console.error("Error loading floor plan:", error);
         setError("Failed to load floor plan image");
@@ -98,7 +105,7 @@ export default function FloorPlanPage() {
     floorPlanImage,
     eventCodeFromFloorPlan,
     getFloorPlanImage,
-  ]); // Add dependencies
+  ]);
 
   useEffect(() => {
     const getPocs = async () => {
@@ -149,8 +156,12 @@ export default function FloorPlanPage() {
     if (!file) return;
     setIsLoading(true);
     try {
-      // Handle the file upload logic here
-      // You'll need to implement this based on your requirements
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFloorPlanImageUrl(reader.result as string);
+      };
+
+      reader.readAsDataURL(file);
       setIsLoading(false);
     } catch (error) {
       console.error("Error uploading file:", error);

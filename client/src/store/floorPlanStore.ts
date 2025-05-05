@@ -5,22 +5,35 @@ import { FloorPlanService } from "@/services/floor-plan.service";
 interface FloorPlanStore {
   floorPlanImage: Blob | null;
   eventCode: string | null;
-  getFloorPlanImage: (eventCode: string) => Promise<Blob>;
-  getFloorPlan: (eventCode: string) => Promise<Blob>;
+  getFloorPlanImage: (eventCode: string) => Promise<Blob | null>;
 }
 
 export const useFloorPlanStore = create<FloorPlanStore>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       floorPlanImage: null,
       eventCode: null,
       getFloorPlanImage: async (eventCode: string) => {
-        const response = await FloorPlanService.getFloorPlanImage(
-          eventCode as string
-        );
-        set({ floorPlanImage: response });
-        set({ eventCode: eventCode });
-        return response;
+        const currentState = get();
+        if (
+          currentState.floorPlanImage &&
+          currentState.eventCode === eventCode
+        ) {
+          return currentState.floorPlanImage;
+        }
+
+        try {
+          const response = await FloorPlanService.getFloorPlanImage(eventCode);
+          if (get().eventCode === eventCode || get().eventCode === null) {
+            set({ floorPlanImage: response, eventCode });
+            return response;
+          }
+          return null;
+        } catch (error) {
+          console.error("Error fetching floor plan:", error);
+          set({ floorPlanImage: null, eventCode: null });
+          return null;
+        }
       },
     }),
     {
