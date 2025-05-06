@@ -30,7 +30,6 @@ export const useFloorPlanStore = create<FloorPlanStore>()(
           }
           return null;
         } catch (error) {
-          console.error("Error fetching floor plan:", error);
           set({ floorPlanImage: null, eventCode: null });
           return null;
         }

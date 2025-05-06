@@ -42,14 +42,9 @@ export const FloorPlanService = {
   },
 
   async getFloorPlanImage(eventCode: string): Promise<Blob> {
-    try {
-      const response = await api.get(`/floor-plan/${eventCode}`, {
-        responseType: "blob",
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching floor plan:", error);
-      throw error;
-    }
+    const response = await api.get(`/floor-plan/${eventCode}`, {
+      responseType: "blob",
+    });
+    return response.data;
   },
 };

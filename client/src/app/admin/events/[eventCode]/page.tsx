@@ -137,12 +137,15 @@ export default function EventDetailsPage() {
     const getFloorPlanImageUrl = async () => {
       try {
         await getFloorPlanImage(params.eventCode as string);
-        const blob = new Blob([floorPlanImage as Blob], { type: "image/jpeg" });
-        imageUrl = URL.createObjectURL(blob);
-        setFloorPlanImageUrl(imageUrl);
+        if (floorPlanImage) {
+          const blob = new Blob([floorPlanImage as Blob], {
+            type: "image/jpeg",
+          });
+          imageUrl = URL.createObjectURL(blob);
+          setFloorPlanImageUrl(imageUrl);
+        }
       } catch (error) {
         console.error("Error loading floor plan:", error);
-        setError("Failed to load floor plan image");
       }
     };
 
@@ -584,12 +587,11 @@ export default function EventDetailsPage() {
         />
       )}
 
-      {selectedEvent.eventStatus === EventStatus.COMPLETED ||
-        (selectedEvent.eventStatus === EventStatus.ACTIVE && (
-          <div className="mt-8">
-            <EventAnalysis eventCode={params.eventCode as string} />
-          </div>
-        ))}
+      {selectedEvent.eventStatus !== EventStatus.PUBLISHED && (
+        <div className="mt-8">
+          <EventAnalysis eventCode={params.eventCode as string} />
+        </div>
+      )}
     </div>
   );
 }
