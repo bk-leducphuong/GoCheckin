@@ -28,7 +28,9 @@ export const useEventStore = create<EventStore>()(
       selectedEvent: null,
       isLoading: false,
       error: null,
-      setSelectedEvent: (event) => set({ selectedEvent: event }),
+      setSelectedEvent: (event: Event) => {
+        set({ selectedEvent: event });
+      },
       setEvents: (events) => set({ events }),
       getAllEvents: async () => {
         const response = await EventService.getAllEvents();
@@ -49,6 +51,7 @@ export const useEventStore = create<EventStore>()(
       },
       getEventByCode: async (eventCode: string) => {
         const event = await EventService.getEventByCode(eventCode);
+        set({ selectedEvent: event });
         return event;
       },
       updateEvent: async (eventCode: string, eventData: CreateEventRequest) => {

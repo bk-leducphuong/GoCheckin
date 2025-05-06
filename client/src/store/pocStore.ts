@@ -22,7 +22,9 @@ export const usePocStore = create<PocStore>()(
       poc: null,
       setPoc: (poc) => set({ poc }),
       pocList: [],
-      setPocList: (pocList) => set({ pocList }),
+      setPocList: (pocList: Poc[]) => {
+        set({ pocList: pocList });
+      },
       validatePoc: async (pointCode: string, eventCode: string) => {
         const poc = await PocService.validatePoc({
           pointCode: pointCode,

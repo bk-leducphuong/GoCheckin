@@ -42,7 +42,6 @@ export default function EventDetailsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [checkInPoints, setCheckInPoints] = useState<Poc[]>([]);
   const [newCheckinPoints, setNewCheckInPoints] = useState<CreatePocRequest[]>(
     []
   );
@@ -61,9 +60,10 @@ export default function EventDetailsPage() {
       }))
     );
 
-  const { pocList, getAllPocs } = usePocStore(
+  const { pocList, getAllPocs, setPocList } = usePocStore(
     useShallow((state) => ({
       pocList: state.pocList,
+      setPocList: state.setPocList,
       getAllPocs: state.getAllPocs,
     }))
   );
@@ -91,24 +91,25 @@ export default function EventDetailsPage() {
         setIsLoading(true);
 
         if (!selectedEvent) {
-          const event = await getEventByCode(params.eventCode as string);
-          setSelectedEvent(event);
+          await getEventByCode(params.eventCode as string);
         }
 
-        reset({
-          eventName: selectedEvent.eventName,
-          eventCode: selectedEvent.eventCode,
-          startTime: new Date(selectedEvent.startTime)
-            .toISOString()
-            .slice(0, 16),
-          endTime: new Date(selectedEvent.endTime).toISOString().slice(0, 16),
-          eventDescription: selectedEvent.eventDescription || "",
-          venueName: selectedEvent.venueName || "",
-          venueAddress: selectedEvent.venueAddress || "",
-          capacity: selectedEvent.capacity || undefined,
-          eventType: selectedEvent.eventType || "",
-          termsConditions: selectedEvent.termsConditions || "",
-        });
+        if (selectedEvent) {
+          reset({
+            eventName: selectedEvent.eventName,
+            eventCode: selectedEvent.eventCode,
+            startTime: new Date(selectedEvent.startTime)
+              .toISOString()
+              .slice(0, 16),
+            endTime: new Date(selectedEvent.endTime).toISOString().slice(0, 16),
+            eventDescription: selectedEvent.eventDescription || "",
+            venueName: selectedEvent.venueName || "",
+            venueAddress: selectedEvent.venueAddress || "",
+            capacity: selectedEvent.capacity || undefined,
+            eventType: selectedEvent.eventType || "",
+            termsConditions: selectedEvent.termsConditions || "",
+          });
+        }
 
         setIsLoading(false);
       } catch (error) {
@@ -120,7 +121,14 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [params.eventCode, getEventByCode, reset, router, setSelectedEvent]);
+  }, [
+    params.eventCode,
+    getEventByCode,
+    reset,
+    router,
+    setSelectedEvent,
+    selectedEvent,
+  ]);
 
   // Get floor plan image
   useEffect(() => {
@@ -146,16 +154,14 @@ export default function EventDetailsPage() {
         URL.revokeObjectURL(imageUrl);
       }
     };
-  }, [params.eventCode, getFloorPlanImage]);
+  }, [params.eventCode, getFloorPlanImage, floorPlanImage]);
 
   // Fetch check-in points for the event
   useEffect(() => {
     const fetchCheckInPoints = async () => {
       try {
         setIsLoading(true);
-
         await getAllPocs(params.eventCode as string);
-        setCheckInPoints(pocList);
       } catch (error) {
         setError("Failed to fetch POCs. Please try again.");
         console.error("Error fetching POCs:", error);
@@ -167,17 +173,19 @@ export default function EventDetailsPage() {
   }, [params.eventCode, getAllPocs]);
 
   const removeCheckInPoint = (index: number) => {
-    setRemovedCheckinPoint([...removedCheckinPoint, checkInPoints[index]]);
-    setCheckInPoints(checkInPoints.filter((_, i) => i !== index));
+    setRemovedCheckinPoint([...removedCheckinPoint, pocList[index]]);
+    const newPocList = [...pocList];
+    newPocList.splice(index, 1);
+    setPocList(newPocList);
   };
   const updateCheckInPoint = (
     index: number,
     field: keyof UpdatePocRequest,
     value: string
   ) => {
-    const newPoints = [...checkInPoints];
+    const newPoints = [...pocList];
     newPoints[index] = { ...newPoints[index], [field]: value };
-    setCheckInPoints(newPoints);
+    setPocList(newPoints);
   };
 
   // Helper function to update new check-in points
@@ -210,7 +218,7 @@ export default function EventDetailsPage() {
       await updateEvent(params.eventCode as string, eventData);
 
       // Handle POC updates if needed
-      for (const point of checkInPoints) {
+      for (const point of pocList) {
         try {
           await PocService.updatePoc(point.pocId, {
             pointCode: point.pointCode,
@@ -413,7 +421,7 @@ export default function EventDetailsPage() {
             </div>
 
             <div className="space-y-4">
-              {checkInPoints.map((point, index) => (
+              {pocList.map((point, index) => (
                 <div key={point.pocId} className="bg-gray-50 p-4 rounded-md">
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-sm font-medium text-gray-900">
@@ -425,7 +433,7 @@ export default function EventDetailsPage() {
                         View details
                       </Link>
                     </h3>
-                    {checkInPoints.length > 1 &&
+                    {pocList.length > 1 &&
                       selectedEvent.eventStatus == EventStatus.PUBLISHED && (
                         <button
                           type="button"
