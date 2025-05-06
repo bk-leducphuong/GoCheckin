@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEventStore } from "@/store/eventStore";
 import { useShallow } from "zustand/shallow";
 import { useFloorPlanStore } from "@/store/floorPlanStore";
@@ -9,9 +9,9 @@ import { PocService } from "@/services/poc.service";
 import Image from "next/image";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
+import { ApiError } from "@/lib/error";
 
 export default function EventDetailsPage() {
-  const params = useParams();
   const eventCode = useSearchParams().get("eventCode") as string;
   const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>(
     null
@@ -40,7 +40,7 @@ export default function EventDetailsPage() {
       try {
         setIsLoading(true);
         if (!selectedEvent) {
-          const event = await getEventByCode(params.eventCode as string);
+          const event = await getEventByCode(eventCode as string);
           setSelectedEvent(event);
         }
       } catch (error) {
@@ -52,7 +52,7 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [params.eventCode, getEventByCode, setSelectedEvent]);
+  }, [eventCode, getEventByCode, setSelectedEvent]);
 
   useEffect(() => {
     let imageUrl: string;
@@ -62,9 +62,14 @@ export default function EventDetailsPage() {
         if (!floorPlanImage) {
           await getFloorPlanImage(eventCode);
         }
-        const blob = new Blob([floorPlanImage as Blob], { type: "image/jpeg" });
-        imageUrl = URL.createObjectURL(blob);
-        setFloorPlanImageUrl(imageUrl);
+
+        if (floorPlanImage) {
+          const blob = new Blob([floorPlanImage as Blob], {
+            type: "image/jpeg",
+          });
+          imageUrl = URL.createObjectURL(blob);
+          setFloorPlanImageUrl(imageUrl);
+        }
       } catch (error) {
         console.error("Error loading floor plan:", error);
         setError("Failed to load floor plan image");
@@ -102,12 +107,16 @@ export default function EventDetailsPage() {
         );
         setMarkedPoints(pocLocationsObject);
       } catch (error) {
-        console.error("Error loading POC locations:", error);
-        setError("Failed to load POC locations. Please try again.");
+        if (error instanceof ApiError && error.isNotFound()) {
+          setMarkedPoints({});
+        } else {
+          console.error("Error loading POC locations:", error);
+          setError("Failed to load POC locations. Please try again.");
+        }
       }
     };
     getPocLocations();
-  }, [params.eventCode, setMarkedPoints, eventCode]); // Add dependencies
+  }, [setMarkedPoints, eventCode]); // Add dependencies
 
   if (isLoading || !selectedEvent) {
     return <Loading />;
@@ -151,15 +160,18 @@ export default function EventDetailsPage() {
         {/* Event Details */}
         <div className="p-6 space-y-6">
           <div className="md:col-span-3">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Event map
+            </h2>
             <div className="bg-gray-50 p-4 rounded-lg">
-              {floorPlanImageUrl ? (
+              {floorPlanImageUrl && (
                 <div className="relative">
                   <Image
                     src={floorPlanImageUrl}
                     alt="Floor plan"
                     width={800}
                     height={600}
-                    className="w-full rounded-md cursor-crosshair"
+                    className="w-full rounded-md"
                   />
                   {/* Render marked points */}
                   {Object.entries(markedPoints).map(([pocId, pos]) => {
@@ -179,25 +191,6 @@ export default function EventDetailsPage() {
                       </div>
                     );
                   })}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-[400px] border-2 border-dashed border-gray-300 rounded-lg cursor-pointer">
-                  <svg
-                    className="w-12 h-12 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  <p className="mt-2 text-sm text-gray-600">
-                    Click to upload floor plan
-                  </p>
                 </div>
               )}
             </div>
@@ -219,7 +212,8 @@ export default function EventDetailsPage() {
               About the Event
             </h2>
             <p className="text-gray-600 whitespace-pre-line">
-              {selectedEvent.eventDescription}
+              {selectedEvent.eventDescription ||
+                "The InnovateTech 2025 Conference brought together industry leaders, tech enthusiasts, and startups for a dynamic three-day event focused on emerging technologies and digital transformation. Held at the city convention center, the event featured keynote speeches from renowned figures in AI, cybersecurity, and cloud computing, as well as hands-on workshops, product showcases, and networking sessions. Attendees had the opportunity to explore cutting-edge innovations, connect with potential collaborators, and gain insights into the future of technology across various industries."}
             </p>
           </div>
 

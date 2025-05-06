@@ -3,55 +3,13 @@
 import AuthCheck from "@/components/auth/AuthCheck";
 import { UserRole } from "@/types/user";
 import { useSearchParams } from "next/navigation";
-import { usePocStore } from "@/store/pocStore";
-import { useEffect, useState } from "react";
-import { useShallow } from "zustand/shallow";
-import { useRouter } from "next/navigation";
 import EventStatusCheck from "@/components/poc/EventStatusCheck";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
+import PocValidation from "@/components/poc/PocValidation";
 
 export default function PocLayout({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const pointCode = searchParams.get("pointCode") as string;
   const eventCode = searchParams.get("eventCode") as string;
-
-  const { poc, validatePoc } = usePocStore(
-    useShallow((state) => ({
-      poc: state.poc,
-      validatePoc: state.validatePoc,
-    }))
-  );
-
-  useEffect(() => {
-    const validatePocData = async () => {
-      try {
-        setIsLoading(true);
-        await validatePoc(pointCode, eventCode);
-        setIsLoading(false);
-      } catch (error) {
-        setIsLoading(false);
-        setError("System is having issues. Please try again later.");
-      }
-    };
-    validatePocData();
-  }, [pointCode, eventCode, router, validatePoc]);
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (error) {
-    return <Error message={error} redirectTo="/login" />;
-  }
-
-  if (!poc) {
-    return <Error message="POC not found" redirectTo="/login" />;
-  }
 
   return (
     <EventStatusCheck
@@ -67,7 +25,22 @@ export default function PocLayout({ children }: { children: React.ReactNode }) {
       }
     >
       <AuthCheck allowedRoles={UserRole.POC} redirectTo="/login">
-        <div className="min-h-screen bg-gray-100">{children}</div>
+        <PocValidation
+          eventCode={eventCode}
+          pointCode={pointCode}
+          fallback={
+            <div className="flex items-center justify-center min-h-screen flex-col">
+              <div className="text-2xl font-bold mb-4">
+                Poc Code or Event Code is not valid
+              </div>
+              <div className="text-gray-600">
+                Please try again with a valid PoC code or Event code.
+              </div>
+            </div>
+          }
+        >
+          <div className="min-h-screen bg-gray-100">{children}</div>
+        </PocValidation>
       </AuthCheck>
     </EventStatusCheck>
   );
