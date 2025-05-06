@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { FloorPlanService } from "@/services/floor-plan.service";
+import { ApiError } from "@/lib/error";
 
 interface FloorPlanStore {
   floorPlanImage: Blob | null;
@@ -30,8 +31,11 @@ export const useFloorPlanStore = create<FloorPlanStore>()(
           }
           return null;
         } catch (error) {
-          set({ floorPlanImage: null, eventCode: null });
-          return null;
+          if (error instanceof ApiError && error.isNotFound()) {
+            set({ floorPlanImage: null, eventCode: null });
+            return null;
+          }
+          throw error;
         }
       },
     }),
