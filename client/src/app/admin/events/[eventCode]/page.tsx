@@ -28,11 +28,11 @@ const eventSchema = z.object({
   startTime: z.string().min(1, "Start date is required"),
   endTime: z.string().min(1, "End date is required"),
   eventDescription: z.string().optional(),
-  venueName: z.string().optional(),
-  venueAddress: z.string().optional(),
-  capacity: z.number().optional(),
-  eventType: z.string().optional(),
   termsConditions: z.string().optional(),
+  capacity: z.number().optional(),
+  venueName: z.string().min(1, "Venue name is required"),
+  venueAddress: z.string().min(1, "Venue address is required"),
+  images: z.array(z.string()).optional(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -68,12 +68,14 @@ export default function EventDetailsPage() {
     }))
   );
 
-  const { floorPlanImage, getFloorPlanImage } = useFloorPlanStore(
-    useShallow((state) => ({
-      floorPlanImage: state.floorPlanImage,
-      getFloorPlanImage: state.getFloorPlanImage,
-    }))
-  );
+  const { floorPlanImage, getFloorPlanImage, eventCodeFromFloorPlan } =
+    useFloorPlanStore(
+      useShallow((state) => ({
+        floorPlanImage: state.floorPlanImage,
+        eventCodeFromFloorPlan: state.eventCode,
+        getFloorPlanImage: state.getFloorPlanImage,
+      }))
+    );
 
   const {
     register,
@@ -106,7 +108,6 @@ export default function EventDetailsPage() {
             venueName: selectedEvent.venueName || "",
             venueAddress: selectedEvent.venueAddress || "",
             capacity: selectedEvent.capacity || undefined,
-            eventType: selectedEvent.eventType || "",
             termsConditions: selectedEvent.termsConditions || "",
           });
         }
@@ -137,15 +138,15 @@ export default function EventDetailsPage() {
     const getFloorPlanImageUrl = async () => {
       try {
         await getFloorPlanImage(params.eventCode as string);
-        if (floorPlanImage) {
-          const blob = new Blob([floorPlanImage as Blob], {
-            type: "image/jpeg",
-          });
+
+        if (floorPlanImage && eventCodeFromFloorPlan === params.eventCode) {
+          const blob = new Blob([floorPlanImage], { type: "image/jpeg" });
           imageUrl = URL.createObjectURL(blob);
           setFloorPlanImageUrl(imageUrl);
         }
       } catch (error) {
         console.error("Error loading floor plan:", error);
+        setError("Failed to load floor plan image");
       }
     };
 
@@ -157,23 +158,24 @@ export default function EventDetailsPage() {
         URL.revokeObjectURL(imageUrl);
       }
     };
-  }, [params.eventCode, getFloorPlanImage, floorPlanImage]);
+  }, [
+    params.eventCode,
+    getFloorPlanImage,
+    floorPlanImage,
+    eventCodeFromFloorPlan,
+  ]);
 
-  // Fetch check-in points for the event
   useEffect(() => {
-    const fetchCheckInPoints = async () => {
+    const getPocs = async () => {
       try {
-        setIsLoading(true);
         await getAllPocs(params.eventCode as string);
       } catch (error) {
-        setError("Failed to fetch POCs. Please try again.");
-        console.error("Error fetching POCs:", error);
-      } finally {
-        setIsLoading(false);
+        console.error("Error loading POCs:", error);
+        setError("Failed to load POCs. Please try again.");
       }
     };
-    fetchCheckInPoints();
-  }, [params.eventCode, getAllPocs]);
+    getPocs();
+  }, [params.eventCode, getAllPocs]); // Add dependencies
 
   const removeCheckInPoint = (index: number) => {
     setRemovedCheckinPoint([...removedCheckinPoint, pocList[index]]);
@@ -217,42 +219,27 @@ export default function EventDetailsPage() {
     setIsLoading(true);
     try {
       // Update event
-      const eventData: CreateEventRequest = { ...data };
+      const eventData: CreateEventRequest = data;
       await updateEvent(params.eventCode as string, eventData);
 
       // Handle POC updates if needed
       for (const point of pocList) {
-        try {
-          await PocService.updatePoc(point.pocId, {
-            pointCode: point.pointCode,
-            pointName: point.pointName,
-          });
-        } catch (pocError) {
-          console.error(`Failed to update POC: ${point.pointCode}`, pocError);
-          alert(`Failed to update POC: ${point.pointCode}. Please try again.`);
-        }
+        await PocService.updatePoc(point.pocId, {
+          pointCode: point.pointCode,
+          pointName: point.pointName,
+        });
       }
 
       for (const point of newCheckinPoints) {
-        try {
-          if (!point.pointCode || !point.pointName) {
-            alert("POC code and name are required.");
-            return;
-          }
-          await PocService.createPoc(params.eventCode as string, point);
-        } catch (pocError) {
-          console.error(`Failed to create POC: ${point.pointCode}`, pocError);
-          alert(`Failed to create POC: ${point.pointCode}. Please try again.`);
+        if (!point.pointCode || !point.pointName) {
+          alert("POC code and name are required.");
+          return;
         }
+        await PocService.createPoc(params.eventCode as string, point);
       }
 
       for (const point of removedCheckinPoint) {
-        try {
-          await PocService.removePoc(point.pocId);
-        } catch (pocError) {
-          console.error(`Failed to remove POC: ${point.pointCode}`, pocError);
-          alert(`Failed to remove POC: ${point.pointCode}. Please try again.`);
-        }
+        await PocService.removePoc(point.pocId);
       }
 
       router.push("/admin/events");
@@ -268,7 +255,7 @@ export default function EventDetailsPage() {
   }
 
   if (error) {
-    return <Error message={error} redirectTo="/login" />;
+    return <Error message={error} redirectTo="/admin/events" />;
   }
 
   return (
@@ -341,14 +328,6 @@ export default function EventDetailsPage() {
               disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
               {...register("capacity", { valueAsNumber: true })}
               error={errors.capacity?.message}
-            />
-
-            <Input
-              label="Event Type"
-              type="text"
-              disabled={selectedEvent.eventStatus != EventStatus.PUBLISHED}
-              {...register("eventType")}
-              error={errors.eventType?.message}
             />
           </div>
 

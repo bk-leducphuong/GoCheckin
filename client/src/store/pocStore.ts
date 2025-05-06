@@ -18,7 +18,7 @@ interface PocStore {
 
 export const usePocStore = create<PocStore>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       poc: null,
       setPoc: (poc) => set({ poc }),
       pocList: [],
@@ -33,6 +33,14 @@ export const usePocStore = create<PocStore>()(
         set({ poc: poc });
       },
       getAllPocs: async (eventCode: string) => {
+        const currentState = get();
+        if (
+          currentState.pocList.length > 0 &&
+          currentState.eventCode === eventCode
+        ) {
+          return currentState.pocList;
+        }
+
         try {
           const pocList = await PocService.getAllPocs(eventCode);
           set({ pocList: pocList });

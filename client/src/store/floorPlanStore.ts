@@ -24,12 +24,13 @@ export const useFloorPlanStore = create<FloorPlanStore>()(
         }
 
         try {
+          console.log("Fetching floor plan image for event code:", eventCode);
           const response = await FloorPlanService.getFloorPlanImage(eventCode);
-          if (get().eventCode === eventCode || get().eventCode === null) {
-            set({ floorPlanImage: response, eventCode });
-            return response;
-          }
-          return null;
+          set({
+            floorPlanImage: response,
+            eventCode: eventCode,
+          });
+          return response;
         } catch (error) {
           if (error instanceof ApiError && error.isNotFound()) {
             set({ floorPlanImage: null, eventCode: null });

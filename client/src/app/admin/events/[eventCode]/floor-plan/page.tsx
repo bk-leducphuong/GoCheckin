@@ -12,6 +12,7 @@ import { PocService } from "@/services/poc.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { FloorPlanService } from "@/services/floor-plan.service";
+import { ApiError } from "@/lib/error";
 
 export default function FloorPlanPage() {
   const params = useParams();
@@ -20,6 +21,7 @@ export default function FloorPlanPage() {
   const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>(
     null
   );
+  const [newFloorPlanImage, setNewFloorPlanImage] = useState<File | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [markedPoints, setMarkedPoints] = useState<{
     [key: string]: { x: number; y: number };
@@ -28,7 +30,7 @@ export default function FloorPlanPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const { getEventByCode, selectedEvent, setSelectedEvent } = useEventStore(
+  const { getEventByCode, setSelectedEvent } = useEventStore(
     useShallow((state) => ({
       selectedEvent: state.selectedEvent,
       getEventByCode: state.getEventByCode,
@@ -45,7 +47,7 @@ export default function FloorPlanPage() {
       }))
     );
 
-  const { pocList, eventCodeFromPoc, getAllPocs } = usePocStore(
+  const { pocList, getAllPocs } = usePocStore(
     useShallow((state) => ({
       pocList: state.pocList,
       eventCodeFromPoc: state.eventCode,
@@ -57,10 +59,7 @@ export default function FloorPlanPage() {
   useEffect(() => {
     const getEvent = async () => {
       try {
-        if (!selectedEvent || selectedEvent.eventCode !== params.eventCode) {
-          const event = await getEventByCode(params.eventCode as string);
-          setSelectedEvent(event);
-        }
+        await getEventByCode(params.eventCode as string);
       } catch (error) {
         console.error("Error loading floor plan data:", error);
         setError("Failed to load floor plan data. Please try again.");
@@ -75,15 +74,9 @@ export default function FloorPlanPage() {
 
     const getFloorPlanImageUrl = async () => {
       try {
-        if (!floorPlanImage || eventCodeFromFloorPlan !== params.eventCode) {
-          const response = await getFloorPlanImage(params.eventCode as string);
-          if (!response) {
-            return;
-          }
-          const blob = new Blob([response], { type: "image/jpeg" });
-          imageUrl = URL.createObjectURL(blob);
-          setFloorPlanImageUrl(imageUrl);
-        } else if (floorPlanImage) {
+        await getFloorPlanImage(params.eventCode as string);
+
+        if (floorPlanImage && eventCodeFromFloorPlan === params.eventCode) {
           const blob = new Blob([floorPlanImage], { type: "image/jpeg" });
           imageUrl = URL.createObjectURL(blob);
           setFloorPlanImageUrl(imageUrl);
@@ -104,24 +97,22 @@ export default function FloorPlanPage() {
     };
   }, [
     params.eventCode,
+    getFloorPlanImage,
     floorPlanImage,
     eventCodeFromFloorPlan,
-    getFloorPlanImage,
   ]);
 
   useEffect(() => {
     const getPocs = async () => {
       try {
-        if (pocList.length === 0 || eventCodeFromPoc !== params.eventCode) {
-          await getAllPocs(params.eventCode as string);
-        }
+        await getAllPocs(params.eventCode as string);
       } catch (error) {
         console.error("Error loading POCs:", error);
         setError("Failed to load POCs. Please try again.");
       }
     };
     getPocs();
-  }, [params.eventCode, pocList.length, eventCodeFromPoc, getAllPocs]); // Add dependencies
+  }, [params.eventCode, getAllPocs]); // Add dependencies
 
   useEffect(() => {
     const getPocLocations = async () => {
@@ -146,8 +137,12 @@ export default function FloorPlanPage() {
         );
         setMarkedPoints(pocLocationsObject);
       } catch (error) {
-        console.error("Error loading POC locations:", error);
-        setError("Failed to load POC locations. Please try again.");
+        if (error instanceof ApiError && error.isNotFound()) {
+          setMarkedPoints({});
+        } else {
+          console.error("Error loading POC locations:", error);
+          setError("Failed to load POC locations. Please try again.");
+        }
       }
     };
     getPocLocations();
@@ -156,22 +151,13 @@ export default function FloorPlanPage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setIsLoading(true);
-    try {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFloorPlanImageUrl(reader.result as string);
-      };
-
-      reader.readAsDataURL(file);
-
-      setIsFloorPlanChanged(true);
-      setIsLoading(false);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      setError("Failed to upload floor plan");
-      setIsLoading(false);
-    }
+    setNewFloorPlanImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFloorPlanImageUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    setIsFloorPlanChanged(true);
   };
 
   const handleUploadClick = () => {
@@ -196,8 +182,13 @@ export default function FloorPlanPage() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      if (floorPlanImageUrl && isFloorPlanChanged) {
-        await FloorPlanService.uploadFloorPlanImage(floorPlanImageUrl);
+      if (newFloorPlanImage && isFloorPlanChanged) {
+        const uploadedFloorPlanImage =
+          await FloorPlanService.uploadFloorPlanImage(newFloorPlanImage);
+        await FloorPlanService.saveFloorPlan({
+          eventCode: params.eventCode as string,
+          floorPlanImageUrl: uploadedFloorPlanImage,
+        });
         setIsFloorPlanChanged(false);
       }
 
@@ -214,8 +205,7 @@ export default function FloorPlanPage() {
       }
       router.push(`/admin/events/${params.eventCode}`);
     } catch (error) {
-      console.error("Error saving floor plan:", error);
-      alert("Failed to save floor plan. Please try again.");
+      setError("Failed to save floor plan. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -226,7 +216,7 @@ export default function FloorPlanPage() {
   }
 
   if (error) {
-    return <Error message={error} redirectTo="/login" />;
+    return <Error message={error} redirectTo="/admin/events" />;
   }
 
   return (

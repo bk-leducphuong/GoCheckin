@@ -25,9 +25,24 @@ export class FloorPlanService {
     return floorPlan;
   }
 
-  async saveFloorPlan(floorPlan: FloorPlanDto) {
-    const newFloorPlan = this.floorPlanRepository.create(floorPlan);
-    await this.floorPlanRepository.save(newFloorPlan);
+  async saveFloorPlan(floorPlanDto: FloorPlanDto) {
+    const { eventCode, floorPlanImageUrl } = floorPlanDto;
+
+    const floorPlan = await this.floorPlanRepository.findOne({
+      where: { eventCode: eventCode },
+    });
+    if (floorPlan) {
+      await this.removeFloorPlan(eventCode);
+      await this.floorPlanRepository.update(eventCode, {
+        floorPlanImageUrl: floorPlanImageUrl,
+      });
+    } else {
+      const newFloorPlan = this.floorPlanRepository.create({
+        eventCode: eventCode,
+        floorPlanImageUrl: floorPlanImageUrl,
+      });
+      await this.floorPlanRepository.save(newFloorPlan);
+    }
   }
 
   async getFloorPlanImage(eventCode: string): Promise<string> {

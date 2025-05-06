@@ -23,7 +23,7 @@ interface EventStore {
 
 export const useEventStore = create<EventStore>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       events: [],
       selectedEvent: null,
       isLoading: false,
@@ -50,6 +50,10 @@ export const useEventStore = create<EventStore>()(
         }
       },
       getEventByCode: async (eventCode: string) => {
+        const selectedEvent = get().selectedEvent;
+        if (selectedEvent && selectedEvent.eventCode === eventCode) {
+          return selectedEvent;
+        }
         const event = await EventService.getEventByCode(eventCode);
         set({ selectedEvent: event });
         return event;
