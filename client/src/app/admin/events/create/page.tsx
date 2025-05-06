@@ -35,7 +35,9 @@ export default function CreateEventPage() {
   const [checkInPoints, setCheckInPoints] = useState<CreatePocRequest[]>([
     { pointCode: "", pointName: "" },
   ]);
-  const [floorPlanImage, setFloorPlanImage] = useState<string | null>(null);
+  const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>(
+    null
+  );
 
   const { createEvent } = useEventStore(
     useShallow((state) => ({
@@ -73,11 +75,11 @@ export default function CreateEventPage() {
     setIsLoading(true);
     try {
       // Upload floor plan image if exists
-      let floorPlanUrl = "";
-      if (floorPlanImage) {
+      let savedFileName = "";
+      if (floorPlanImageUrl) {
         try {
-          floorPlanUrl = await FloorPlanService.uploadFloorPlanImage(
-            floorPlanImage
+          savedFileName = await FloorPlanService.uploadFloorPlanImage(
+            floorPlanImageUrl
           );
         } catch (error) {
           setError("Failed to upload floor plan image. Please try again.");
@@ -93,14 +95,14 @@ export default function CreateEventPage() {
 
       await FloorPlanService.saveFloorPlan({
         eventCode: newEvent.eventCode,
-        floorPlanImageUrl: floorPlanUrl,
+        floorPlanImageUrl: savedFileName,
       });
 
       // Create POCs sequentially
       for (const point of checkInPoints) {
         try {
           await PocService.createPoc(newEvent.eventCode, point);
-        } catch (pocError) {
+        } catch (error) {
           setError(
             `Failed to create POC: ${point.pointCode}. Please try again.`
           );
@@ -130,7 +132,7 @@ export default function CreateEventPage() {
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
-      setFloorPlanImage(reader.result as string);
+      setFloorPlanImageUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -209,10 +211,10 @@ export default function CreateEventPage() {
               ref={uploadFloorPlan}
               onChange={handleFileChange}
             />
-            {floorPlanImage ? (
+            {floorPlanImageUrl ? (
               <div className="mt-2 relative">
                 <Image
-                  src={floorPlanImage}
+                  src={floorPlanImageUrl}
                   alt="Floor plan preview"
                   width={600}
                   height={300}
@@ -220,7 +222,7 @@ export default function CreateEventPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setFloorPlanImage(null)}
+                  onClick={() => setFloorPlanImageUrl(null)}
                   className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600"
                 >
                   ✕

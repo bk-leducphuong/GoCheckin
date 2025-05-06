@@ -11,6 +11,7 @@ import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
+import { FloorPlanService } from "@/services/floor-plan.service";
 
 export default function FloorPlanPage() {
   const params = useParams();
@@ -23,6 +24,7 @@ export default function FloorPlanPage() {
   const [markedPoints, setMarkedPoints] = useState<{
     [key: string]: { x: number; y: number };
   }>({});
+  const [isFloorPlanChanged, setIsFloorPlanChanged] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -162,6 +164,8 @@ export default function FloorPlanPage() {
       };
 
       reader.readAsDataURL(file);
+
+      setIsFloorPlanChanged(true);
       setIsLoading(false);
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -192,9 +196,10 @@ export default function FloorPlanPage() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      // if (floorPlanImage) {
-      //   await FloorPlanService.uploadFloorPlanImage(floorPlanImage);
-      // }
+      if (floorPlanImageUrl && isFloorPlanChanged) {
+        await FloorPlanService.uploadFloorPlanImage(floorPlanImageUrl);
+        setIsFloorPlanChanged(false);
+      }
 
       if (Object.keys(markedPoints).length > 0) {
         await PocService.savePocLocations({
