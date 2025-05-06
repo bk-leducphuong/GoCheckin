@@ -14,6 +14,23 @@ export const EventService = {
     return response.data.data;
   },
 
+  async uploadEventImages(eventCode: string, images: File[]) {
+    const formData = new FormData();
+    for (const image of images) {
+      formData.append("images", image);
+    }
+    const response = await api.post(
+      `/events/${eventCode}/images/upload`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data.data;
+  },
+
   async getEventByCode(eventCode: string): Promise<Event> {
     const response = await api.get(`/events/${eventCode}`);
     return response.data.data;

@@ -130,7 +130,6 @@ export class EventService {
 
   @Cron(CronExpression.EVERY_30_MINUTES)
   async updateEventStatus() {
-    this.logger.log('Updating event status...');
     const events = await this.eventRepository.find({
       where: { eventStatus: EventStatus.ACTIVE && EventStatus.PUBLISHED },
     });

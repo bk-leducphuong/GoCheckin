@@ -14,12 +14,11 @@ export interface Event {
   eventStatus: EventStatus;
   startTime: string;
   endTime: string;
-  eventImg: string | null;
   venueName: string;
   venueAddress: string | null;
   capacity: number | null;
-  eventType: string | null;
   termsConditions: string | null;
+  images: string[];
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -39,11 +38,12 @@ export interface CreateEventRequest {
   endTime: string;
   eventDescription?: string;
   eventStatus?: EventStatus;
-  venueName?: string;
-  venueAddress?: string;
+  venueName: string;
+  venueAddress: string;
   capacity?: number;
   eventType?: string;
   termsConditions?: string;
+  images?: string[];
   enabled?: boolean;
 }
 

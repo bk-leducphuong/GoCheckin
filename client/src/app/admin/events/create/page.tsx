@@ -13,6 +13,7 @@ import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest } from "@/types/poc";
 import { FloorPlanService } from "@/services/floor-plan.service";
+import { EventService } from "@/services/event.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 
@@ -22,13 +23,21 @@ const eventSchema = z.object({
   eventCode: z.string().min(3, "Event code must be at least 3 characters"),
   startTime: z.string().min(1, "Start date is required"),
   endTime: z.string().min(1, "End date is required"),
-  // notes: z.string().optional(),
+  eventDescription: z.string().optional(),
+  termsConditions: z.string().optional(),
+  capacity: z.number().optional(),
+  venueName: z.string().min(1, "Venue name is required"),
+  venueAddress: z.string().min(1, "Venue address is required"),
+  images: z.array(z.string()).optional(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
 
 export default function CreateEventPage() {
   const uploadFloorPlan = useRef<HTMLInputElement>(null);
+  const uploadEventImages = useRef<HTMLInputElement>(null);
+  const [eventImageUrls, setEventImageUrls] = useState<string[]>([]);
+  const [eventImages, setEventImages] = useState<File[]>([]);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +47,7 @@ export default function CreateEventPage() {
   const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>(
     null
   );
+  const [floorPlanImage, setFloorPlanImage] = useState<File | null>(null);
 
   const { createEvent } = useEventStore(
     useShallow((state) => ({
@@ -74,43 +84,31 @@ export default function CreateEventPage() {
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     try {
-      // Upload floor plan image if exists
-      let savedFileName = "";
-      if (floorPlanImageUrl) {
-        try {
-          savedFileName = await FloorPlanService.uploadFloorPlanImage(
-            floorPlanImageUrl
-          );
-        } catch (error) {
-          setError("Failed to upload floor plan image. Please try again.");
-          return;
+      if (eventImages.length > 0) {
+        const uploadedEventImages = await EventService.uploadEventImages(
+          data.eventCode,
+          eventImages
+        );
+        if (uploadedEventImages.length > 0) {
+          data.images = uploadedEventImages;
         }
-      } else {
-        alert("Please upload a floor plan image.");
-        return;
       }
-
-      // Create event with floor plan URL
       const newEvent = await createEvent(data);
 
-      await FloorPlanService.saveFloorPlan({
-        eventCode: newEvent.eventCode,
-        floorPlanImageUrl: savedFileName,
-      });
+      if (floorPlanImage) {
+        const uploadedFloorPlanImage =
+          await FloorPlanService.uploadFloorPlanImage(floorPlanImage);
+        await FloorPlanService.saveFloorPlan({
+          eventCode: newEvent.eventCode,
+          floorPlanImageUrl: uploadedFloorPlanImage,
+        });
+      }
 
-      // Create POCs sequentially
       for (const point of checkInPoints) {
-        try {
-          await PocService.createPoc(newEvent.eventCode, point);
-        } catch (error) {
-          setError(
-            `Failed to create POC: ${point.pointCode}. Please try again.`
-          );
-        }
+        await PocService.createPoc(newEvent.eventCode, point);
       }
 
       setIsLoading(false);
-
       router.push("/admin/events");
     } catch (error) {
       setError("Failed to create event. Please try again.");
@@ -125,9 +123,12 @@ export default function CreateEventPage() {
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFloorPlanUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setFloorPlanImage(file);
 
     // Create preview
     const reader = new FileReader();
@@ -135,6 +136,33 @@ export default function CreateEventPage() {
       setFloorPlanImageUrl(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleEventImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (eventImageUrls.length + files.length > 3) {
+      alert("You can only upload up to 3 images");
+      return;
+    }
+    setEventImages(files);
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEventImageUrls((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeEventImage = (index: number) => {
+    setEventImageUrls((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleEventImagesClick = () => {
+    if (uploadEventImages.current) {
+      uploadEventImages.current.click();
+    }
   };
 
   if (isLoading) {
@@ -183,17 +211,53 @@ export default function CreateEventPage() {
               {...register("endTime")}
               error={errors.endTime?.message}
             />
+
+            <Input
+              label="Venue Name"
+              type="text"
+              {...register("venueName")}
+              error={errors.venueName?.message}
+              placeholder="Event Center"
+            />
+
+            <Input
+              label="Venue Address"
+              type="text"
+              {...register("venueAddress")}
+              error={errors.venueAddress?.message}
+              placeholder="123 Main Street, Anytown, USA"
+            />
+            <Input
+              label="Capacity"
+              type="number"
+              min={0}
+              {...(register("capacity"), { valueAsNumber: true })}
+              error={errors.capacity?.message}
+              placeholder="100"
+            ></Input>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
+              Description
             </label>
             <textarea
-              // {...register('notes')}
+              {...register("eventDescription")}
               rows={4}
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
               placeholder="Add any additional notes about the event"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Terms and Conditions
+            </label>
+            <textarea
+              {...register("termsConditions")}
+              rows={4}
+              className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              placeholder="Add any terms and conditions for the event"
             />
           </div>
 
@@ -209,7 +273,7 @@ export default function CreateEventPage() {
               accept="image/*"
               className="hidden"
               ref={uploadFloorPlan}
-              onChange={handleFileChange}
+              onChange={handleFloorPlanUpload}
             />
             {floorPlanImageUrl ? (
               <div className="mt-2 relative">
@@ -237,6 +301,54 @@ export default function CreateEventPage() {
                 Upload
               </button>
             )}
+          </div>
+
+          {/* Upload event images section */}
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">Event Images</h2>
+            <p className="text-sm text-gray-500 mb-2">
+              Upload up to 3 images for the event.
+            </p>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              ref={uploadEventImages}
+              onChange={handleEventImagesUpload}
+            />
+
+            <div className="mt-2 space-y-4">
+              <div className="flex flex-wrap gap-4">
+                {eventImageUrls.map((image, index) => (
+                  <div key={index} className="relative">
+                    <Image
+                      src={image}
+                      alt={`Event image ${index + 1}`}
+                      width={200}
+                      height={150}
+                      className="rounded-md object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeEventImage(index)}
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 focus:outline-none"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {eventImageUrls.length < 3 && (
+                <button
+                  type="button"
+                  className="w-30 inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  onClick={handleEventImagesClick}
+                >
+                  Upload Images
+                </button>
+              )}
+            </div>
           </div>
 
           <div>

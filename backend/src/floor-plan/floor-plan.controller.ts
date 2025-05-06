@@ -9,6 +9,7 @@ import {
   Param,
   Res,
   Body,
+  ParseFilePipeBuilder,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -39,8 +40,18 @@ export class FloorPlanController {
     type: String,
   })
   @UseInterceptors(FileInterceptor('image'))
-  uploadImage(@UploadedFile() image: Express.Multer.File): Promise<string> {
-    return this.floorPlanService.uploadFloorPlanImage(image);
+  uploadImage(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
+        .addFileTypeValidator({ fileType: 'image/*' })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    image: Express.Multer.File,
+  ): string {
+    return image.filename;
   }
 
   @Post()

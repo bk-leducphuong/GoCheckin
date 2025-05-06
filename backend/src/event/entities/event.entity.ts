@@ -68,6 +68,9 @@ export class Event {
   @Column({ name: 'terms_conditions', type: 'text', nullable: true })
   termsConditions: string;
 
+  @Column('simple-array', { name: 'images', nullable: true })
+  images: string[];
+
   @Column({ default: true })
   enabled: boolean;
 

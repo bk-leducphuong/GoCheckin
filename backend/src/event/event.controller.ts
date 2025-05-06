@@ -7,6 +7,10 @@ import {
   Param,
   UseGuards,
   Delete,
+  UseInterceptors,
+  UploadedFiles,
+  ParseFilePipeBuilder,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -17,6 +21,7 @@ import { UserRole } from '../account/entities/account.entity';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -66,5 +71,22 @@ export class EventController {
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   async deleteEvent(@Param('eventCode') eventCode: string) {
     return this.eventService.remove(eventCode);
+  }
+
+  @Post(':eventCode/images/upload')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @UseInterceptors(FilesInterceptor('images'))
+  uploadEventImages(
+    @UploadedFiles(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
+        .addFileTypeValidator({ fileType: 'image/*' })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    images: Array<Express.Multer.File>,
+  ) {
+    return images.map((image) => image.filename);
   }
 }

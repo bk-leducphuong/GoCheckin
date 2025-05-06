@@ -6,6 +6,7 @@ import {
   IsDate,
   IsNumber,
   IsBoolean,
+  IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EventStatus } from '../entities/event.entity';
@@ -56,6 +57,10 @@ export class CreateEventDto {
   @IsString()
   @IsOptional()
   termsConditions?: string;
+
+  @IsArray()
+  @IsOptional()
+  images?: string[];
 
   @IsBoolean()
   @IsOptional()
