@@ -77,6 +77,7 @@ export class EventController {
   @Roles(UserRole.ADMIN, UserRole.TENANT)
   @UseInterceptors(FilesInterceptor('images'))
   uploadEventImages(
+    @Param('eventCode') eventCode: string,
     @UploadedFiles(
       new ParseFilePipeBuilder()
         .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
@@ -87,6 +88,12 @@ export class EventController {
     )
     images: Array<Express.Multer.File>,
   ) {
-    return images.map((image) => image.filename);
+    return this.eventService.uploadEventImages(eventCode, images);
+  }
+
+  @Get(':eventCode/images')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  async getEventImages(@Param('eventCode') eventCode: string) {
+    return await this.eventService.getEventImages(eventCode);
   }
 }

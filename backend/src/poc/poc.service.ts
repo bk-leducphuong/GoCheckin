@@ -10,7 +10,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PointOfCheckin } from './entities/poc.entity';
 import { CreatePocDto } from './dto/create-poc.dto';
-// import { UpdatePocDto } from './dto/update-poc.dto';
 import { EventService } from 'src/event/event.service';
 import { UpdatePocDto } from './dto/update-poc.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
@@ -31,6 +30,7 @@ export class PocService {
     @Inject(forwardRef(() => EventService))
     private eventService: EventService,
     private accountService: AccountService,
+    @Inject(forwardRef(() => FloorPlanService))
     private floorPlanService: FloorPlanService,
   ) {}
 
@@ -223,5 +223,9 @@ export class PocService {
     return this.pocLocationRepository.find({
       where: { floorPlanId: floorPlan.floorPlanId },
     });
+  }
+
+  async removePocLocations(floorPlanId: string) {
+    await this.pocLocationRepository.delete({ floorPlanId });
   }
 }

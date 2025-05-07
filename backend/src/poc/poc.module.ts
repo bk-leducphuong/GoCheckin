@@ -7,12 +7,13 @@ import { EventModule } from 'src/event/event.module';
 import { AccountModule } from 'src/account/account.module';
 import { PocLocation } from './entities/poc-location.entity';
 import { FloorPlanModule } from 'src/floor-plan/floor-plan.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([PointOfCheckin, PocLocation]),
     forwardRef(() => EventModule),
     AccountModule,
-    FloorPlanModule,
+    forwardRef(() => FloorPlanModule),
   ],
   controllers: [PocController],
   providers: [PocService],

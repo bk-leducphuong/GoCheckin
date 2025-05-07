@@ -7,7 +7,6 @@ import {
   Post,
   Get,
   Param,
-  Res,
   Body,
   ParseFilePipeBuilder,
 } from '@nestjs/common';
@@ -18,7 +17,6 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { FloorPlanService } from './floor-plan.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
 import { FloorPlanDto } from './dto/floor-plan.dto';
 
 @Controller('floor-plan')
@@ -29,7 +27,7 @@ export class FloorPlanController {
     // Constructor logic if needed
   }
 
-  @Post('upload')
+  @Post(':eventCode/upload')
   @ApiOperation({
     summary: 'Upload Floor Plan Image',
     description: 'Upload a floor plan image to the server',
@@ -41,6 +39,7 @@ export class FloorPlanController {
   })
   @UseInterceptors(FileInterceptor('image'))
   uploadImage(
+    @Param('eventCode') eventCode: string,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
@@ -50,8 +49,8 @@ export class FloorPlanController {
         }),
     )
     image: Express.Multer.File,
-  ): string {
-    return image.filename;
+  ) {
+    return this.floorPlanService.uploadFloorPlan(eventCode, image);
   }
 
   @Post()
@@ -77,22 +76,7 @@ export class FloorPlanController {
     description: 'Image retrieved successfully',
     type: String,
   })
-  async getFloorPlanImage(
-    @Param('eventCode') eventCode: string,
-    @Res() res: Response,
-  ) {
-    const floorPlanImage =
-      await this.floorPlanService.getFloorPlanImage(eventCode);
-    res.sendFile(
-      floorPlanImage,
-      {
-        headers: {
-          'Cache-Control': 'public, max-age=86400',
-        },
-      },
-      (err) => {
-        console.error(err);
-      },
-    );
+  async getFloorPlanImage(@Param('eventCode') eventCode: string) {
+    return await this.floorPlanService.getFloorPlanImage(eventCode);
   }
 }

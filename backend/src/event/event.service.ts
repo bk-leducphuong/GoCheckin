@@ -17,6 +17,7 @@ import { EventStatus } from './entities/event.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { FloorPlanService } from '../floor-plan/floor-plan.service';
 import { PocService } from 'src/poc/poc.service';
+import { S3Service } from '../common/services/s3.service';
 
 @Injectable()
 export class EventService {
@@ -28,6 +29,7 @@ export class EventService {
     private readonly floorPlanService: FloorPlanService,
     @Inject(forwardRef(() => PocService))
     private readonly pocService: PocService,
+    private readonly s3Service: S3Service,
   ) {}
 
   private readonly logger = new Logger('EventService');
@@ -115,8 +117,8 @@ export class EventService {
         `Event with event code ${eventCode} not found`,
       );
     }
-    await this.floorPlanService.removeFloorPlan(eventCode);
-    await this.pocService.removeAllPocs(eventCode);
+    await this.floorPlanService.removeFloorPlan(eventCode); // hard delete
+    await this.pocService.removeAllPocs(eventCode); // hard delete
     await this.eventRepository.remove(event);
   }
 
@@ -147,5 +149,48 @@ export class EventService {
     }
 
     await this.eventRepository.save(events);
+  }
+
+  async uploadEventImages(
+    eventCode: string,
+    images: Array<Express.Multer.File>,
+  ): Promise<string[]> {
+    try {
+      const event = await this.findOne(eventCode);
+      if (!event) {
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
+      }
+
+      const uploadedImages: Array<string> = [];
+
+      for (const image of images) {
+        const key = await this.s3Service.uploadFile(
+          image,
+          `events/${eventCode}`,
+        );
+        uploadedImages.push(key);
+      }
+
+      // Save the S3 keys to the event
+      event.images = [...(event.images || []), ...uploadedImages];
+      await this.eventRepository.save(event);
+
+      // Return array of URLs if needed
+      return uploadedImages.map((key) => this.s3Service.getFileUrl(key));
+    } catch (error) {
+      console.error('Error uploading event images:', error);
+      throw new BadRequestException('Failed to upload event images');
+    }
+  }
+
+  // Update getEventImages to use S3
+  async getEventImages(eventCode: string): Promise<string[]> {
+    const event = await this.findOne(eventCode);
+    if (!event) {
+      throw new NotFoundException(`Event with code ${eventCode} not found`);
+    }
+
+    const images = event.images || [];
+    return images.map((key) => this.s3Service.getFileUrl(key));
   }
 }

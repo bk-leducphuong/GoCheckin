@@ -16,6 +16,7 @@ import { FloorPlanService } from "@/services/floor-plan.service";
 import { EventService } from "@/services/event.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
+import { compressImage } from "@/utils/imageCompression";
 
 // Event creation validation schema
 const eventSchema = z.object({
@@ -84,20 +85,18 @@ export default function CreateEventPage() {
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     try {
-      if (eventImages.length > 0) {
-        const uploadedEventImages = await EventService.uploadEventImages(
-          data.eventCode,
-          eventImages
-        );
-        if (uploadedEventImages.length > 0) {
-          data.images = uploadedEventImages;
-        }
-      }
       const newEvent = await createEvent(data);
+
+      if (eventImages.length > 0) {
+        await EventService.uploadEventImages(newEvent.eventCode, eventImages);
+      }
 
       if (floorPlanImage) {
         const uploadedFloorPlanImage =
-          await FloorPlanService.uploadFloorPlanImage(floorPlanImage);
+          await FloorPlanService.uploadFloorPlanImage(
+            newEvent.eventCode,
+            floorPlanImage
+          );
         await FloorPlanService.saveFloorPlan({
           eventCode: newEvent.eventCode,
           floorPlanImageUrl: uploadedFloorPlanImage,
@@ -105,7 +104,9 @@ export default function CreateEventPage() {
       }
 
       for (const point of checkInPoints) {
-        await PocService.createPoc(newEvent.eventCode, point);
+        if (point.pointCode && point.pointName) {
+          await PocService.createPoc(newEvent.eventCode, point);
+        }
       }
 
       setIsLoading(false);
@@ -138,13 +139,35 @@ export default function CreateEventPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleEventImagesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEventImagesUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const files = Array.from(e.target.files || []);
+
+    // Add file size validation
+    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      alert("Some files exceed the 5MB limit");
+      return;
+    }
+
+    // Add file type validation
+    const invalidFiles = files.filter((file) => !file.type.match(/^image\//));
+    if (invalidFiles.length > 0) {
+      alert("Only image files are allowed");
+      return;
+    }
+
     if (eventImageUrls.length + files.length > 3) {
       alert("You can only upload up to 3 images");
       return;
     }
-    setEventImages(files);
+
+    const compressedFiles = await Promise.all(
+      files.map((file) => compressImage(file, 2)) // Compress to 2MB max
+    );
+
+    setEventImages((prevImages) => [...prevImages, ...compressedFiles]);
 
     files.forEach((file) => {
       const reader = new FileReader();
@@ -307,7 +330,8 @@ export default function CreateEventPage() {
           <div>
             <h2 className="text-lg font-medium text-gray-900">Event Images</h2>
             <p className="text-sm text-gray-500 mb-2">
-              Upload up to 3 images for the event.
+              Upload up to 3 images for the event (max 5MB each, will be stored
+              in S3).
             </p>
             <input
               type="file"

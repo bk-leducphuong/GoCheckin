@@ -184,7 +184,10 @@ export default function FloorPlanPage() {
     try {
       if (newFloorPlanImage && isFloorPlanChanged) {
         const uploadedFloorPlanImage =
-          await FloorPlanService.uploadFloorPlanImage(newFloorPlanImage);
+          await FloorPlanService.uploadFloorPlanImage(
+            params.eventCode as string,
+            newFloorPlanImage
+          );
         await FloorPlanService.saveFloorPlan({
           eventCode: params.eventCode as string,
           floorPlanImageUrl: uploadedFloorPlanImage,

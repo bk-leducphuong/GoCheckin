@@ -28,6 +28,11 @@ export const EventService = {
         },
       }
     );
+    return response.data.data; // Image Url Array
+  },
+
+  async getEventImages(eventCode: string) {
+    const response = await api.get(`${eventCode}/images`);
     return response.data.data;
   },
 
