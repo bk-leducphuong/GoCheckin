@@ -3,6 +3,7 @@ import { persist, createJSONStorage, devtools } from "zustand/middleware";
 import { AuthService } from "@/services/auth.service";
 import { AdminRegisterData, PocRegisterData } from "@/types/auth";
 import { UserRole } from "@/types/user";
+import { ApiError } from "@/lib/error";
 
 interface AuthState {
   accessToken: string | null;
@@ -25,6 +26,7 @@ interface AuthState {
   clearAuth: () => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   verifyAccessToken: (role: UserRole) => Promise<void>;
+  refreshAccessToken: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -133,32 +135,40 @@ export const useAuthStore = create<AuthState>()(
         setTokens: (accessToken: string, refreshToken: string) => {
           set({ accessToken, refreshToken });
         },
+        refreshAccessToken: async () => {
+          const { refreshToken } = get();
+          if (refreshToken) {
+            const response = await AuthService.refreshAccessToken(refreshToken);
+            set({
+              accessToken: response.accessToken,
+              isAuthenticated: true,
+            });
+          }
+        },
 
         verifyAccessToken: async (role: UserRole, deviceInfo?: string) => {
-          const { accessToken, refreshToken } = get();
-          if (accessToken) {
-            const isValid = await AuthService.verifyAccessToken(role);
-            if (isValid) {
-              set({
-                isAuthenticated: true,
-              });
-              return;
-            } else {
-              if (refreshToken) {
-                const response = await AuthService.refreshAccessToken(
-                  refreshToken,
-                  deviceInfo
-                );
-
+          try {
+            const { accessToken } = get();
+            if (accessToken) {
+              const isValid = await AuthService.verifyAccessToken(role);
+              if (isValid) {
                 set({
-                  accessToken: response.accessToken,
                   isAuthenticated: true,
                 });
-                return;
+              } else {
+                get().refreshAccessToken();
               }
+            } else {
+              get().clearAuth();
+            }
+          } catch (error) {
+            if (error instanceof ApiError && error.isAuthError()) {
+              // Try to refresh access token
+              get().refreshAccessToken();
+            } else {
+              get().clearAuth();
             }
           }
-          get().clearAuth();
         },
       }),
       {

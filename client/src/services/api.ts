@@ -34,7 +34,7 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     let errorMessage: string = "An error occurred";
     if (error.response) {
-      errorMessage = error.response.data.message;
+      errorMessage = (error.response.data as { message: string }).message;
     }
 
     throw new ApiError(errorMessage, error.response?.status || 500);
