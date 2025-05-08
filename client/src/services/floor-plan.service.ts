@@ -26,7 +26,7 @@ export const FloorPlanService = {
     return response.data.data;
   },
 
-  async getFloorPlanImage(eventCode: string): Promise<Blob> {
+  async getFloorPlanImage(eventCode: string): Promise<string> {
     const response = await api.get(`/floor-plan/${eventCode}`);
     return response.data.data; // Url to image stored in S3
   },

@@ -254,7 +254,7 @@ export default function CreateEventPage() {
               label="Capacity"
               type="number"
               min={0}
-              {...(register("capacity"), { valueAsNumber: true })}
+              {...register("capacity", { valueAsNumber: true })}
               error={errors.capacity?.message}
               placeholder="100"
             ></Input>

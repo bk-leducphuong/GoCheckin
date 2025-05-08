@@ -36,7 +36,7 @@ export class FloorPlanService {
       image,
       `floor-plans/${eventCode}`,
     );
-    return this.s3Service.getFileUrl(key);
+    return key;
   }
 
   async saveFloorPlan(floorPlanDto: FloorPlanDto) {

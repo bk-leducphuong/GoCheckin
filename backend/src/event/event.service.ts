@@ -176,7 +176,7 @@ export class EventService {
       await this.eventRepository.save(event);
 
       // Return array of URLs if needed
-      return uploadedImages.map((key) => this.s3Service.getFileUrl(key));
+      return uploadedImages;
     } catch (error) {
       console.error('Error uploading event images:', error);
       throw new BadRequestException('Failed to upload event images');
@@ -190,7 +190,6 @@ export class EventService {
       throw new NotFoundException(`Event with code ${eventCode} not found`);
     }
 
-    const images = event.images || [];
-    return images.map((key) => this.s3Service.getFileUrl(key));
+    return event.images.map((key) => this.s3Service.getFileUrl(key));
   }
 }

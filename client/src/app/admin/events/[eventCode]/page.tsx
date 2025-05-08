@@ -46,8 +46,6 @@ export default function EventDetailsPage() {
     []
   );
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
-  const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>();
-
   const [deleteEvent, setDeleteEvent] = useState<boolean>(false);
 
   const { selectedEvent, updateEvent, getEventByCode, setSelectedEvent } =
@@ -68,14 +66,12 @@ export default function EventDetailsPage() {
     }))
   );
 
-  const { floorPlanImage, getFloorPlanImage, eventCodeFromFloorPlan } =
-    useFloorPlanStore(
-      useShallow((state) => ({
-        floorPlanImage: state.floorPlanImage,
-        eventCodeFromFloorPlan: state.eventCode,
-        getFloorPlanImage: state.getFloorPlanImage,
-      }))
-    );
+  const { floorPlanImageUrl, getFloorPlanImage } = useFloorPlanStore(
+    useShallow((state) => ({
+      floorPlanImageUrl: state.floorPlanImageUrl,
+      getFloorPlanImage: state.getFloorPlanImage,
+    }))
+  );
 
   const {
     register,
@@ -133,17 +129,9 @@ export default function EventDetailsPage() {
 
   // Get floor plan image
   useEffect(() => {
-    let imageUrl: string;
-
     const getFloorPlanImageUrl = async () => {
       try {
         await getFloorPlanImage(params.eventCode as string);
-
-        if (floorPlanImage && eventCodeFromFloorPlan === params.eventCode) {
-          const blob = new Blob([floorPlanImage], { type: "image/jpeg" });
-          imageUrl = URL.createObjectURL(blob);
-          setFloorPlanImageUrl(imageUrl);
-        }
       } catch (error) {
         console.error("Error loading floor plan:", error);
         setError("Failed to load floor plan image");
@@ -151,19 +139,7 @@ export default function EventDetailsPage() {
     };
 
     getFloorPlanImageUrl();
-
-    // Cleanup function to revoke the Blob URL
-    return () => {
-      if (imageUrl) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-  }, [
-    params.eventCode,
-    getFloorPlanImage,
-    floorPlanImage,
-    eventCodeFromFloorPlan,
-  ]);
+  }, [params.eventCode, getFloorPlanImage]);
 
   useEffect(() => {
     const getPocs = async () => {

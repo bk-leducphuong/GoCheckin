@@ -4,36 +4,39 @@ import { FloorPlanService } from "@/services/floor-plan.service";
 import { ApiError } from "@/lib/error";
 
 interface FloorPlanStore {
-  floorPlanImage: Blob | null;
+  floorPlanImageUrl: string | null;
   eventCode: string | null;
-  getFloorPlanImage: (eventCode: string) => Promise<Blob | null>;
+  setFloorPlanImageUrl: (floorPlanImageUrl: string) => void;
+  getFloorPlanImage: (eventCode: string) => Promise<string | null>;
 }
 
 export const useFloorPlanStore = create<FloorPlanStore>()(
   devtools(
     (set, get) => ({
-      floorPlanImage: null,
+      floorPlanImageUrl: null,
       eventCode: null,
+      setFloorPlanImageUrl: (floorPlanImageUrl: string) => {
+        set({ floorPlanImageUrl: floorPlanImageUrl });
+      },
       getFloorPlanImage: async (eventCode: string) => {
         const currentState = get();
         if (
-          currentState.floorPlanImage &&
+          currentState.floorPlanImageUrl &&
           currentState.eventCode === eventCode
         ) {
-          return currentState.floorPlanImage;
+          return currentState.floorPlanImageUrl;
         }
 
         try {
-          console.log("Fetching floor plan image for event code:", eventCode);
           const response = await FloorPlanService.getFloorPlanImage(eventCode);
           set({
-            floorPlanImage: response,
+            floorPlanImageUrl: response,
             eventCode: eventCode,
           });
           return response;
         } catch (error) {
           if (error instanceof ApiError && error.isNotFound()) {
-            set({ floorPlanImage: null, eventCode: null });
+            set({ floorPlanImageUrl: null, eventCode: null });
             return null;
           }
           throw error;

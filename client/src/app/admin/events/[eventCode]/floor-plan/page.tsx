@@ -18,9 +18,6 @@ export default function FloorPlanPage() {
   const params = useParams();
   const uploadFloorPlan = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>(
-    null
-  );
   const [newFloorPlanImage, setNewFloorPlanImage] = useState<File | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<string | null>(null);
   const [markedPoints, setMarkedPoints] = useState<{
@@ -38,12 +35,12 @@ export default function FloorPlanPage() {
     }))
   );
 
-  const { floorPlanImage, eventCodeFromFloorPlan, getFloorPlanImage } =
+  const { floorPlanImageUrl, getFloorPlanImage, setFloorPlanImageUrl } =
     useFloorPlanStore(
       useShallow((state) => ({
-        eventCodeFromFloorPlan: state.eventCode,
-        floorPlanImage: state.floorPlanImage,
+        floorPlanImageUrl: state.floorPlanImageUrl,
         getFloorPlanImage: state.getFloorPlanImage,
+        setFloorPlanImageUrl: state.setFloorPlanImageUrl,
       }))
     );
 
@@ -70,17 +67,9 @@ export default function FloorPlanPage() {
 
   // Get floor plan image
   useEffect(() => {
-    let imageUrl: string;
-
     const getFloorPlanImageUrl = async () => {
       try {
         await getFloorPlanImage(params.eventCode as string);
-
-        if (floorPlanImage && eventCodeFromFloorPlan === params.eventCode) {
-          const blob = new Blob([floorPlanImage], { type: "image/jpeg" });
-          imageUrl = URL.createObjectURL(blob);
-          setFloorPlanImageUrl(imageUrl);
-        }
       } catch (error) {
         console.error("Error loading floor plan:", error);
         setError("Failed to load floor plan image");
@@ -88,19 +77,7 @@ export default function FloorPlanPage() {
     };
 
     getFloorPlanImageUrl();
-
-    // Cleanup function to revoke the Blob URL
-    return () => {
-      if (imageUrl) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-  }, [
-    params.eventCode,
-    getFloorPlanImage,
-    floorPlanImage,
-    eventCodeFromFloorPlan,
-  ]);
+  }, [params.eventCode, getFloorPlanImage]);
 
   useEffect(() => {
     const getPocs = async () => {
@@ -325,7 +302,7 @@ export default function FloorPlanPage() {
               )}
             </div>
 
-            {floorPlanImage && (
+            {floorPlanImageUrl && (
               <div className="mt-4">
                 <Button onClick={handleUploadClick} variant="outline">
                   Replace Floor Plan
