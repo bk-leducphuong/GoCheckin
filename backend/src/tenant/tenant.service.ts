@@ -16,45 +16,64 @@ export class TenantService {
   ) {}
 
   async createTenant(createTenantDto: CreateTenantDto): Promise<Tenant> {
-    const isTenantCodeExist = await this.findByCode(createTenantDto.tenantCode);
-    if (isTenantCodeExist) {
-      throw new ConflictException(
-        `Tenant with code ${createTenantDto.tenantCode} already exists`,
+    try {
+      const isTenantCodeExist = await this.findByCode(
+        createTenantDto.tenantCode,
       );
-    }
+      if (isTenantCodeExist) {
+        throw new ConflictException(
+          `Tenant with code ${createTenantDto.tenantCode} already exists`,
+        );
+      }
 
-    const isTenantNameExist = await this.findByName(createTenantDto.tenantName);
-    if (isTenantNameExist) {
-      throw new ConflictException(
-        `Tenant with name ${createTenantDto.tenantName} already exists`,
+      const isTenantNameExist = await this.findByName(
+        createTenantDto.tenantName,
       );
-    }
+      if (isTenantNameExist) {
+        throw new ConflictException(
+          `Tenant with name ${createTenantDto.tenantName} already exists`,
+        );
+      }
 
-    const newTenant = this.tenantRepository.create(createTenantDto);
-    return this.tenantRepository.save(newTenant);
+      const newTenant = this.tenantRepository.create(createTenantDto);
+      return this.tenantRepository.save(newTenant);
+    } catch (error) {
+      console.error('Error creating tenant:', error);
+      throw error;
+    }
   }
 
   async findByCode(code: string): Promise<Tenant> {
-    const tenant = await this.tenantRepository.findOne({
-      where: { tenantCode: code },
-    });
+    try {
+      const tenant = await this.tenantRepository.findOne({
+        where: { tenantCode: code },
+      });
 
-    if (!tenant) {
-      throw new NotFoundException(`Tenant with code ${code} not found`);
+      if (!tenant) {
+        throw new NotFoundException(`Tenant with code ${code} not found`);
+      }
+
+      return tenant;
+    } catch (error) {
+      console.error('Error finding tenant by code:', error);
+      throw error;
     }
-
-    return tenant;
   }
 
   async findByName(name: string): Promise<Tenant> {
-    const tenant = await this.tenantRepository.findOne({
-      where: { tenantName: name },
-    });
+    try {
+      const tenant = await this.tenantRepository.findOne({
+        where: { tenantName: name },
+      });
 
-    if (!tenant) {
-      throw new NotFoundException(`Tenant with name ${name} not found`);
+      if (!tenant) {
+        throw new NotFoundException(`Tenant with name ${name} not found`);
+      }
+
+      return tenant;
+    } catch (error) {
+      console.error('Error finding tenant by name:', error);
+      throw error;
     }
-
-    return tenant;
   }
 }

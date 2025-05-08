@@ -38,146 +38,196 @@ export class PocService {
     eventCode: string,
     createPocDto: CreatePocDto,
   ): Promise<PointOfCheckin> {
-    // Check if POC with the same code already exists
-    const existingPoc = await this.pocRepository.findOne({
-      where: {
-        pointCode: createPocDto.pointCode,
+    try {
+      // Check if POC with the same code already exists
+      const existingPoc = await this.pocRepository.findOne({
+        where: {
+          pointCode: createPocDto.pointCode,
+          eventCode: eventCode,
+        },
+      });
+
+      if (existingPoc) {
+        throw new ConflictException(
+          `Point of Check-in with code ${createPocDto.pointCode} already exists`,
+        );
+      }
+
+      const isEventCodeValid =
+        await this.eventService.validateEventCode(eventCode);
+      if (!isEventCodeValid) {
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
+      }
+
+      const newPoc = this.pocRepository.create({
+        ...createPocDto,
         eventCode: eventCode,
-      },
-    });
-
-    if (existingPoc) {
-      throw new ConflictException(
-        `Point of Check-in with code ${createPocDto.pointCode} already exists`,
-      );
+      });
+      return this.pocRepository.save(newPoc);
+    } catch (error) {
+      console.error('Error creating POC:', error);
+      throw error;
     }
-
-    const isEventCodeValid =
-      await this.eventService.validateEventCode(eventCode);
-    if (!isEventCodeValid) {
-      throw new NotFoundException(`Event with code ${eventCode} not found`);
-    }
-
-    const newPoc = this.pocRepository.create({
-      ...createPocDto,
-      eventCode: eventCode,
-    });
-    return this.pocRepository.save(newPoc);
   }
 
   async validatePointCode(
     eventCode: string,
     pointCode: string,
   ): Promise<boolean> {
-    const poc = await this.pocRepository.findOne({
-      where: { eventCode, pointCode, enabled: true },
-      relations: ['account', 'event'],
-    });
-    return !!poc;
+    try {
+      const poc = await this.pocRepository.findOne({
+        where: { eventCode, pointCode, enabled: true },
+        relations: ['account', 'event'],
+      });
+      return !!poc;
+    } catch (error) {
+      console.error('Error validating point code:', error);
+      throw error;
+    }
   }
 
   async getAllPocs(eventCode: string): Promise<PointOfCheckin[]> {
-    return this.pocRepository.find({
-      where: { eventCode, enabled: true },
-      relations: ['account'],
-    });
+    try {
+      return this.pocRepository.find({
+        where: { eventCode, enabled: true },
+        relations: ['account'],
+      });
+    } catch (error) {
+      console.error('Error getting all POCs:', error);
+      throw error;
+    }
   }
 
   async getPocByPocId(pocId: string): Promise<PointOfCheckin> {
-    const poc = await this.pocRepository.findOne({
-      where: { pocId, enabled: true },
-      relations: ['account', 'event'],
-    });
+    try {
+      const poc = await this.pocRepository.findOne({
+        where: { pocId, enabled: true },
+        relations: ['account', 'event'],
+      });
 
-    if (!poc) {
-      throw new NotFoundException(
-        `Point of Check-in with ID ${pocId} not found`,
-      );
+      if (!poc) {
+        throw new NotFoundException(
+          `Point of Check-in with ID ${pocId} not found`,
+        );
+      }
+
+      return poc;
+    } catch (error) {
+      console.error('Error getting POC by POC ID:', error);
+      throw error;
     }
-
-    return poc;
   }
 
   async getPocByPocCode(
     eventCode: string,
     pointCode: string,
   ): Promise<PointOfCheckin> {
-    const poc = await this.pocRepository.findOne({
-      where: { eventCode, pointCode },
-    });
+    try {
+      const poc = await this.pocRepository.findOne({
+        where: { eventCode, pointCode },
+      });
 
-    if (!poc) {
-      throw new NotFoundException(
-        `Point of Check-in with code ${pointCode} not found`,
-      );
+      if (!poc) {
+        throw new NotFoundException(
+          `Point of Check-in with code ${pointCode} not found`,
+        );
+      }
+
+      return poc;
+    } catch (error) {
+      console.error('Error getting POC by POC code:', error);
+      throw error;
     }
-
-    return poc;
   }
 
   async getPocByUserId(userId: string): Promise<PointOfCheckin> {
-    const poc = await this.pocRepository.findOne({
-      where: { userId, enabled: true },
-    });
+    try {
+      const poc = await this.pocRepository.findOne({
+        where: { userId, enabled: true },
+      });
 
-    if (!poc) {
-      throw new NotFoundException(
-        `Point of Check-in with user ID ${userId} not found`,
-      );
+      if (!poc) {
+        throw new NotFoundException(
+          `Point of Check-in with user ID ${userId} not found`,
+        );
+      }
+      return poc;
+    } catch (error) {
+      console.error('Error getting POC by user ID:', error);
+      throw error;
     }
-    return poc;
   }
 
   async update(
     pocId: string,
     updatePocDto: UpdatePocDto,
   ): Promise<PointOfCheckin> {
-    const poc = await this.getPocByPocId(pocId);
-    if (!poc) {
-      throw new NotFoundException(
-        `Point of Check-in with ID ${pocId} not found`,
-      );
-    }
-    // Update POC properties
-    Object.assign(poc, updatePocDto);
+    try {
+      const poc = await this.getPocByPocId(pocId);
+      if (!poc) {
+        throw new NotFoundException(
+          `Point of Check-in with ID ${pocId} not found`,
+        );
+      }
+      // Update POC properties
+      Object.assign(poc, updatePocDto);
 
-    return this.pocRepository.save(poc);
+      return this.pocRepository.save(poc);
+    } catch (error) {
+      console.error('Error updating POC:', error);
+      throw error;
+    }
   }
 
   async remove(id: string): Promise<void> {
-    const poc = await this.getPocByPocId(id);
+    try {
+      const poc = await this.getPocByPocId(id);
 
-    // Soft delete - just set enabled to false
-    poc.enabled = false;
-    await this.pocRepository.save(poc);
+      // Soft delete - just set enabled to false
+      poc.enabled = false;
+      await this.pocRepository.save(poc);
+    } catch (error) {
+      console.error('Error removing POC:', error);
+      throw error;
+    }
   }
 
   async validatePoc(
     user: JwtPayload,
     validatePocDto: ValidatePocDto,
   ): Promise<PointOfCheckin> {
-    const { eventCode, pointCode } = validatePocDto;
-    if (!eventCode || !pointCode) {
-      throw new BadRequestException('Event code and point code are required');
-    }
-    const userId = user.userId;
+    try {
+      const { eventCode, pointCode } = validatePocDto;
+      if (!eventCode || !pointCode) {
+        throw new BadRequestException('Event code and point code are required');
+      }
+      const userId = user.userId;
 
-    const poc = await this.pocRepository.findOne({
-      where: { userId, eventCode, pointCode, enabled: true },
-    });
-    if (!poc) {
-      throw new NotFoundException('Not found poc!');
-    }
+      const poc = await this.pocRepository.findOne({
+        where: { userId, eventCode, pointCode, enabled: true },
+      });
+      if (!poc) {
+        throw new NotFoundException('Not found poc!');
+      }
 
-    return poc;
+      return poc;
+    } catch (error) {
+      console.error('Error validating POC:', error);
+      throw error;
+    }
   }
 
   async getPocManager(userId: string): Promise<PocManagerDto | null> {
-    const pocManager = await this.accountService.findById(userId);
-    if (!pocManager) {
-      return null;
+    try {
+      const pocManager = await this.accountService.findById(userId);
+      if (!pocManager) {
+        return null;
+      }
+      return pocManager;
+    } catch (error) {
+      console.error('Error getting POC manager:', error);
+      throw error;
     }
-    return pocManager;
   }
 
   async updatePocManager(
@@ -185,47 +235,72 @@ export class PocService {
     pointCode: string,
     userId: string,
   ): Promise<void> {
-    await this.pocRepository.update(
-      { eventCode, pointCode },
-      { userId: userId },
-    );
+    try {
+      await this.pocRepository.update(
+        { eventCode, pointCode },
+        { userId: userId },
+      );
+    } catch (error) {
+      console.error('Error updating POC manager:', error);
+      throw error;
+    }
   }
 
   async removeAllPocs(eventCode: string): Promise<void> {
-    await this.pocRepository.delete({ eventCode });
+    try {
+      await this.pocRepository.delete({ eventCode });
+    } catch (error) {
+      console.error('Error removing all POCs:', error);
+      throw error;
+    }
   }
 
   async savePocLocation(pocLocations: PocLocationsDto): Promise<void> {
-    const { eventCode, locations } = pocLocations;
-    const floorPlan =
-      await this.floorPlanService.getFloorPlanByEventCode(eventCode);
-    if (!floorPlan) {
-      throw new NotFoundException(
-        `Floor plan with event code ${eventCode} not found`,
+    try {
+      const { eventCode, locations } = pocLocations;
+      const floorPlan =
+        await this.floorPlanService.getFloorPlanByEventCode(eventCode);
+      if (!floorPlan) {
+        throw new NotFoundException(
+          `Floor plan with event code ${eventCode} not found`,
+        );
+      }
+      await this.pocLocationRepository.save(
+        locations.map((location) => ({
+          ...location,
+          floorPlanId: floorPlan.floorPlanId,
+        })),
       );
+    } catch (error) {
+      console.error('Error saving POC locations:', error);
+      throw error;
     }
-    await this.pocLocationRepository.save(
-      locations.map((location) => ({
-        ...location,
-        floorPlanId: floorPlan.floorPlanId,
-      })),
-    );
   }
 
   async getPocLocations(eventCode: string): Promise<PocLocation[]> {
-    const floorPlan =
-      await this.floorPlanService.getFloorPlanByEventCode(eventCode);
-    if (!floorPlan) {
-      throw new NotFoundException(
-        `Floor plan with event code ${eventCode} not found`,
-      );
+    try {
+      const floorPlan =
+        await this.floorPlanService.getFloorPlanByEventCode(eventCode);
+      if (!floorPlan) {
+        throw new NotFoundException(
+          `Floor plan with event code ${eventCode} not found`,
+        );
+      }
+      return this.pocLocationRepository.find({
+        where: { floorPlanId: floorPlan.floorPlanId },
+      });
+    } catch (error) {
+      console.error('Error getting POC locations:', error);
+      throw error;
     }
-    return this.pocLocationRepository.find({
-      where: { floorPlanId: floorPlan.floorPlanId },
-    });
   }
 
   async removePocLocations(floorPlanId: string) {
-    await this.pocLocationRepository.delete({ floorPlanId });
+    try {
+      await this.pocLocationRepository.delete({ floorPlanId });
+    } catch (error) {
+      console.error('Error removing POC locations:', error);
+      throw error;
+    }
   }
 }

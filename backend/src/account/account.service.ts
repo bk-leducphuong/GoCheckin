@@ -21,114 +21,144 @@ export class AccountService {
   ) {}
 
   async create(createAccountDto: CreateAccountDto): Promise<Account> {
-    const newAccount = this.accountRepository.create(createAccountDto);
-    return this.accountRepository.save(newAccount);
+    try {
+      const newAccount = this.accountRepository.create(createAccountDto);
+      return this.accountRepository.save(newAccount);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async getAccount(userId: string): Promise<AccountDto> {
-    const account = await this.accountRepository.findOne({
-      where: { userId: userId },
-    });
+    try {
+      const account = await this.accountRepository.findOne({
+        where: { userId: userId },
+      });
 
-    if (!account) {
-      throw new NotFoundException('Account not found');
+      if (!account) {
+        throw new NotFoundException('Account not found');
+      }
+
+      return {
+        userId: account.userId,
+        username: account.username,
+        email: account.email,
+        fullName: account.fullName,
+        phoneNumber: account.phoneNumber,
+        active: account.active,
+        role: account.role,
+        companyName: account.companyName,
+        lastLogin: account.lastLogin,
+        enabled: account.enabled,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
-
-    return {
-      userId: account.userId,
-      username: account.username,
-      email: account.email,
-      fullName: account.fullName,
-      phoneNumber: account.phoneNumber,
-      active: account.active,
-      role: account.role,
-      companyName: account.companyName,
-      lastLogin: account.lastLogin,
-      enabled: account.enabled,
-      createdAt: account.createdAt,
-      updatedAt: account.updatedAt,
-    };
   }
 
   async findByEmail(email: string): Promise<Account> {
-    const account = await this.accountRepository.findOne({
-      where: { email },
-    });
+    try {
+      const account = await this.accountRepository.findOne({
+        where: { email },
+      });
 
-    if (!account) {
-      throw new NotFoundException('Account not found');
+      if (!account) {
+        throw new NotFoundException('Account not found');
+      }
+
+      return account;
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
-
-    return account;
   }
 
   async findById(userId: string): Promise<Account> {
-    const account = await this.accountRepository.findOne({
-      where: { userId },
-    });
+    try {
+      const account = await this.accountRepository.findOne({
+        where: { userId },
+      });
 
-    if (!account) {
-      throw new NotFoundException('Account not found');
+      if (!account) {
+        throw new NotFoundException('Account not found');
+      }
+
+      return account;
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
-
-    return account;
   }
 
   async updateAccount(
     userId: string,
     updateDto: UpdateAccountDto,
   ): Promise<AccountDto> {
-    const account = await this.accountRepository.findOne({
-      where: { userId: userId },
-    });
+    try {
+      const account = await this.accountRepository.findOne({
+        where: { userId: userId },
+      });
 
-    if (!account) {
-      throw new NotFoundException('Account not found');
+      if (!account) {
+        throw new NotFoundException('Account not found');
+      }
+
+      const updateData: Partial<Account> = {};
+      if (updateDto.username) updateData.username = updateDto.username;
+      if (updateDto.email) updateData.email = updateDto.email;
+      if (updateDto.fullName) updateData.fullName = updateDto.fullName;
+      if (updateDto.phoneNumber) updateData.phoneNumber = updateDto.phoneNumber;
+      if (updateDto.companyName) updateData.companyName = updateDto.companyName;
+      if (updateDto.password) updateData.password = updateDto.password;
+
+      await this.accountRepository.update(userId, updateData);
+
+      return {
+        userId: account.userId,
+        username: account.username,
+        email: account.email,
+        fullName: account.fullName,
+        phoneNumber: account.phoneNumber,
+        active: account.active,
+        role: account.role,
+        companyName: account.companyName,
+        lastLogin: account.lastLogin,
+        enabled: account.enabled,
+        createdAt: account.createdAt,
+        updatedAt: account.updatedAt,
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
-
-    const updateData: Partial<Account> = {};
-    if (updateDto.username) updateData.username = updateDto.username;
-    if (updateDto.email) updateData.email = updateDto.email;
-    if (updateDto.fullName) updateData.fullName = updateDto.fullName;
-    if (updateDto.phoneNumber) updateData.phoneNumber = updateDto.phoneNumber;
-    if (updateDto.companyName) updateData.companyName = updateDto.companyName;
-    if (updateDto.password) updateData.password = updateDto.password;
-
-    await this.accountRepository.update(userId, updateData);
-
-    return {
-      userId: account.userId,
-      username: account.username,
-      email: account.email,
-      fullName: account.fullName,
-      phoneNumber: account.phoneNumber,
-      active: account.active,
-      role: account.role,
-      companyName: account.companyName,
-      lastLogin: account.lastLogin,
-      enabled: account.enabled,
-      createdAt: account.createdAt,
-      updatedAt: account.updatedAt,
-    };
   }
 
   async deleteAccount(userId: string): Promise<void> {
-    const account = await this.accountRepository.findOne({
-      where: { userId },
-    });
+    try {
+      const account = await this.accountRepository.findOne({
+        where: { userId },
+      });
 
-    if (!account) {
-      throw new NotFoundException('Account not found');
+      if (!account) {
+        throw new NotFoundException('Account not found');
+      }
+
+      // Soft delete by disabling the account
+      await this.accountRepository.update(userId, {
+        active: false,
+        enabled: false,
+      });
+
+      // If you want to completely remove the account, use this instead:
+      // await this.accountRepository.remove(account);
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
-
-    // Soft delete by disabling the account
-    await this.accountRepository.update(userId, {
-      active: false,
-      enabled: false,
-    });
-
-    // If you want to completely remove the account, use this instead:
-    // await this.accountRepository.remove(account);
   }
 
   async createAccountTenant(userId: string, tenantCode: string) {

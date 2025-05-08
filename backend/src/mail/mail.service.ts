@@ -27,24 +27,30 @@ export class MailService {
       });
     } catch (error) {
       console.log(error);
+      throw error;
     }
   }
 
   async sendPasswordChangedMail(account: AccountDto) {
-    const templatePath = this.configService.get<string>(
-      'PASSWORD_CHANGED_CONFIRMATION_MAIL_PATH',
-    );
-    const subject = 'Your Password Has Been Changed';
-    await this.mailerService.sendMail({
-      to: account.email,
-      subject: subject,
-      template: templatePath,
-      context: {
-        username: account.username,
-        dateTime: new Date().toLocaleString(),
-        supportEmail: 'support@gocheckin.com',
-        companyName: 'GoCheckin',
-      },
-    });
+    try {
+      const templatePath = this.configService.get<string>(
+        'PASSWORD_CHANGED_CONFIRMATION_MAIL_PATH',
+      );
+      const subject = 'Your Password Has Been Changed';
+      await this.mailerService.sendMail({
+        to: account.email,
+        subject: subject,
+        template: templatePath,
+        context: {
+          username: account.username,
+          dateTime: new Date().toLocaleString(),
+          supportEmail: 'support@gocheckin.com',
+          companyName: 'GoCheckin',
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 }

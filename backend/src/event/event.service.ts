@@ -68,98 +68,130 @@ export class EventService {
       return this.eventRepository.save(newEvent);
     } catch (error) {
       console.error('Error creating event:', error);
-      // Handle any errors that occur during the creation process
-      throw new BadRequestException('Failed to create event');
+      throw error;
     }
   }
 
   async findAll(user: JwtPayload): Promise<Event[]> {
-    // get tenant code from user
-    const tenant = await this.accountTenantRepository.findOne({
-      where: { userId: user.userId },
-    });
-    if (!tenant) {
-      throw new NotFoundException('Tenant not found');
-    }
+    try {
+      // get tenant code from user
+      const tenant = await this.accountTenantRepository.findOne({
+        where: { userId: user.userId },
+      });
+      if (!tenant) {
+        throw new NotFoundException('Tenant not found');
+      }
 
-    const events = await this.eventRepository.find({
-      where: { tenantCode: tenant.tenantCode },
-    });
-    return events.map((event) => {
+      const events = await this.eventRepository.find({
+        where: { tenantCode: tenant.tenantCode },
+      });
+      return events.map((event) => {
+        if (event.images) {
+          event.images = event.images.map((key) =>
+            this.s3Service.getFileUrl(key),
+          );
+        }
+        return event;
+      });
+    } catch (error) {
+      console.error('Error finding all events:', error);
+      throw error;
+    }
+  }
+
+  async findOne(eventCode: string): Promise<Event> {
+    try {
+      const event = await this.eventRepository.findOne({
+        where: { eventCode },
+      });
+
+      if (!event) {
+        throw new NotFoundException(`Event with ID ${eventCode} not found`);
+      }
+
       if (event.images) {
         event.images = event.images.map((key) =>
           this.s3Service.getFileUrl(key),
         );
       }
+
       return event;
-    });
-  }
-
-  async findOne(eventCode: string): Promise<Event> {
-    const event = await this.eventRepository.findOne({
-      where: { eventCode },
-    });
-
-    if (!event) {
-      throw new NotFoundException(`Event with ID ${eventCode} not found`);
+    } catch (error) {
+      console.error('Error finding event:', error);
+      throw error;
     }
-
-    return {
-      ...event,
-      images: event.images.map((key) => this.s3Service.getFileUrl(key)),
-    };
   }
 
   async update(
     eventCode: string,
     updateEventDto: UpdateEventDto,
   ): Promise<Event> {
-    const event = await this.findOne(eventCode);
-    // Update the event
-    Object.assign(event, updateEventDto);
-    return this.eventRepository.save(event);
+    try {
+      const event = await this.findOne(eventCode);
+      // Update the event
+      Object.assign(event, updateEventDto);
+      return this.eventRepository.save(event);
+    } catch (error) {
+      console.error('Error updating event:', error);
+      throw error;
+    }
   }
 
   async remove(eventCode: string): Promise<void> {
-    const event = await this.findOne(eventCode);
-    if (!event) {
-      throw new NotFoundException(
-        `Event with event code ${eventCode} not found`,
-      );
+    try {
+      const event = await this.findOne(eventCode);
+      if (!event) {
+        throw new NotFoundException(
+          `Event with event code ${eventCode} not found`,
+        );
+      }
+      await this.floorPlanService.removeFloorPlan(eventCode); // hard delete
+      await this.pocService.removeAllPocs(eventCode); // hard delete
+      await this.deleteEventImages(event.eventCode); // Delete image files
+      await this.eventRepository.delete(event.eventCode);
+    } catch (error) {
+      console.error('Error removing event:', error);
+      throw error;
     }
-    await this.floorPlanService.removeFloorPlan(eventCode); // hard delete
-    await this.pocService.removeAllPocs(eventCode); // hard delete
-    await this.deleteEventImages(event.eventCode); // Delete image files
-    await this.eventRepository.delete(event.eventCode);
   }
 
   async getEventStatus(eventCode: string): Promise<EventStatus> {
-    const event = await this.findOne(eventCode);
-    if (!event) {
-      throw new NotFoundException(`Event with code ${eventCode} not found`);
+    try {
+      const event = await this.findOne(eventCode);
+      if (!event) {
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
+      }
+      return event.eventStatus;
+    } catch (error) {
+      console.error('Error getting event status:', error);
+      throw error;
     }
-    return event.eventStatus;
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
   async updateEventStatus() {
-    const events = await this.eventRepository.find({
-      where: { eventStatus: EventStatus.ACTIVE && EventStatus.PUBLISHED },
-    });
+    try {
+      const events = await this.eventRepository.find({
+        where: { eventStatus: EventStatus.ACTIVE && EventStatus.PUBLISHED },
+      });
 
-    for (const event of events) {
-      const startTime = new Date(event.startTime).getTime();
-      const endTime = new Date(event.endTime).getTime();
-      const now = new Date().getTime();
+      for (const event of events) {
+        const startTime = new Date(event.startTime).getTime();
+        const endTime = new Date(event.endTime).getTime();
+        const now = new Date().getTime();
 
-      if (now >= startTime && now <= endTime) {
-        event.eventStatus = EventStatus.ACTIVE;
-      } else if (now > endTime) {
-        event.eventStatus = EventStatus.COMPLETED;
+        if (now >= startTime && now <= endTime) {
+          event.eventStatus = EventStatus.ACTIVE;
+        } else if (now > endTime) {
+          event.eventStatus = EventStatus.COMPLETED;
+        }
       }
-    }
 
-    await this.eventRepository.save(events);
+      await this.eventRepository.save(events);
+    } catch (error) {
+      console.error('Error updating event status:', error);
+      throw error;
+    }
   }
 
   async uploadEventImages(
@@ -190,32 +222,42 @@ export class EventService {
       return uploadedImages;
     } catch (error) {
       console.error('Error uploading event images:', error);
-      throw new BadRequestException('Failed to upload event images');
+      throw error;
     }
   }
 
   // Update getEventImages to use S3
   async getEventImages(eventCode: string): Promise<string[]> {
-    const event = await this.findOne(eventCode);
-    if (!event) {
-      throw new NotFoundException(`Event with code ${eventCode} not found`);
-    }
+    try {
+      const event = await this.findOne(eventCode);
+      if (!event) {
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
+      }
 
-    return event.images.map((key) => this.s3Service.getFileUrl(key));
+      return event.images.map((key) => this.s3Service.getFileUrl(key));
+    } catch (error) {
+      console.error('Error getting event images:', error);
+      throw error;
+    }
   }
 
   // Delete image files
   async deleteEventImages(eventCode: string) {
-    const event = await this.findOne(eventCode);
-    if (!event) {
-      throw new NotFoundException(`Event with code ${eventCode} not found`);
-    }
+    try {
+      const event = await this.findOne(eventCode);
+      if (!event) {
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
+      }
 
-    for (const imageKey of event.images) {
-      await this.s3Service.deleteFile(imageKey);
-    }
+      for (const imageKey of event.images) {
+        await this.s3Service.deleteFile(imageKey);
+      }
 
-    event.images = [];
-    await this.eventRepository.save(event);
+      event.images = [];
+      await this.eventRepository.save(event);
+    } catch (error) {
+      console.error('Error deleting event images:', error);
+      throw error;
+    }
   }
 }

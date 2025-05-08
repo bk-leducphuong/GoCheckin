@@ -93,71 +93,92 @@ export class GuestService {
     eventCode: string,
     pointCode: string,
   ): Promise<GuestResponse[]> {
-    const checkins = await this.guestCheckinRepository.find({
-      where: { pointCode, eventCode, active: true },
-      order: { checkinTime: 'DESC' },
-    });
+    try {
+      const checkins = await this.guestCheckinRepository.find({
+        where: { pointCode, eventCode, active: true },
+        order: { checkinTime: 'DESC' },
+      });
 
-    const guestResponses = await Promise.all(
-      checkins.map(async (checkin) => {
-        const response = new GuestResponse();
-        const guestDetails = await this.guestRepository.findOne({
-          where: { guestId: checkin.guestId, enabled: true },
-        });
-        if (!guestDetails) return null;
+      const guestResponses = await Promise.all(
+        checkins.map(async (checkin) => {
+          const response = new GuestResponse();
+          const guestDetails = await this.guestRepository.findOne({
+            where: { guestId: checkin.guestId, enabled: true },
+          });
+          if (!guestDetails) return null;
 
-        response.guestInfo = guestDetails;
-        response.checkinInfo = checkin;
-        return response;
-      }),
-    );
+          response.guestInfo = guestDetails;
+          response.checkinInfo = checkin;
+          return response;
+        }),
+      );
 
-    // Filter out null values
-    return guestResponses.filter(
-      (response): response is GuestResponse => response !== null,
-    );
+      // Filter out null values
+      return guestResponses.filter(
+        (response): response is GuestResponse => response !== null,
+      );
+    } catch (error) {
+      console.error('Error getting all guests of POC:', error);
+      throw error;
+    }
   }
 
   async getAllGuestsOfEvent(eventCode: string): Promise<GuestResponse[]> {
-    const checkins = await this.guestCheckinRepository.find({
-      where: { eventCode, active: true },
-      order: { checkinTime: 'DESC' },
-    });
+    try {
+      const checkins = await this.guestCheckinRepository.find({
+        where: { eventCode, active: true },
+        order: { checkinTime: 'DESC' },
+      });
 
-    const guestResponses = await Promise.all(
-      checkins.map(async (checkin) => {
-        const response = new GuestResponse();
-        const guestDetails = await this.guestRepository.findOne({
-          where: { guestId: checkin.guestId, enabled: true },
-        });
-        if (!guestDetails) return null;
+      const guestResponses = await Promise.all(
+        checkins.map(async (checkin) => {
+          const response = new GuestResponse();
+          const guestDetails = await this.guestRepository.findOne({
+            where: { guestId: checkin.guestId, enabled: true },
+          });
+          if (!guestDetails) return null;
 
-        response.guestInfo = guestDetails;
-        response.checkinInfo = checkin;
-        return response;
-      }),
-    );
+          response.guestInfo = guestDetails;
+          response.checkinInfo = checkin;
+          return response;
+        }),
+      );
 
-    return guestResponses.filter(
-      (response): response is GuestResponse => response !== null,
-    );
+      return guestResponses.filter(
+        (response): response is GuestResponse => response !== null,
+      );
+    } catch (error) {
+      console.error('Error getting all guests of event:', error);
+      throw error;
+    }
   }
 
   async findOne(id: string): Promise<Guest> {
-    const guest = await this.guestRepository.findOne({
-      where: { guestId: id, enabled: true },
-      relations: ['checkins', 'checkins.pointOfCheckin'],
-    });
+    try {
+      const guest = await this.guestRepository.findOne({
+        where: { guestId: id, enabled: true },
+        relations: ['checkins', 'checkins.pointOfCheckin'],
+      });
 
-    if (!guest) {
-      throw new NotFoundException(`Guest with ID ${id} not found`);
+      if (!guest) {
+        throw new NotFoundException(`Guest with ID ${id} not found`);
+      }
+
+      return guest;
+    } catch (error) {
+      console.error('Error finding guest by ID:', error);
+      throw error;
     }
-
-    return guest;
   }
+
   async getAllCheckinsByEvent(eventCode: string): Promise<GuestCheckin[]> {
-    return this.guestCheckinRepository.find({
-      where: { eventCode },
-    });
+    try {
+      return this.guestCheckinRepository.find({
+        where: { eventCode },
+      });
+    } catch (error) {
+      console.error('Error getting all checkins by event:', error);
+      throw error;
+    }
   }
 }

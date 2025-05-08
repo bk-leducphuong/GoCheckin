@@ -16,70 +16,95 @@ export class FloorPlanService {
   ) {}
 
   async getFloorPlanByEventCode(eventCode: string): Promise<FloorPlan> {
-    const floorPlan = await this.floorPlanRepository.findOne({
-      where: { eventCode },
-    });
+    try {
+      const floorPlan = await this.floorPlanRepository.findOne({
+        where: { eventCode },
+      });
 
-    if (!floorPlan) {
-      throw new NotFoundException('Floor plan not found');
+      if (!floorPlan) {
+        throw new NotFoundException('Floor plan not found');
+      }
+
+      return floorPlan;
+    } catch (error) {
+      console.error('Error getting floor plan by event code:', error);
+      throw error;
     }
-
-    return floorPlan;
   }
 
   async uploadFloorPlan(
     eventCode: string,
     image: Express.Multer.File,
   ): Promise<string> {
-    // Upload to S3 instead of local filesystem
-    const key = await this.s3Service.uploadFile(
-      image,
-      `floor-plans/${eventCode}`,
-    );
-    return key;
+    try {
+      // Upload to S3 instead of local filesystem
+      const key = await this.s3Service.uploadFile(
+        image,
+        `floor-plans/${eventCode}`,
+      );
+      return key;
+    } catch (error) {
+      console.error('Error uploading floor plan:', error);
+      throw error;
+    }
   }
 
   async saveFloorPlan(floorPlanDto: FloorPlanDto) {
-    const { eventCode, floorPlanImageUrl } = floorPlanDto;
+    try {
+      const { eventCode, floorPlanImageUrl } = floorPlanDto;
 
-    const floorPlan = await this.floorPlanRepository.findOne({
-      where: { eventCode: eventCode },
-    });
-    if (floorPlan) {
-      await this.removeFloorPlan(eventCode);
+      const floorPlan = await this.floorPlanRepository.findOne({
+        where: { eventCode: eventCode },
+      });
+      if (floorPlan) {
+        await this.removeFloorPlan(eventCode);
+      }
+
+      const newFloorPlan = this.floorPlanRepository.create({
+        eventCode: eventCode,
+        floorPlanImageUrl: floorPlanImageUrl,
+      });
+      await this.floorPlanRepository.save(newFloorPlan);
+    } catch (error) {
+      console.error('Error saving floor plan:', error);
+      throw error;
     }
-
-    const newFloorPlan = this.floorPlanRepository.create({
-      eventCode: eventCode,
-      floorPlanImageUrl: floorPlanImageUrl,
-    });
-    await this.floorPlanRepository.save(newFloorPlan);
   }
 
   async getFloorPlanImage(eventCode: string): Promise<string> {
-    const floorPlan = await this.floorPlanRepository.findOne({
-      where: { eventCode },
-    });
+    try {
+      const floorPlan = await this.floorPlanRepository.findOne({
+        where: { eventCode },
+      });
 
-    if (!floorPlan) {
-      throw new NotFoundException('Floor plan not found');
+      if (!floorPlan) {
+        throw new NotFoundException('Floor plan not found');
+      }
+
+      // Return the S3 URL instead of local file path
+      return this.s3Service.getFileUrl(floorPlan.floorPlanImageUrl);
+    } catch (error) {
+      console.error('Error getting floor plan image:', error);
+      throw error;
     }
-
-    // Return the S3 URL instead of local file path
-    return this.s3Service.getFileUrl(floorPlan.floorPlanImageUrl);
   }
 
   async removeFloorPlan(eventCode: string): Promise<void> {
-    const floorPlan = await this.floorPlanRepository.findOne({
-      where: { eventCode },
-    });
+    try {
+      const floorPlan = await this.floorPlanRepository.findOne({
+        where: { eventCode },
+      });
 
-    if (floorPlan) {
-      await this.pocService.removePocLocations(floorPlan.floorPlanId); // hard delete
+      if (floorPlan) {
+        await this.pocService.removePocLocations(floorPlan.floorPlanId); // hard delete
 
-      // Delete from S3 instead of local filesystem
-      await this.s3Service.deleteFile(floorPlan.floorPlanImageUrl);
-      await this.floorPlanRepository.remove(floorPlan);
+        // Delete from S3 instead of local filesystem
+        await this.s3Service.deleteFile(floorPlan.floorPlanImageUrl);
+        await this.floorPlanRepository.remove(floorPlan);
+      }
+    } catch (error) {
+      console.error('Error removing floor plan:', error);
+      throw error;
     }
   }
 }

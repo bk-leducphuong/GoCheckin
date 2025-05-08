@@ -23,38 +23,43 @@ export class RefreshTokenService {
     userId: string,
     deviceInfo: string = 'unknown',
   ): Promise<string> {
-    // Clean up expired tokens
-    await this.cleanupExpiredTokens();
-    // Revoke existing tokens for the user
-    await this.tokenRepository.update(
-      { userId, deviceInfo },
-      { isRevoked: true },
-    );
-    // Generate JWT refresh token
-    const refreshToken = this.jwtService.sign(
-      { userId },
-      {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn:
-          this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d',
-      },
-    );
+    try {
+      // Clean up expired tokens
+      await this.cleanupExpiredTokens();
+      // Revoke existing tokens for the user
+      await this.tokenRepository.update(
+        { userId, deviceInfo },
+        { isRevoked: true },
+      );
+      // Generate JWT refresh token
+      const refreshToken = this.jwtService.sign(
+        { userId },
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn:
+            this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d',
+        },
+      );
 
-    // Calculate expiration date
-    const expiresIn =
-      this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
-    const expiresAt = this.calculateExpirationDate(expiresIn);
+      // Calculate expiration date
+      const expiresIn =
+        this.configService.get<string>('JWT_REFRESH_EXPIRATION') || '7d';
+      const expiresAt = this.calculateExpirationDate(expiresIn);
 
-    // Save the refresh token to the database
-    await this.tokenRepository.save({
-      userId,
-      refreshToken,
-      deviceInfo,
-      expiresAt,
-      isRevoked: false,
-    });
+      // Save the refresh token to the database
+      await this.tokenRepository.save({
+        userId,
+        refreshToken,
+        deviceInfo,
+        expiresAt,
+        isRevoked: false,
+      });
 
-    return refreshToken;
+      return refreshToken;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   /**
@@ -95,7 +100,7 @@ export class RefreshTokenService {
       await this.tokenRepository.update({ refreshToken }, { isRevoked: true });
     } catch (error) {
       console.error('Error revoking refresh token:', error);
-      throw new UnauthorizedException('Failed to revoke token');
+      throw error;
     }
   }
 
@@ -107,7 +112,7 @@ export class RefreshTokenService {
       await this.tokenRepository.update({ userId }, { isRevoked: true });
     } catch (error) {
       console.error('Error revoking all tokens for user:', error);
-      throw new UnauthorizedException('Failed to revoke tokens');
+      throw error;
     }
   }
 
@@ -121,6 +126,7 @@ export class RefreshTokenService {
       });
     } catch (error) {
       console.error('Error cleaning up expired tokens:', error);
+      throw error;
     }
   }
 
@@ -128,13 +134,18 @@ export class RefreshTokenService {
    * Get all active refresh tokens for a user
    */
   async getUserTokens(userId: string): Promise<Token[]> {
-    return this.tokenRepository.find({
-      where: {
-        userId,
-        isRevoked: false,
-        expiresAt: MoreThan(new Date()),
-      },
-    });
+    try {
+      return this.tokenRepository.find({
+        where: {
+          userId,
+          isRevoked: false,
+          expiresAt: MoreThan(new Date()),
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   /**
