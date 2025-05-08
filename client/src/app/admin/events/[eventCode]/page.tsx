@@ -12,14 +12,15 @@ import { useEventStore } from "@/store/eventStore";
 import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
-import EventAnalysis from "@/components/admin/event/eventAnalysis";
+import EventAnalysis from "@/components/admin/event/EventAnalysis";
 import { EventStatus } from "@/types/event";
 import Link from "next/link";
 import { usePocStore } from "@/store/pocStore";
 import { useFloorPlanStore } from "@/store/floorPlanStore";
-import DeleteEventValidation from "@/components/admin/event/deleteEventValidation";
+import DeleteEventValidation from "@/components/admin/event/DeleteEventValidation";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
+import EventImages from "@/components/admin/event/EventImages";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -330,6 +331,8 @@ export default function EventDetailsPage() {
               className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
             />
           </div>
+
+          <EventImages event={selectedEvent} />
 
           {/* Floor Plan Section */}
           <div>

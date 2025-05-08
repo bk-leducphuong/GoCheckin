@@ -122,6 +122,23 @@ export default function EventsPage() {
                     )}
                   </div>
                 </div>
+                {/* Event Images Gallery */}
+                {item.images && item.images.length > 0 && (
+                  <div className="mt-2 flex space-x-2 overflow-x-auto py-2">
+                    {item.images.slice(0, 3).map((imgUrl, index) => (
+                      <div key={index} className="relative flex-shrink-0">
+                        <img
+                          src={imgUrl}
+                          alt={`${item.eventName} image ${index + 1}`}
+                          width={120}
+                          height={80}
+                          className="h-20 w-30 object-cover rounded-md"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="mt-2 sm:flex sm:justify-between">
                   <div className="sm:flex">
                     <div className="flex items-center text-sm text-gray-500">

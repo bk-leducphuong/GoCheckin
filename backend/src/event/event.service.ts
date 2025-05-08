@@ -85,7 +85,14 @@ export class EventService {
     const events = await this.eventRepository.find({
       where: { tenantCode: tenant.tenantCode },
     });
-    return events;
+    return events.map((event) => {
+      if (event.images) {
+        event.images = event.images.map((key) =>
+          this.s3Service.getFileUrl(key),
+        );
+      }
+      return event;
+    });
   }
 
   async findOne(eventCode: string): Promise<Event> {
@@ -97,7 +104,10 @@ export class EventService {
       throw new NotFoundException(`Event with ID ${eventCode} not found`);
     }
 
-    return event;
+    return {
+      ...event,
+      images: event.images.map((key) => this.s3Service.getFileUrl(key)),
+    };
   }
 
   async update(
@@ -119,7 +129,8 @@ export class EventService {
     }
     await this.floorPlanService.removeFloorPlan(eventCode); // hard delete
     await this.pocService.removeAllPocs(eventCode); // hard delete
-    await this.eventRepository.remove(event);
+    await this.deleteEventImages(event.eventCode); // Delete image files
+    await this.eventRepository.delete(event.eventCode);
   }
 
   async getEventStatus(eventCode: string): Promise<EventStatus> {
@@ -191,5 +202,20 @@ export class EventService {
     }
 
     return event.images.map((key) => this.s3Service.getFileUrl(key));
+  }
+
+  // Delete image files
+  async deleteEventImages(eventCode: string) {
+    const event = await this.findOne(eventCode);
+    if (!event) {
+      throw new NotFoundException(`Event with code ${eventCode} not found`);
+    }
+
+    for (const imageKey of event.images) {
+      await this.s3Service.deleteFile(imageKey);
+    }
+
+    event.images = [];
+    await this.eventRepository.save(event);
   }
 }

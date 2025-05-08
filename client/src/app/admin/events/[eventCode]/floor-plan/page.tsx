@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import Button from "@/components/ui/Button";
 import { useEventStore } from "@/store/eventStore";
 import { useFloorPlanStore } from "@/store/floorPlanStore";
@@ -250,7 +249,7 @@ export default function FloorPlanPage() {
 
               {floorPlanImageUrl ? (
                 <div className="relative">
-                  <Image
+                  <img
                     src={floorPlanImageUrl}
                     alt="Floor plan"
                     width={800}
