@@ -71,22 +71,23 @@ export default function POCDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    try {
-      const connectSocket = async () => {
+    const setupSocket = async () => {
+      try {
         await connect();
         connectToAdmin(eventCode, pointCode);
-      };
+      } catch (error) {
+        setError("Checkin service is not available! Please try again later.");
+        console.error("Error in useEffect:", error);
+      }
+    };
 
-      connectSocket();
+    setupSocket();
 
-      return () => {
-        disconnectFromAdmin(eventCode, pointCode);
-        disconnect();
-      };
-    } catch (error) {
-      setError("Checkin service is not available! Please try again later.");
-      console.error("Error in useEffect:", error);
-    }
+    // Return cleanup function directly from useEffect
+    return () => {
+      disconnectFromAdmin(eventCode, pointCode);
+      disconnect();
+    };
   }, [
     eventCode,
     connect,

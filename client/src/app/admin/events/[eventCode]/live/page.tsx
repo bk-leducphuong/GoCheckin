@@ -70,39 +70,13 @@ export default function RealtimeDashboard() {
   useEffect(() => {
     const setupSocket = async () => {
       try {
-        await connect();
+        const isConnected = await connect();
+        if (!isConnected) {
+          console.error("Failed to connect to socket"); // Don't log
+          return;
+        }
 
         registerAdmin(eventCode);
-
-        const currentSocket = socket;
-        if (currentSocket) {
-          currentSocket.on(
-            "new_checkin_received",
-            (newCheckin: CheckInResponse) => {
-              setGuests((prevGuests) => [...prevGuests, newCheckin]);
-            }
-          );
-
-          currentSocket.on(
-            "poc_connected",
-            (data: { eventCode: string; pointCode: string }) => {
-              console.log("Poc connected to event", data);
-              setConnectedPocs((prev) => new Set([...prev, data.pointCode]));
-            }
-          );
-
-          currentSocket.on(
-            "poc_disconnected",
-            (data: { eventCode: string; pointCode: string }) => {
-              console.log("Poc disconnected from event", data);
-              setConnectedPocs((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(data.pointCode);
-                return newSet;
-              });
-            }
-          );
-        }
 
         return () => {
           unregisterAdmin(eventCode);
@@ -116,6 +90,40 @@ export default function RealtimeDashboard() {
 
     setupSocket();
   }, [eventCode, connect, registerAdmin, unregisterAdmin, disconnect]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on("new_checkin_received", (newCheckin: CheckInResponse) => {
+        setGuests((prevGuests) => [...prevGuests, newCheckin]);
+      });
+
+      socket.on(
+        "poc_connected",
+        (data: { eventCode: string; pointCode: string }) => {
+          setConnectedPocs((prev) => new Set([...prev, data.pointCode]));
+        }
+      );
+
+      socket.on(
+        "poc_disconnected",
+        (data: { eventCode: string; pointCode: string }) => {
+          setConnectedPocs((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(data.pointCode);
+            return newSet;
+          });
+        }
+      );
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("new_checkin_received");
+        socket.off("poc_connected");
+        socket.off("poc_disconnected");
+      }
+    };
+  }, [socket]);
 
   const checkedInCount = guests.length;
   const totalCapacity = selectedEvent?.capacity || 0;

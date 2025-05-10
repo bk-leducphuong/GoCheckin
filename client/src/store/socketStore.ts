@@ -115,7 +115,6 @@ export const useSocketStore = create<SocketStore>()(
       disconnectFromAdmin: (eventCode: string, pointCode: string) => {
         const socket = get().socket;
         if (!socket || !get().isSocketConnected) return;
-
         socket.emit("disconnect_from_admin", { eventCode, pointCode });
       },
     }),

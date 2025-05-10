@@ -68,8 +68,6 @@ export class SocketGateway
   ) {
     const adminSocketId = this.adminList[data.eventCode];
     if (adminSocketId) {
-      console.log('Poc connected to admin', data);
-      console.log('Admin socket id', adminSocketId);
       this.server.to(adminSocketId).emit('poc_connected', data);
     }
 
