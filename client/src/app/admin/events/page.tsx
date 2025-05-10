@@ -207,7 +207,7 @@ export default function EventsPage() {
                       viewEventRealtime(item);
                     }}
                     type="button"
-                    className="border-2 border-black-200 mt-4 rounded-md px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
+                    className="border-2 border-green-400 mt-4 rounded-md px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
                   >
                     View Realtime
                   </button>

@@ -13,6 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AnalysisModule } from './analysis/analysis.module';
 import { MailModule } from './mail/mail.module';
 import { FloorPlan } from './floor-plan/entities/floor-plan.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -39,6 +40,18 @@ import { FloorPlan } from './floor-plan/entities/floor-plan.entity';
     AnalysisModule,
     MailModule,
     FloorPlan,
+    JwtModule.registerAsync({
+      global: true,
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn:
+            configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [],
   providers: [SocketGateway],

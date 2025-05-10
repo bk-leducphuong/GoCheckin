@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AccountModule } from '../account/account.module';
 import { EventModule } from 'src/event/event.module';
 import { TenantModule } from 'src/tenant/tenant.module';
@@ -25,17 +23,6 @@ import { ResetToken } from './entities/reset-token.entity';
     TenantModule,
     PassportModule,
     PocModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn:
-            configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
-        },
-      }),
-      inject: [ConfigService],
-    }),
     TypeOrmModule.forFeature([Token, Otp, ResetToken]),
     MailModule,
   ],

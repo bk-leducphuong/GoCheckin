@@ -20,13 +20,19 @@ import { EventStatus } from "@/types/event";
 
 export default function POCDashboard() {
   // Connect socket
-  const { socket, connect, disconnect, leaveRoom, joinRoom } = useSocketStore(
+  const {
+    connect,
+    disconnect,
+    connectToAdmin,
+    disconnectFromAdmin,
+    sendCheckinSocketEvent,
+  } = useSocketStore(
     useShallow((state) => ({
-      socket: state.socket,
       connect: state.connect,
       disconnect: state.disconnect,
-      leaveRoom: state.leaveRoom,
-      joinRoom: state.joinRoom,
+      connectToAdmin: state.connectToAdmin,
+      disconnectFromAdmin: state.disconnectFromAdmin,
+      sendCheckinSocketEvent: state.sendCheckinSocketEvent,
     }))
   );
 
@@ -66,18 +72,29 @@ export default function POCDashboard() {
 
   useEffect(() => {
     try {
-      connect();
-      joinRoom(eventCode);
+      const connectSocket = async () => {
+        await connect();
+        connectToAdmin(eventCode, pointCode);
+      };
+
+      connectSocket();
 
       return () => {
-        leaveRoom(eventCode);
+        disconnectFromAdmin(eventCode, pointCode);
         disconnect();
       };
     } catch (error) {
       setError("Checkin service is not available! Please try again later.");
       console.error("Error in useEffect:", error);
     }
-  }, [eventCode, connect, joinRoom, leaveRoom, disconnect]);
+  }, [
+    eventCode,
+    connect,
+    disconnect,
+    pointCode,
+    connectToAdmin,
+    disconnectFromAdmin,
+  ]);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -113,9 +130,9 @@ export default function POCDashboard() {
       };
 
       // Call the check-in service
-      const response = await checkinGuest(checkInData);
+      const checkinResponse = await checkinGuest(checkInData);
 
-      socket?.emit("new_checkin", response);
+      sendCheckinSocketEvent(checkinResponse);
 
       // Reset form and show success message
       setGuestImage(null);
