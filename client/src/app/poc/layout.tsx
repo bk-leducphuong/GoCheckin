@@ -5,7 +5,7 @@ import { UserRole } from "@/types/user";
 import { useSearchParams } from "next/navigation";
 import EventStatusCheck from "@/components/poc/EventStatusCheck";
 import PocValidation from "@/components/poc/PocValidation";
-
+import PocSocket from "@/components/poc/PocSocket";
 export default function PocLayout({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const pointCode = searchParams.get("pointCode") as string;
@@ -39,7 +39,9 @@ export default function PocLayout({ children }: { children: React.ReactNode }) {
             </div>
           }
         >
-          <div className="min-h-screen bg-gray-100">{children}</div>
+          <PocSocket>
+            <div className="min-h-screen bg-gray-100">{children}</div>
+          </PocSocket>
         </PocValidation>
       </AuthCheck>
     </EventStatusCheck>

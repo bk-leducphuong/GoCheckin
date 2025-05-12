@@ -20,18 +20,8 @@ import { EventStatus } from "@/types/event";
 
 export default function POCDashboard() {
   // Connect socket
-  const {
-    connect,
-    disconnect,
-    connectToAdmin,
-    disconnectFromAdmin,
-    sendCheckinSocketEvent,
-  } = useSocketStore(
+  const { sendCheckinSocketEvent } = useSocketStore(
     useShallow((state) => ({
-      connect: state.connect,
-      disconnect: state.disconnect,
-      connectToAdmin: state.connectToAdmin,
-      disconnectFromAdmin: state.disconnectFromAdmin,
       sendCheckinSocketEvent: state.sendCheckinSocketEvent,
     }))
   );
@@ -71,38 +61,9 @@ export default function POCDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const setupSocket = async () => {
-      try {
-        await connect();
-        connectToAdmin(eventCode, pointCode);
-      } catch (error) {
-        setError("Checkin service is not available! Please try again later.");
-        console.error("Error in useEffect:", error);
-      }
-    };
-
-    setupSocket();
-
-    // Return cleanup function directly from useEffect
-    return () => {
-      disconnectFromAdmin(eventCode, pointCode);
-      disconnect();
-    };
-  }, [
-    eventCode,
-    connect,
-    disconnect,
-    pointCode,
-    connectToAdmin,
-    disconnectFromAdmin,
-  ]);
-
-  useEffect(() => {
     const fetchEvent = async () => {
       try {
-        if (!selectedEvent) {
-          await getEventByCode(eventCode);
-        }
+        await getEventByCode(eventCode);
       } catch (error) {
         setError("Failed to fetch event details. Please try again.");
       }

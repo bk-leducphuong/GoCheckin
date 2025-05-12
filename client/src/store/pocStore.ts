@@ -14,6 +14,8 @@ interface PocStore {
   poc: Poc | null;
   setPoc: (poc: Poc | null) => void;
   validatePoc: (pointCode: string, eventCode: string) => Promise<void>;
+  updatePoc: (pocId: string, pocData: UpdatePocRequest) => Promise<void>;
+  removePoc: (pocId: string) => Promise<void>;
 }
 
 export const usePocStore = create<PocStore>()(
@@ -53,8 +55,12 @@ export const usePocStore = create<PocStore>()(
       },
       updatePoc: async (pocId: string, pocData: UpdatePocRequest) => {
         try {
-          const response = await PocService.updatePoc(pocId, pocData);
-          return response;
+          await PocService.updatePoc(pocId, pocData);
+          set((state) => ({
+            pocList: state.pocList.map((poc) =>
+              poc.pocId === pocId ? { ...poc, ...pocData } : poc
+            ),
+          }));
         } catch (error) {
           console.error("Error updating POC:", error);
           throw error;
@@ -63,6 +69,9 @@ export const usePocStore = create<PocStore>()(
       removePoc: async (pocId: string) => {
         try {
           await PocService.removePoc(pocId);
+          set((state) => ({
+            pocList: state.pocList.filter((poc) => poc.pocId !== pocId),
+          }));
         } catch (error) {
           console.error("Error removing POC:", error);
           throw error;

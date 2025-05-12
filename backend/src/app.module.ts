@@ -8,27 +8,40 @@ import { EventModule } from './event/event.module';
 import { TenantModule } from './tenant/tenant.module';
 import { PocModule } from './poc/poc.module';
 import { GuestModule } from './guest/guest.module';
-import { SocketGateway } from './gateways/socket.gateway';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AnalysisModule } from './analysis/analysis.module';
 import { MailModule } from './mail/mail.module';
 import { FloorPlan } from './floor-plan/entities/floor-plan.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis, { createClient } from '@keyv/redis';
+import { SocketModule } from './gateways/socket.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, // make configuration available throughout the app
+      isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
-      // use async configuration to wait for eviroment variables to load
-      imports: [ConfigModule], // inject ConfigModule to use configuration
-      inject: [ConfigService], // inject ConfigService to read enviroment variable
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         ...getDatabaseConfig(configService),
         autoLoadEntities: true,
+      }),
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        store: new KeyvRedis(
+          createClient({
+            url: configService.get<string>('REDIS_URL'),
+          }),
+        ),
       }),
     }),
     AuthModule,
@@ -40,6 +53,7 @@ import { JwtModule } from '@nestjs/jwt';
     AnalysisModule,
     MailModule,
     FloorPlan,
+    SocketModule,
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
@@ -54,6 +68,6 @@ import { JwtModule } from '@nestjs/jwt';
     }),
   ],
   controllers: [],
-  providers: [SocketGateway],
+  providers: [],
 })
 export class AppModule {}

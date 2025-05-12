@@ -15,7 +15,6 @@ export default function RealtimeDashboard() {
   const [guests, setGuests] = useState<CheckInResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [connectedPocs, setConnectedPocs] = useState<Set<string>>(new Set());
 
   const { socket, connect, registerAdmin, unregisterAdmin, disconnect } =
     useSocketStore(
@@ -98,20 +97,12 @@ export default function RealtimeDashboard() {
       });
 
       socket.on(
-        "poc_connected",
+        "heartbeat_received",
         (data: { eventCode: string; pointCode: string }) => {
-          setConnectedPocs((prev) => new Set([...prev, data.pointCode]));
-        }
-      );
-
-      socket.on(
-        "poc_disconnected",
-        (data: { eventCode: string; pointCode: string }) => {
-          setConnectedPocs((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(data.pointCode);
-            return newSet;
-          });
+          const poc = pocList.find((poc) => poc.pointCode === data.pointCode);
+          if (poc) {
+            poc.status = "active";
+          }
         }
       );
     }
@@ -119,8 +110,7 @@ export default function RealtimeDashboard() {
     return () => {
       if (socket) {
         socket.off("new_checkin_received");
-        socket.off("poc_connected");
-        socket.off("poc_disconnected");
+        socket.off("heartbeat_received");
       }
     };
   }, [socket]);
@@ -185,14 +175,12 @@ export default function RealtimeDashboard() {
                       </p>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          connectedPocs.has(poc.pointCode)
+                          poc.status === "active"
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {connectedPocs.has(poc.pointCode)
-                          ? "Online"
-                          : "Offline"}
+                        {poc.status === "active" ? "Online" : "Offline"}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">

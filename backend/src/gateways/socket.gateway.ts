@@ -11,23 +11,30 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Injectable, Logger, UseGuards } from '@nestjs/common';
 import { GuestResponse } from 'src/guest/dto/get-guests-response.dto';
 import { WsJwtGuard } from 'src/common/guards/ws-guards/ws-jwt.guard';
 import { WsRolesGuard } from 'src/common/guards/ws-guards/ws-roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/account/entities/account.entity';
+import { AdminSocketHandler } from './handlers/admin.handler';
+import { CheckinSocketHandler } from './handlers/checkin.handler';
+
 @WebSocketGateway({
   cors: process.env.CLIENT_URL || 'https://localhost:3000',
 })
 @UseGuards(WsJwtGuard, WsRolesGuard)
+@Injectable()
 export class SocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  private adminList: { [eventCode: string]: string } = {};
-
   @WebSocketServer() server: Server;
   private logger: Logger = new Logger('SocketGateway');
+
+  constructor(
+    private readonly adminHandler: AdminSocketHandler,
+    private readonly checkinHandler: CheckinSocketHandler,
+  ) {}
 
   afterInit() {
     this.logger.log('WebSocket Gateway initialized');
@@ -47,8 +54,7 @@ export class SocketGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() eventCode: string,
   ) {
-    this.adminList[eventCode] = client.id;
-    this.logger.log(`Admin ${client.id} registered for event ${eventCode}`);
+    this.adminHandler.registerAdmin(client.id, eventCode);
   }
 
   @Roles(UserRole.ADMIN)
@@ -57,38 +63,16 @@ export class SocketGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() eventCode: string,
   ) {
-    delete this.adminList[eventCode];
-    this.logger.log(`Admin ${client.id} unregistered for event ${eventCode}`);
+    this.adminHandler.unregisterAdmin(client.id, eventCode);
   }
 
   @Roles(UserRole.POC)
-  @SubscribeMessage('connect_to_admin')
-  handleConnectToAdmin(
+  @SubscribeMessage('heartbeat')
+  handleHeartbeat(
+    @ConnectedSocket() client: Socket,
     @MessageBody() data: { eventCode: string; pointCode: string },
   ) {
-    const adminSocketId = this.adminList[data.eventCode];
-    if (adminSocketId) {
-      this.server.to(adminSocketId).emit('poc_connected', data);
-    }
-
-    this.logger.log(
-      `Poc ${data.pointCode} connected to event ${data.eventCode}`,
-    );
-  }
-
-  @Roles(UserRole.POC)
-  @SubscribeMessage('disconnect_from_admin')
-  handleDisconnectFromAdmin(
-    @MessageBody() data: { eventCode: string; pointCode: string },
-  ) {
-    const adminSocketId = this.adminList[data.eventCode];
-    if (adminSocketId) {
-      this.server.to(adminSocketId).emit('poc_disconnected', data);
-    }
-
-    this.logger.log(
-      `Poc ${data.pointCode} disconnected from event ${data.eventCode}`,
-    );
+    this.checkinHandler.handleHeartbeat(this.server, data);
   }
 
   @Roles(UserRole.POC)
@@ -97,12 +81,6 @@ export class SocketGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() checkinData: GuestResponse,
   ) {
-    const eventCode = checkinData.guestInfo.eventCode;
-    const adminSocketId = this.adminList[eventCode];
-    if (adminSocketId) {
-      this.server.to(adminSocketId).emit('new_checkin_received', checkinData);
-    }
-    this.logger.log(`New checkin: ${JSON.stringify(checkinData)}`);
-    return { success: true, message: `New checkin received` };
+    return this.checkinHandler.handleNewCheckin(this.server, checkinData);
   }
 }

@@ -11,9 +11,8 @@ interface SocketStore {
   disconnect: () => void;
   registerAdmin: (eventCode: string) => void;
   unregisterAdmin: (eventCode: string) => void;
-  connectToAdmin: (eventCode: string, pointCode: string) => void;
-  disconnectFromAdmin: (eventCode: string, pointCode: string) => void;
   sendCheckinSocketEvent: (checkinData: CheckInResponse) => void;
+  sendHeartbeatSignal: (eventCode: string, pointCode: string) => void;
 }
 
 export const useSocketStore = create<SocketStore>()(
@@ -37,13 +36,11 @@ export const useSocketStore = create<SocketStore>()(
                 }
               );
               socket.on("connect", () => {
-                console.log("Socket connected");
                 set({ socket: socket, isSocketConnected: true });
                 resolve(true);
               });
 
               socket.on("disconnect", () => {
-                console.log("Socket disconnected");
                 set({ socket: null, isSocketConnected: false });
               });
 
@@ -95,6 +92,15 @@ export const useSocketStore = create<SocketStore>()(
           throw error;
         }
       },
+      sendHeartbeatSignal: (eventCode: string, pointCode: string) => {
+        const socket = get().socket;
+        if (!socket || !get().isSocketConnected) return;
+
+        socket.emit("heartbeat", {
+          eventCode,
+          pointCode,
+        });
+      },
       sendCheckinSocketEvent: (checkinData: CheckInResponse) => {
         const socket = get().socket;
         if (!socket || !get().isSocketConnected) return;
@@ -105,17 +111,6 @@ export const useSocketStore = create<SocketStore>()(
           console.error("Error checking in guest:", error);
           throw error;
         }
-      },
-      connectToAdmin: (eventCode: string, pointCode: string) => {
-        const socket = get().socket;
-        if (!socket || !get().isSocketConnected) return;
-
-        socket.emit("connect_to_admin", { eventCode, pointCode });
-      },
-      disconnectFromAdmin: (eventCode: string, pointCode: string) => {
-        const socket = get().socket;
-        if (!socket || !get().isSocketConnected) return;
-        socket.emit("disconnect_from_admin", { eventCode, pointCode });
       },
     }),
     {
