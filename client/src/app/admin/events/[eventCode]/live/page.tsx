@@ -15,6 +15,7 @@ export default function RealtimeDashboard() {
   const [guests, setGuests] = useState<CheckInResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activePocs, setActivePocs] = useState<string[]>([]);
 
   const { socket, connect, registerAdmin, unregisterAdmin, disconnect } =
     useSocketStore(
@@ -99,13 +100,7 @@ export default function RealtimeDashboard() {
       socket.on(
         "poc_status_update",
         (data: { eventCode: string; pointCodes: string[] }) => {
-          for (const poc of pocList) {
-            if (data.pointCodes.includes(poc.pointCode)) {
-              poc.status = "active";
-            } else {
-              poc.status = "inactive";
-            }
-          }
+          setActivePocs(data.pointCodes);
         }
       );
     }
@@ -178,12 +173,14 @@ export default function RealtimeDashboard() {
                       </p>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          poc.status === "active"
+                          activePocs.includes(poc.pointCode)
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {poc.status === "active" ? "Online" : "Offline"}
+                        {activePocs.includes(poc.pointCode)
+                          ? "Online"
+                          : "Offline"}
                       </span>
                     </div>
                     <p className="text-sm text-gray-500">
