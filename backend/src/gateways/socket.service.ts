@@ -1,11 +1,11 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { GuestResponse } from 'src/guest/dto/get-guests-response.dto';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class SocketService {
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+  constructor(private readonly redisService: RedisService) {}
 
   private adminList: { [eventCode: string]: string } = {};
   private logger: Logger = new Logger('SocketService');
@@ -20,10 +20,16 @@ export class SocketService {
     this.logger.log(`Admin ${clientId} unregistered for event ${eventCode}`);
   }
 
-  handleHeartbeat(
+  async handleHeartbeat(
     server: Server,
     data: { eventCode: string; pointCode: string },
-  ): void {
+  ): Promise<void> {
+    const expiryTime = Date.now() + 1000 * 60 * 1; // 1 minute
+    await this.redisService.hset(
+      data.eventCode,
+      data.pointCode,
+      expiryTime.toString(),
+    );
     this.logger.log(`Heartbeat received from POC ${data.pointCode}`);
   }
 
@@ -38,5 +44,29 @@ export class SocketService {
     }
     this.logger.log(`New checkin: ${JSON.stringify(checkinData)}`);
     return { success: true, message: `New checkin received` };
+  }
+
+  async handleExpiredHeartbeats(server: Server) {
+    const currentTime = Date.now();
+
+    for (const eventCode of Object.keys(this.adminList)) {
+      const pointCodes = await this.redisService.hkeys(eventCode);
+      const updatedPointCodes: string[] = [];
+      for (const pointCode of pointCodes) {
+        const expiryTime = await this.redisService.hget(eventCode, pointCode);
+        if (expiryTime && currentTime > parseInt(expiryTime)) {
+          await this.redisService.hdel(eventCode, pointCode);
+        } else {
+          updatedPointCodes.push(pointCode);
+        }
+      }
+
+      server.to(this.adminList[eventCode]).emit('poc_status_update', {
+        eventCode,
+        pointCodes: updatedPointCodes,
+      });
+
+      this.logger.log(`Updated POC status for event ${eventCode}`);
+    }
   }
 }

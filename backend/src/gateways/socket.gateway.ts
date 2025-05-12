@@ -19,6 +19,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/account/entities/account.entity';
 import { AdminSocketHandler } from './handlers/admin.handler';
 import { CheckinSocketHandler } from './handlers/checkin.handler';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @WebSocketGateway({
   cors: process.env.CLIENT_URL || 'https://localhost:3000',
@@ -68,11 +69,11 @@ export class SocketGateway
 
   @Roles(UserRole.POC)
   @SubscribeMessage('heartbeat')
-  handleHeartbeat(
+  async handleHeartbeat(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { eventCode: string; pointCode: string },
   ) {
-    this.checkinHandler.handleHeartbeat(this.server, data);
+    await this.checkinHandler.handleHeartbeat(this.server, data);
   }
 
   @Roles(UserRole.POC)
@@ -82,5 +83,10 @@ export class SocketGateway
     @MessageBody() checkinData: GuestResponse,
   ) {
     return this.checkinHandler.handleNewCheckin(this.server, checkinData);
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  async handleExpiredHeartbeats() {
+    await this.checkinHandler.handleExpiredHeartbeats(this.server);
   }
 }

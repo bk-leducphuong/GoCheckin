@@ -97,11 +97,14 @@ export default function RealtimeDashboard() {
       });
 
       socket.on(
-        "heartbeat_received",
-        (data: { eventCode: string; pointCode: string }) => {
-          const poc = pocList.find((poc) => poc.pointCode === data.pointCode);
-          if (poc) {
-            poc.status = "active";
+        "poc_status_update",
+        (data: { eventCode: string; pointCodes: string[] }) => {
+          for (const poc of pocList) {
+            if (data.pointCodes.includes(poc.pointCode)) {
+              poc.status = "active";
+            } else {
+              poc.status = "inactive";
+            }
           }
         }
       );
@@ -110,7 +113,7 @@ export default function RealtimeDashboard() {
     return () => {
       if (socket) {
         socket.off("new_checkin_received");
-        socket.off("heartbeat_received");
+        socket.off("poc_status_update");
       }
     };
   }, [socket]);

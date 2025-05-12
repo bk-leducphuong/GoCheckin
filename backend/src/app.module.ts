@@ -13,10 +13,8 @@ import { AnalysisModule } from './analysis/analysis.module';
 import { MailModule } from './mail/mail.module';
 import { FloorPlan } from './floor-plan/entities/floor-plan.entity';
 import { JwtModule } from '@nestjs/jwt';
-import { CacheModule } from '@nestjs/cache-manager';
-import KeyvRedis, { createClient } from '@keyv/redis';
 import { SocketModule } from './gateways/socket.module';
-
+import { RedisModule } from './redis/redis.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,18 +30,7 @@ import { SocketModule } from './gateways/socket.module';
         autoLoadEntities: true,
       }),
     }),
-    CacheModule.registerAsync({
-      isGlobal: true,
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        store: new KeyvRedis(
-          createClient({
-            url: configService.get<string>('REDIS_URL'),
-          }),
-        ),
-      }),
-    }),
+    RedisModule,
     AuthModule,
     AccountModule,
     EventModule,

@@ -9,11 +9,11 @@ export class CheckinSocketHandler {
 
   constructor(private readonly socketService: SocketService) {}
 
-  handleHeartbeat(
+  async handleHeartbeat(
     server: Server,
     data: { eventCode: string; pointCode: string },
-  ): void {
-    this.socketService.handleHeartbeat(server, data);
+  ): Promise<void> {
+    await this.socketService.handleHeartbeat(server, data);
   }
 
   handleNewCheckin(
@@ -21,5 +21,9 @@ export class CheckinSocketHandler {
     checkinData: GuestResponse,
   ): { success: boolean; message: string } {
     return this.socketService.handleNewCheckin(server, checkinData);
+  }
+
+  async handleExpiredHeartbeats(server: Server): Promise<void> {
+    await this.socketService.handleExpiredHeartbeats(server);
   }
 }
