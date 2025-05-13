@@ -1,8 +1,6 @@
 import { EventStatus } from "@/types/event";
 import { useEffect, useRef, useState } from "react";
 import { Event } from "@/types/event";
-import Image from "next/image";
-import { compressImage } from "@/utils/imageCompression";
 
 export default function EventImages({ event }: { event: Event }) {
   const uploadEventImages = useRef<HTMLInputElement>(null);
@@ -53,12 +51,7 @@ export default function EventImages({ event }: { event: Event }) {
       return;
     }
 
-    // Compress images before upload
-    const compressedFiles = await Promise.all(
-      files.map((file) => compressImage(file, 2)) // Compress to 2MB max
-    );
-
-    setEventImages((prevImages) => [...prevImages, ...compressedFiles]);
+    setEventImages((prevImages) => [...prevImages, ...files]);
 
     // Create preview URLs
     files.forEach((file) => {

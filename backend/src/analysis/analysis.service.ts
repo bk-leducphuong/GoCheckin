@@ -7,6 +7,7 @@ import { GuestService } from 'src/guest/guest.service';
 import { EventService } from 'src/event/event.service';
 import { PocService } from 'src/poc/poc.service';
 import { GuestCheckin } from 'src/guest/entities/guest-checkin.entity';
+import { EventStatus } from 'src/event/entities/event.entity';
 
 @Injectable()
 export class AnalysisService {
@@ -25,11 +26,16 @@ export class AnalysisService {
     intervalDuration: 'hourly' | '15min' | '30min' | 'daily' = 'hourly',
   ): Promise<EventCheckinAnalytics[]> {
     try {
-      const oldAnalytics = await this.eventCheckinAnalyticsRepository.find({
-        where: { eventCode },
-      });
-      if (oldAnalytics.length > 0) {
-        return oldAnalytics;
+      const eventStatus = await this.eventService.getEventStatus(eventCode);
+
+      if (eventStatus == EventStatus.COMPLETED) {
+        // Check if analytics already exist
+        const oldAnalytics = await this.eventCheckinAnalyticsRepository.find({
+          where: { eventCode },
+        });
+        if (oldAnalytics.length > 0) {
+          return oldAnalytics;
+        }
       }
 
       const transactions =
@@ -68,11 +74,9 @@ export class AnalysisService {
         intervalMap.get(intervalKey)!.push(checkin);
       });
 
-      // Calculate analytics for each interval
       const analytics: EventCheckinAnalytics[] = [];
       for (const [intervalKey, transactions] of intervalMap.entries()) {
         const intervalStart = new Date(intervalKey);
-        // Count total check-ins
         const checkinCount = transactions.length;
 
         const analytic = this.eventCheckinAnalyticsRepository.create({
@@ -84,7 +88,9 @@ export class AnalysisService {
           updatedAt: new Date(),
         });
 
-        await this.eventCheckinAnalyticsRepository.save(analytic);
+        if (eventStatus == EventStatus.COMPLETED) {
+          await this.eventCheckinAnalyticsRepository.save(analytic);
+        }
 
         analytics.push(analytic);
       }
@@ -103,11 +109,15 @@ export class AnalysisService {
     intervalDuration: 'hourly' | '15min' | '30min' | 'daily' = 'hourly',
   ): Promise<PointCheckinAnalytics[]> {
     try {
-      const oldAnalytics = await this.pointCheckinAnalyticsRepository.find({
-        where: { eventCode },
-      });
-      if (oldAnalytics.length > 0) {
-        return oldAnalytics;
+      const eventStatus = await this.eventService.getEventStatus(eventCode);
+
+      if (eventStatus == EventStatus.COMPLETED) {
+        const oldAnalytics = await this.pointCheckinAnalyticsRepository.find({
+          where: { eventCode },
+        });
+        if (oldAnalytics.length > 0) {
+          return oldAnalytics;
+        }
       }
 
       const transactions =
@@ -166,7 +176,11 @@ export class AnalysisService {
           createdAt: new Date(),
           updatedAt: new Date(),
         });
-        await this.pointCheckinAnalyticsRepository.save(analytic);
+
+        if (eventStatus == EventStatus.COMPLETED) {
+          await this.pointCheckinAnalyticsRepository.save(analytic);
+        }
+
         analytics.push(analytic);
       }
 
