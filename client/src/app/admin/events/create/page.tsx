@@ -16,7 +16,6 @@ import { FloorPlanService } from "@/services/floor-plan.service";
 import { EventService } from "@/services/event.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-import { compressImage } from "@/utils/imageCompression";
 
 // Event creation validation schema
 const eventSchema = z.object({
@@ -163,11 +162,7 @@ export default function CreateEventPage() {
       return;
     }
 
-    const compressedFiles = await Promise.all(
-      files.map((file) => compressImage(file, 2)) // Compress to 2MB max
-    );
-
-    setEventImages((prevImages) => [...prevImages, ...compressedFiles]);
+    setEventImages((prevImages) => [...prevImages, ...files]);
 
     files.forEach((file) => {
       const reader = new FileReader();

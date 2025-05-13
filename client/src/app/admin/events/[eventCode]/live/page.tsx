@@ -94,7 +94,12 @@ export default function RealtimeDashboard() {
   useEffect(() => {
     if (socket) {
       socket.on("new_checkin_received", (newCheckin: CheckInResponse) => {
-        setGuests((prevGuests) => [...prevGuests, newCheckin]);
+        const bucketName = process.env.NEXT_PUBLIC_AWS_S3_BUCKET_NAME;
+        const guestImage = newCheckin.guestInfo.imageUrl;
+        if (guestImage) {
+          newCheckin.guestInfo.imageUrl = `https://${bucketName}.s3.amazonaws.com/${guestImage}`;
+        }
+        setGuests((prevGuests) => [newCheckin, ...prevGuests]);
       });
 
       socket.on(
@@ -243,10 +248,16 @@ export default function RealtimeDashboard() {
 
       {/* Recent Check-ins */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">
             Recent Check-ins
           </h3>
+        </div>
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+          <span className="text-sm font-bold text-gray-500">Guest Image</span>
+          <span className="text-sm font-bold text-gray-500">Guest Code</span>
+          <span className="text-sm font-bold text-gray-500">Poc Code</span>
+          <span className="text-sm font-bold text-gray-500">Check-in Time</span>
         </div>
         <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
           {guests.length > 0 ? (
@@ -254,7 +265,14 @@ export default function RealtimeDashboard() {
               <div key={index} className="px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <img
+                      src={guest.guestInfo.imageUrl || ""}
+                      alt="Guest Image"
+                      className="w-10 h-10 rounded-full"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 text-center">
                       {guest.guestInfo.guestCode}
                     </p>
                     <p className="text-sm text-gray-500">

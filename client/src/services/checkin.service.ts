@@ -1,24 +1,34 @@
 import { GuestCheckinInfo, CheckInResponse } from "@/types/checkin";
 import api from "./api";
+import imageCompression from "browser-image-compression";
+import { blobToFile } from "@/utils/blobToFile";
 
-// CheckIn Service for handling check-in operations
 export const CheckinService = {
   async uploadGuestImage(guestImage: string | null): Promise<string> {
     if (!guestImage) return "";
 
-    // Convert base64 to blob if needed
     const formData = new FormData();
 
-    // If it's a data URL, extract the base64 part
     if (guestImage.startsWith("data:")) {
-      const base64Data = guestImage.split(",")[1];
-      const blob = await fetch(`data:image/jpeg;base64,${base64Data}`).then(
-        (res) => res.blob()
+      const blob = await fetch(guestImage).then((res) => res.blob());
+
+      const file = blobToFile(blob, "guest-image.jpg");
+
+      const compressedImage = await imageCompression(file, {
+        maxSizeMB: 2,
+        maxWidthOrHeight: 1024,
+        useWebWorker: true,
+      });
+
+      const compressedFile = blobToFile(
+        compressedImage,
+        "guest-image.jpg",
+        compressedImage.lastModified
       );
-      formData.append("image", blob, "guest-image.jpg");
+
+      formData.append("image", compressedFile);
     } else {
-      // It's a string value, just send it as is
-      formData.append("guestImage", guestImage);
+      formData.append("image", guestImage);
     }
 
     const response = await api.post("/guests/checkin/upload-image", formData, {

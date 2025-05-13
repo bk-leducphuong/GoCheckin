@@ -139,7 +139,16 @@ export default function GuestList() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {guest.checkinInfo.checkinTime}
+                      {new Date(guest.checkinInfo.checkinTime).toLocaleString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </td>
                   </tr>
                 ))
