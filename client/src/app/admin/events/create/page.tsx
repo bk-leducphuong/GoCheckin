@@ -16,6 +16,7 @@ import { FloorPlanService } from "@/services/floor-plan.service";
 import { EventService } from "@/services/event.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
+import { validateImages } from "@/utils/imageValidation";
 
 // Event creation validation schema
 const eventSchema = z.object({
@@ -143,24 +144,7 @@ export default function CreateEventPage() {
   ) => {
     const files = Array.from(e.target.files || []);
 
-    // Add file size validation
-    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      alert("Some files exceed the 5MB limit");
-      return;
-    }
-
-    // Add file type validation
-    const invalidFiles = files.filter((file) => !file.type.match(/^image\//));
-    if (invalidFiles.length > 0) {
-      alert("Only image files are allowed");
-      return;
-    }
-
-    if (eventImageUrls.length + files.length > 3) {
-      alert("You can only upload up to 3 images");
-      return;
-    }
+    validateImages(files);
 
     setEventImages((prevImages) => [...prevImages, ...files]);
 

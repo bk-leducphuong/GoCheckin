@@ -21,6 +21,7 @@ import DeleteEventValidation from "@/components/admin/event/DeleteEventValidatio
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import EventImages from "@/components/admin/event/EventImages";
+import { EventService } from "@/services/event.service";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -48,7 +49,7 @@ export default function EventDetailsPage() {
   );
   const [removedCheckinPoint, setRemovedCheckinPoint] = useState<Poc[]>([]);
   const [deleteEvent, setDeleteEvent] = useState<boolean>(false);
-
+  const [eventImages, setEventImages] = useState<File[]>([]);
   const { selectedEvent, updateEvent, getEventByCode, setSelectedEvent } =
     useEventStore(
       useShallow((state) => ({
@@ -219,6 +220,14 @@ export default function EventDetailsPage() {
         await PocService.removePoc(point.pocId);
       }
 
+      if (eventImages.length > 0) {
+        console.log("uploading event images");
+        await EventService.uploadEventImages(
+          params.eventCode as string,
+          eventImages
+        );
+      }
+
       router.push("/admin/events");
     } catch (error) {
       setError("Failed to update event. Please try again.");
@@ -332,7 +341,12 @@ export default function EventDetailsPage() {
             />
           </div>
 
-          <EventImages event={selectedEvent} />
+          <EventImages
+            event={selectedEvent}
+            onImagesChange={(images) => {
+              setEventImages(images);
+            }}
+          />
 
           {/* Floor Plan Section */}
           <div>

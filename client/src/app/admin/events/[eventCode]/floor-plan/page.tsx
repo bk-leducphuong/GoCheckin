@@ -12,6 +12,7 @@ import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { FloorPlanService } from "@/services/floor-plan.service";
 import { ApiError } from "@/lib/error";
+import { validateImages } from "@/utils/imageValidation";
 
 export default function FloorPlanPage() {
   const params = useParams();
@@ -127,6 +128,9 @@ export default function FloorPlanPage() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    validateImages([file], 5 * 1024 * 1024, 1);
+
     setNewFloorPlanImage(file);
     const reader = new FileReader();
     reader.onloadend = () => {

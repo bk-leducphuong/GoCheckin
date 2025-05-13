@@ -3,6 +3,7 @@ import { Event } from "../types/event";
 import { CreateEventRequest } from "../types/event";
 import { EventStatus } from "../types/event";
 import imageCompression from "browser-image-compression";
+import { blobToFile } from "@/utils/blobToFile";
 
 export const EventService = {
   async getAllEvents(): Promise<Event[]> {
@@ -24,7 +25,8 @@ export const EventService = {
           maxWidthOrHeight: 1024,
           useWebWorker: true,
         });
-        return compressedImage;
+        const file = blobToFile(compressedImage, image.name);
+        return file;
       })
     );
 

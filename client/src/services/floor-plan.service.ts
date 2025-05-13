@@ -1,5 +1,6 @@
 import api from "./api";
 import { FloorPlan } from "@/types/floorPlan";
+import { blobToFile } from "@/utils/blobToFile";
 import imageCompression from "browser-image-compression";
 
 export const FloorPlanService = {
@@ -14,8 +15,10 @@ export const FloorPlanService = {
       useWebWorker: true,
     });
 
+    const file = blobToFile(compressedImage, "floor-plan.png");
+
     const formData = new FormData();
-    formData.append("image", compressedImage);
+    formData.append("image", file);
 
     const response = await api.post(
       `/floor-plan/${eventCode}/upload`,

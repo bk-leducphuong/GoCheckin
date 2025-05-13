@@ -1,8 +1,17 @@
 import { EventStatus } from "@/types/event";
 import { useEffect, useRef, useState } from "react";
 import { Event } from "@/types/event";
+import { validateImages } from "@/utils/imageValidation";
 
-export default function EventImages({ event }: { event: Event }) {
+interface EventImagesProps {
+  event: Event;
+  onImagesChange: (images: File[]) => void;
+}
+
+export default function EventImages({
+  event,
+  onImagesChange,
+}: EventImagesProps) {
   const uploadEventImages = useRef<HTMLInputElement>(null);
   const [eventImages, setEventImages] = useState<File[]>([]);
   const [eventImageUrls, setEventImageUrls] = useState<string[]>([]);
@@ -29,29 +38,10 @@ export default function EventImages({ event }: { event: Event }) {
   ) => {
     const files = Array.from(e.target.files || []);
 
-    // Add file size validation
-    const oversizedFiles = files.filter((file) => file.size > 5 * 1024 * 1024);
-    if (oversizedFiles.length > 0) {
-      alert("Some files exceed the 5MB limit");
-      return;
-    }
-
-    // Add file type validation
-    const invalidFiles = files.filter((file) => !file.type.match(/^image\//));
-    if (invalidFiles.length > 0) {
-      alert("Only image files are allowed");
-      return;
-    }
-
-    // Check if adding these files would exceed the 3 image limit
-    const currentImageCount =
-      eventImageUrls.length - removedImageIndices.length;
-    if (currentImageCount + files.length > 3) {
-      alert("You can only have up to 3 images total");
-      return;
-    }
+    validateImages(files);
 
     setEventImages((prevImages) => [...prevImages, ...files]);
+    onImagesChange([...eventImages, ...files]);
 
     // Create preview URLs
     files.forEach((file) => {
