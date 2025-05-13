@@ -9,25 +9,17 @@ import { Repository } from 'typeorm';
 import { Guest, IdentityType } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
 import { CheckinDto } from './dto/checkin.dto';
-import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
 import { GuestResponse } from './dto/get-guests-response.dto';
-
+import { S3Service } from 'src/common/services/s3.service';
 @Injectable()
 export class GuestService {
-  private readonly uploadPath = join(process.cwd(), 'uploads');
-
   constructor(
     @InjectRepository(Guest)
     private guestRepository: Repository<Guest>,
     @InjectRepository(GuestCheckin)
     private guestCheckinRepository: Repository<GuestCheckin>,
-  ) {
-    // Create uploads directory if it doesn't exist
-    if (!existsSync(this.uploadPath)) {
-      mkdirSync(this.uploadPath);
-    }
-  }
+    private readonly s3Service: S3Service,
+  ) {}
 
   async checkin(checkinDto: CheckinDto): Promise<GuestResponse> {
     try {
@@ -85,8 +77,17 @@ export class GuestService {
     }
   }
 
-  uploadImage(image: Express.Multer.File): string {
-    return image.path;
+  async uploadImage(image: Express.Multer.File): Promise<string> {
+    try {
+      const key = await this.s3Service.uploadFile(
+        image,
+        `guest-images/${image.originalname}`,
+      );
+      return key;
+    } catch (error) {
+      console.error('Error uploading guest image: ', error);
+      throw error;
+    }
   }
 
   async getAllGuestsOfPoc(
@@ -106,6 +107,12 @@ export class GuestService {
             where: { guestId: checkin.guestId, enabled: true },
           });
           if (!guestDetails) return null;
+
+          if (guestDetails.imageUrl) {
+            guestDetails.imageUrl = this.s3Service.getFileUrl(
+              guestDetails.imageUrl,
+            );
+          }
 
           response.guestInfo = guestDetails;
           response.checkinInfo = checkin;
@@ -138,6 +145,11 @@ export class GuestService {
           });
           if (!guestDetails) return null;
 
+          if (guestDetails.imageUrl) {
+            guestDetails.imageUrl = this.s3Service.getFileUrl(
+              guestDetails.imageUrl,
+            );
+          }
           response.guestInfo = guestDetails;
           response.checkinInfo = checkin;
           return response;
@@ -162,6 +174,10 @@ export class GuestService {
 
       if (!guest) {
         throw new NotFoundException(`Guest with ID ${id} not found`);
+      }
+
+      if (guest.imageUrl) {
+        guest.imageUrl = this.s3Service.getFileUrl(guest.imageUrl);
       }
 
       return guest;

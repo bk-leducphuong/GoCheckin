@@ -100,8 +100,8 @@ export default function POCDashboard() {
       setGuestImage(null);
       setGuestCode("");
       setNote("");
-      alert("Guest checked in successfully!");
     } catch (error) {
+      console.error("Error checking in guest:", error);
       setError("Failed to check in guest. Please try again.");
     } finally {
       setIsLoading(false);

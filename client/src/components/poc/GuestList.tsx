@@ -59,7 +59,7 @@ export default function GuestList() {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Name
+                  Image
                 </th>
                 <th
                   scope="col"
@@ -111,8 +111,15 @@ export default function GuestList() {
                   <tr key={guest.guestInfo.guestId}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {/* {guest.guestInfo.guestName || "Unknown Guest"} */}
-                        {"Anonymous Guest"}
+                        {guest.guestInfo.imageUrl ? (
+                          <img
+                            src={guest.guestInfo.imageUrl}
+                            alt="Guest Image"
+                            className="w-10 h-10 rounded-full"
+                          />
+                        ) : (
+                          "Unknown Guest"
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

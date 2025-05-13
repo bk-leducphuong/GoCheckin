@@ -85,7 +85,7 @@ export class SocketGateway
     return this.checkinHandler.handleNewCheckin(this.server, checkinData);
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async handleExpiredHeartbeats() {
     await this.checkinHandler.handleExpiredHeartbeats(this.server);
   }

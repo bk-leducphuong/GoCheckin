@@ -8,6 +8,7 @@ import {
   UseInterceptors,
   UploadedFile,
   Query,
+  ParseFilePipeBuilder,
 } from '@nestjs/common';
 import { GuestService } from './guest.service';
 import { CheckinDto } from './dto/checkin.dto';
@@ -54,7 +55,17 @@ export class GuestController {
     type: String,
   })
   @UseInterceptors(FileInterceptor('image'))
-  uploadImage(@UploadedFile() image: Express.Multer.File): string {
+  uploadImage(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addMaxSizeValidator({ maxSize: 5 * 1024 * 1024 })
+        .addFileTypeValidator({ fileType: 'image/*' })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
+    )
+    image: Express.Multer.File,
+  ) {
     return this.guestService.uploadImage(image);
   }
 
