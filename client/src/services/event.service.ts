@@ -2,6 +2,7 @@ import api from "./api";
 import { Event } from "../types/event";
 import { CreateEventRequest } from "../types/event";
 import { EventStatus } from "../types/event";
+import imageCompression from "browser-image-compression";
 
 export const EventService = {
   async getAllEvents(): Promise<Event[]> {
@@ -15,10 +16,23 @@ export const EventService = {
   },
 
   async uploadEventImages(eventCode: string, images: File[]) {
+    // Compress images
+    const compressedImages = await Promise.all(
+      images.map(async (image) => {
+        const compressedImage = await imageCompression(image, {
+          maxSizeMB: 2,
+          maxWidthOrHeight: 1024,
+          useWebWorker: true,
+        });
+        return compressedImage;
+      })
+    );
+
     const formData = new FormData();
-    for (const image of images) {
+    for (const image of compressedImages) {
       formData.append("images", image);
     }
+
     const response = await api.post(
       `/events/${eventCode}/images/upload`,
       formData,

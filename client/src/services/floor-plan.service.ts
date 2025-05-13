@@ -1,13 +1,22 @@
 import api from "./api";
 import { FloorPlan } from "@/types/floorPlan";
+import imageCompression from "browser-image-compression";
 
 export const FloorPlanService = {
   async uploadFloorPlanImage(
     eventCode: string,
     floorPlanImage: File
   ): Promise<string> {
+    // Compress image
+    const compressedImage = await imageCompression(floorPlanImage, {
+      maxSizeMB: 2,
+      maxWidthOrHeight: 1024,
+      useWebWorker: true,
+    });
+
     const formData = new FormData();
-    formData.append("image", floorPlanImage);
+    formData.append("image", compressedImage);
+
     const response = await api.post(
       `/floor-plan/${eventCode}/upload`,
       formData,
