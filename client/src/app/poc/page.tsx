@@ -36,11 +36,13 @@ export default function PocDashboardPage() {
     events: joinedEvents,
     getEventByCode,
     setEvents,
+    setSelectedEvent,
   } = useEventStore(
     useShallow((state) => ({
       events: state.events,
       getEventByCode: state.getEventByCode,
       setEvents: state.setEvents,
+      setSelectedEvent: state.setSelectedEvent,
     }))
   );
 
@@ -113,9 +115,20 @@ export default function PocDashboardPage() {
 
   const redirectToCheckinPage = (eventCode: string) => {
     const poc = pocList.filter((poc) => poc.eventCode === eventCode);
-    router.push(
-      `/poc/check-in?pointCode=${poc[0].pointCode}&eventCode=${eventCode}`
-    );
+    const event = joinedEvents.find((event) => event.eventCode === eventCode);
+    if (event && poc.length > 0) {
+      router.push(
+        `/poc/check-in?pointCode=${poc[0].pointCode}&eventCode=${eventCode}`
+      );
+    }
+  };
+
+  const redirectToEventDetailsPage = (eventCode: string) => {
+    const event = joinedEvents.find((event) => event.eventCode === eventCode);
+    if (event) {
+      setSelectedEvent(event);
+      router.push(`/poc/event-details?eventCode=${eventCode}`);
+    }
   };
 
   if (isLoading) {
@@ -167,9 +180,7 @@ export default function PocDashboardPage() {
                   <div className="mt-3 flex flex-col gap-2">
                     <div
                       onClick={() =>
-                        router.push(
-                          `/poc/event-details?eventCode=${event.eventCode}`
-                        )
+                        redirectToEventDetailsPage(event.eventCode)
                       }
                     >
                       <Button

@@ -4,34 +4,30 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEventStore } from "@/store/eventStore";
 import { useShallow } from "zustand/shallow";
-import { useFloorPlanStore } from "@/store/floorPlanStore";
 import { PocService } from "@/services/poc.service";
-import Image from "next/image";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { ApiError } from "@/lib/error";
+import { useFloorPlanStore } from "@/store/floorPlanStore";
 
 export default function EventDetailsPage() {
   const eventCode = useSearchParams().get("eventCode") as string;
-  const [floorPlanImageUrl, setFloorPlanImageUrl] = useState<string | null>(
-    null
-  );
   const [markedPoints, setMarkedPoints] = useState<{
     [key: string]: { x: number; y: number };
   }>({});
-  const { selectedEvent, setSelectedEvent, getEventByCode } = useEventStore(
+  const { selectedEvent, getEventByCode } = useEventStore(
     useShallow((state) => ({
       selectedEvent: state.selectedEvent,
-      setSelectedEvent: state.setSelectedEvent,
       getEventByCode: state.getEventByCode,
     }))
   );
-  const { floorPlanImage, getFloorPlanImage } = useFloorPlanStore(
+  const { floorPlanImageUrl, getFloorPlanImage } = useFloorPlanStore(
     useShallow((state) => ({
-      floorPlanImage: state.floorPlanImage,
+      floorPlanImageUrl: state.floorPlanImageUrl,
       getFloorPlanImage: state.getFloorPlanImage,
     }))
   );
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,8 +36,7 @@ export default function EventDetailsPage() {
       try {
         setIsLoading(true);
         if (!selectedEvent) {
-          const event = await getEventByCode(eventCode as string);
-          setSelectedEvent(event);
+          await getEventByCode(eventCode as string);
         }
       } catch (error) {
         setError("Failed to fetch event details");
@@ -52,24 +47,12 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [eventCode, getEventByCode, setSelectedEvent]);
+  }, [eventCode, getEventByCode]);
 
   useEffect(() => {
-    let imageUrl: string;
-
     const getFloorPlanImageUrl = async () => {
       try {
-        if (!floorPlanImage) {
-          await getFloorPlanImage(eventCode);
-        }
-
-        if (floorPlanImage) {
-          const blob = new Blob([floorPlanImage as Blob], {
-            type: "image/jpeg",
-          });
-          imageUrl = URL.createObjectURL(blob);
-          setFloorPlanImageUrl(imageUrl);
-        }
+        await getFloorPlanImage(eventCode as string);
       } catch (error) {
         console.error("Error loading floor plan:", error);
         setError("Failed to load floor plan image");
@@ -77,14 +60,7 @@ export default function EventDetailsPage() {
     };
 
     getFloorPlanImageUrl();
-
-    // Cleanup function to revoke the Blob URL
-    return () => {
-      if (imageUrl) {
-        URL.revokeObjectURL(imageUrl);
-      }
-    };
-  }, [floorPlanImage, getFloorPlanImage, eventCode]); // Add dependencies
+  }, [eventCode, getFloorPlanImage]);
 
   useEffect(() => {
     const getPocLocations = async () => {
@@ -116,7 +92,7 @@ export default function EventDetailsPage() {
       }
     };
     getPocLocations();
-  }, [setMarkedPoints, eventCode]); // Add dependencies
+  }, [setMarkedPoints, eventCode]);
 
   if (isLoading || !selectedEvent) {
     return <Loading />;
@@ -166,16 +142,14 @@ export default function EventDetailsPage() {
             <div className="bg-gray-50 p-4 rounded-lg">
               {floorPlanImageUrl && (
                 <div className="relative">
-                  <Image
+                  <img
                     src={floorPlanImageUrl}
                     alt="Floor plan"
                     width={800}
                     height={600}
                     className="w-full rounded-md"
                   />
-                  {/* Render marked points */}
                   {Object.entries(markedPoints).map(([pocId, pos]) => {
-                    // const point = pocList.find((p) => p.pocId === pocId);
                     return (
                       <div
                         key={pocId}
@@ -221,14 +195,6 @@ export default function EventDetailsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Event Type
-              </h2>
-              <p className="text-gray-600">
-                {selectedEvent.eventType || "Not specified"}
-              </p>
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
                 Capacity
               </h2>
               <p className="text-gray-600">
@@ -238,18 +204,16 @@ export default function EventDetailsPage() {
           </div>
 
           {/* Terms & Conditions */}
-          {selectedEvent.termsConditions && (
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Terms & Conditions
-              </h2>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-gray-600 whitespace-pre-line">
-                  {selectedEvent.termsConditions}
-                </p>
-              </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              Terms & Conditions
+            </h2>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-gray-600 whitespace-pre-line">
+                {selectedEvent.termsConditions || "No terms and conditions"}
+              </p>
             </div>
-          )}
+          </div>
 
           {/* Event Status */}
           <div className="mt-6">

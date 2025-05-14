@@ -155,7 +155,7 @@ export class PocController {
   }
 
   @Get('locations')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN, UserRole.TENANT, UserRole.POC)
   @ApiOperation({ summary: 'Get POC locations' })
   @ApiResponse({
     status: HttpStatus.OK,
