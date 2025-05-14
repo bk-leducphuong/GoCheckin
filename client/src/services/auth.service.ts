@@ -7,6 +7,7 @@ import {
   PocRegisterData,
   TokenRefreshResponse,
   SessionInfo,
+  VerifyAccessTokenResponse,
 } from "@/types/auth";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "token";
@@ -44,10 +45,10 @@ export const AuthService = {
       refreshToken,
       deviceInfo,
     });
-    return response.data.data; // return access token
+    return response.data.data;
   },
 
-  async verifyAccessToken(role: UserRole): Promise<boolean> {
+  async verifyAccessToken(role: UserRole): Promise<VerifyAccessTokenResponse> {
     const response = await api.post("/auth/verify-access-token", {
       role,
     });

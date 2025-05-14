@@ -4,8 +4,9 @@ import { PocService } from "@/services/poc.service";
 import { devtools } from "zustand/middleware";
 
 interface PocStore {
-  // Store all POCs of an event (admin site)
   pocList: Poc[];
+
+  // Store all POCs of an event (admin site)
   eventCode: string;
   setPocList: (pocList: Poc[]) => void;
   getAllPocs: (eventCode: string) => Promise<Poc[]>;
@@ -16,6 +17,7 @@ interface PocStore {
   validatePoc: (pointCode: string, eventCode: string) => Promise<void>;
   updatePoc: (pocId: string, pocData: UpdatePocRequest) => Promise<void>;
   removePoc: (pocId: string) => Promise<void>;
+  getPocsByUserId: (userId: string) => Promise<Poc[]>;
 }
 
 export const usePocStore = create<PocStore>()(
@@ -76,6 +78,10 @@ export const usePocStore = create<PocStore>()(
           console.error("Error removing POC:", error);
           throw error;
         }
+      },
+      getPocsByUserId: async (userId: string) => {
+        const pocs = await PocService.getPocsByUserId(userId);
+        set({ pocList: pocs });
       },
     }),
     {

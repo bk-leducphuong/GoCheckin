@@ -1,131 +1,124 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { usePocStore } from "@/store/pocStore";
 import { useShallow } from "zustand/react/shallow";
-import Button from "@/components/ui/Button";
-import Camera from "@/components/ui/Camera";
-import { GuestCheckinInfo } from "@/types/checkin";
-import { useSearchParams } from "next/navigation";
-import GuestList from "@/components/poc/GuestList";
-import { useUserStore } from "@/store/userStore";
-import { useCheckinStore } from "@/store/checkinStore";
-import MenuModal from "@/components/poc/MenuModal";
-import { useSocketStore } from "@/store/socketStore";
-import { useEventStore } from "@/store/eventStore";
-import PocAnalysis from "@/components/poc/PocAnalysis";
+import { useAuthStore } from "@/store/authStore";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-import { EventStatus } from "@/types/event";
+import { useEventStore } from "@/store/eventStore";
+import { Event } from "@/types/event";
+import Button from "@/components/ui/Button";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-export default function POCDashboard() {
-  // Connect socket
-  const { sendCheckinSocketEvent } = useSocketStore(
-    useShallow((state) => ({
-      sendCheckinSocketEvent: state.sendCheckinSocketEvent,
-    }))
-  );
+interface Activity {
+  id: string;
+  type: string;
+  description: string;
+  timestamp: string;
+  eventCode: string;
+}
 
-  const { user } = useUserStore(
-    useShallow((state) => ({
-      user: state.user,
-    }))
-  );
-  const { checkinGuest, uploadGuestImage } = useCheckinStore(
-    useShallow((state) => ({
-      checkinGuest: state.checkinGuest,
-      uploadGuestImage: state.uploadGuestImage,
-      guests: state.guests,
-    }))
-  );
-
-  const { selectedEvent, getEventByCode } = useEventStore(
-    useShallow((state) => ({
-      selectedEvent: state.selectedEvent,
-      setSelectedEvent: state.setSelectedEvent,
-      getEventByCode: state.getEventByCode,
-    }))
-  );
-
-  const searchParams = useSearchParams();
-  const eventCode = searchParams.get("eventCode") as string;
-  const pointCode = searchParams.get("pointCode") as string;
-  const [guestCode, setGuestCode] = useState("");
-  const [note, setNote] = useState("");
-  const [guestImage, setGuestImage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showCamera, setShowCamera] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
+export default function PocDashboardPage() {
   const [error, setError] = useState<string | null>(null);
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const router = useRouter();
 
+  const { pocList, getPocsByUserId } = usePocStore(
+    useShallow((state) => ({
+      pocList: state.pocList,
+      getPocsByUserId: state.getPocsByUserId,
+    }))
+  );
+
+  const {
+    events: joinedEvents,
+    getEventByCode,
+    setEvents,
+  } = useEventStore(
+    useShallow((state) => ({
+      events: state.events,
+      getEventByCode: state.getEventByCode,
+      setEvents: state.setEvents,
+    }))
+  );
+
+  const { userId } = useAuthStore(
+    useShallow((state) => ({
+      userId: state.userId,
+    }))
+  );
+
   useEffect(() => {
-    const fetchEvent = async () => {
+    const getAllPocs = async () => {
       try {
-        await getEventByCode(eventCode);
-      } catch (error) {
-        setError("Failed to fetch event details. Please try again.");
+        if (userId) {
+          setIsLoading(true);
+          await getPocsByUserId(userId);
+        } else {
+          setError("Authentication error");
+        }
+      } catch (error: unknown) {
+        setError(
+          error && typeof error === "object" && "message" in error
+            ? String(error.message)
+            : "An unknown error occurred"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getAllPocs();
+  }, [getPocsByUserId, userId]);
+
+  useEffect(() => {
+    const getAllEvents = async () => {
+      try {
+        setIsLoading(true);
+        const joinedEvents: Event[] = [];
+        for (const poc of pocList) {
+          const event = await getEventByCode(poc.eventCode);
+          joinedEvents.push(event);
+        }
+        setEvents(joinedEvents);
+
+        // Mock recent activities for demonstration
+        const mockActivities: Activity[] = joinedEvents.map((event, index) => ({
+          id: `activity-${index}`,
+          type: "checkin",
+          description: `Check-in at ${event.eventName}`,
+          timestamp: new Date(Date.now() - index * 86400000).toISOString(),
+          eventCode: event.eventCode,
+        }));
+
+        setActivities(mockActivities);
+      } catch (error: unknown) {
+        setError(
+          error && typeof error === "object" && "message" in error
+            ? String(error.message)
+            : "An unknown error occurred"
+        );
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchEvent();
-  });
-
-  const submitCheckin = async () => {
-    try {
-      setIsLoading(true);
-
-      // First upload the image if available
-      let imageUrl;
-      if (guestImage) {
-        imageUrl = await uploadGuestImage(guestImage);
-      }
-
-      // Prepare the check-in data
-      const checkInData: GuestCheckinInfo = {
-        guestCode,
-        eventCode: eventCode,
-        pointCode: pointCode,
-        notes: note,
-        imageUrl,
-      };
-
-      // Call the check-in service
-      const checkinResponse = await checkinGuest(checkInData);
-
-      sendCheckinSocketEvent(checkinResponse);
-
-      // Reset form and show success message
-      setGuestImage(null);
-      setGuestCode("");
-      setNote("");
-    } catch (error) {
-      console.error("Error checking in guest:", error);
-      setError("Failed to check in guest. Please try again.");
-    } finally {
+    if (pocList.length > 0) {
+      getAllEvents();
+    } else {
       setIsLoading(false);
     }
+  }, [getEventByCode, pocList, setEvents]);
+
+  const redirectToCheckinPage = (eventCode: string) => {
+    const poc = pocList.filter((poc) => poc.eventCode === eventCode);
+    router.push(
+      `/poc/check-in?pointCode=${poc[0].pointCode}&eventCode=${eventCode}`
+    );
   };
 
-  const handleCapture = (imageData: string) => {
-    setGuestImage(imageData);
-  };
-
-  const openMenu = () => {
-    setShowMenu(true);
-  };
-
-  const viewEventDetails = () => {
-    const url = `/poc/event-details?pointCode=${pointCode}&eventCode=${eventCode}`;
-    router.push(url);
-  };
-
-  const closeMenu = () => {
-    setShowMenu(false);
-  };
-
-  if (isLoading || !selectedEvent) {
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -134,205 +127,99 @@ export default function POCDashboard() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Section 1: Event and POC Information */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {selectedEvent.eventName}
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Date: {new Date(selectedEvent.startTime).toLocaleString()} •
-              Location: {selectedEvent.venueName}
-            </p>
-            <a
-              onClick={() => viewEventDetails()}
-              className="text-blue-500 cursor-pointer"
-            >
-              View event details
-            </a>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <div
-              className="flex items-center bg-blue-50 px-4 py-2 rounded-md cursor-pointer"
-              onClick={openMenu}
-            >
-              <div className="mr-3">
-                <svg
-                  className="h-6 w-6 text-blue-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Point of Contact</p>
-                <p className="font-medium text-gray-900">
-                  {user?.username || "POC User"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold">POC Dashboard</h1>
+        <Link href="/register/event">
+          <Button variant="primary">Register New Event</Button>
+        </Link>
       </div>
 
-      {showMenu && <MenuModal onClose={closeMenu} />}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Joined Events */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Your Events</h2>
 
-      {/* Section 2: Check-in Section */}
-      {selectedEvent.eventStatus === EventStatus.ACTIVE && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Guest Check-in
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Guest Image Capture */}
-            <div className="col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Guest Photo
-              </label>
-              <div
-                className="bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden"
-                style={{ height: "200px" }}
-              >
-                {guestImage ? (
-                  <div className="relative w-full h-full">
-                    <img
-                      src={guestImage}
-                      alt="Guest Photo"
-                      className="object-cover w-full h-full"
-                      onError={() => setGuestImage("/placeholder-guest.jpg")}
-                    />
+          {joinedEvents.length === 0 ? (
+            <div className="text-gray-500 text-center py-4">
+              No events joined yet
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {joinedEvents.map((event) => (
+                <div
+                  key={event.eventId}
+                  className="border rounded-md p-4 hover:bg-gray-50"
+                >
+                  <div className="flex justify-between">
+                    <h3 className="font-medium">{event.eventName}</h3>
+                    <span className="text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                      {event.eventStatus}
+                    </span>
                   </div>
-                ) : (
-                  <div className="text-center p-4">
+                  <p className="text-sm text-gray-600 mt-1">
+                    {event.venueName}
+                  </p>
+                  <div className="text-sm text-gray-500 mt-2">
+                    {new Date(event.startTime).toLocaleDateString()} -{" "}
+                    {new Date(event.endTime).toLocaleDateString()}
+                  </div>
+                  <div className="mt-3">
+                    <div onClick={() => redirectToCheckinPage(event.eventCode)}>
+                      <Button variant="outline" className="w-full">
+                        Go to Check-in
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Recent Activities */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Recent Activities</h2>
+
+          {activities.length === 0 ? (
+            <div className="text-gray-500 text-center py-4">
+              No recent activities
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className="flex items-start border-b pb-3 last:border-0"
+                >
+                  <div className="bg-blue-100 p-2 rounded-full mr-3">
                     <svg
-                      className="mx-auto h-12 w-12 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
                       xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-blue-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                        d="M9 5l7 7-7 7"
                       />
                     </svg>
-                    <p className="mt-2 text-sm text-gray-500">
-                      No photo captured
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm">{activity.description}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(activity.timestamp).toLocaleString()}
                     </p>
                   </div>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCamera(true)}
-                className="mt-2 w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <svg
-                  className="-ml-1 mr-2 h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                Capture Photo
-              </button>
+                </div>
+              ))}
             </div>
-
-            <div className="col-span-1 md:col-span-2 flex flex-col space-y-4">
-              {/* Guest Code Input */}
-              <div>
-                <label
-                  htmlFor="guestCode"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Guest Code
-                </label>
-                <input
-                  type="text"
-                  id="guestCode"
-                  value={guestCode}
-                  onChange={(e) => setGuestCode(e.target.value)}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Enter guest code (e.g. G001)"
-                  required
-                />
-              </div>
-
-              {/* Notes Input */}
-              <div>
-                <label
-                  htmlFor="notes"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Notes (Optional)
-                </label>
-                <textarea
-                  id="notes"
-                  rows={4}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Add any notes about the check-in"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-2">
-                <Button
-                  onClick={submitCheckin}
-                  isLoading={isLoading}
-                  className="w-full"
-                >
-                  Check In Guest
-                </Button>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      )}
-      {/* Section 3: Guest List */}
-      <GuestList></GuestList>
-
-      <PocAnalysis eventCode={eventCode} pointCode={pointCode}></PocAnalysis>
-
-      {showCamera && (
-        <Camera
-          onCapture={handleCapture}
-          onClose={() => setShowCamera(false)}
-        />
-      )}
+      </div>
     </div>
   );
 }

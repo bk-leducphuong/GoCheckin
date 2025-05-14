@@ -9,6 +9,7 @@ import {
   HttpStatus,
   HttpCode,
   Query,
+  Param,
 } from '@nestjs/common';
 import { PocService } from './poc.service';
 import { CreatePocDto } from './dto/create-poc.dto';
@@ -166,5 +167,16 @@ export class PocController {
   })
   async getPocLocations(@Query('eventCode') eventCode: string) {
     return this.pocService.getPocLocations(eventCode);
+  }
+
+  @Get('user/:userId')
+  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @ApiOperation({ summary: 'Get POCs by user ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POCs found successfully',
+  })
+  async getPocsByUserId(@Param('userId') userId: string) {
+    return this.pocService.getPocsByUserId(userId);
   }
 }

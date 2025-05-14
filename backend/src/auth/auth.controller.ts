@@ -157,9 +157,15 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   verifyToken(@CurrentUser() user: JwtPayload, @Body() role: UserRole) {
     if (role === user.role) {
-      return true;
+      return {
+        valid: true,
+        userId: user.userId,
+      };
     } else {
-      return false;
+      return {
+        valid: false,
+        userId: null,
+      };
     }
   }
 

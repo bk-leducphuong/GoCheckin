@@ -6,6 +6,7 @@ import { UserRole } from "@/types/user";
 import { ApiError } from "@/lib/error";
 
 interface AuthState {
+  userId: string | null;
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
@@ -14,14 +15,9 @@ interface AuthState {
     password: string,
     deviceInfo?: string
   ) => Promise<void>;
-  pocLogin: (
-    email: string,
-    password: string
-  ) => Promise<{ pointCode: string; eventCode: string }>;
+  pocLogin: (email: string, password: string) => Promise<void>;
   adminRegister: (data: AdminRegisterData) => Promise<void>;
-  pocRegister: (
-    data: PocRegisterData
-  ) => Promise<{ pointCode: string; eventCode: string }>;
+  pocRegister: (data: PocRegisterData) => Promise<void>;
   logout: () => Promise<void>;
   clearAuth: () => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
@@ -33,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     persist(
       (set, get) => ({
+        userId: null,
         accessToken: null,
         refreshToken: null,
         isAuthenticated: false,
@@ -49,6 +46,7 @@ export const useAuthStore = create<AuthState>()(
           });
 
           const newState = {
+            userId: response.userId,
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
             isAuthenticated: true,
@@ -62,27 +60,20 @@ export const useAuthStore = create<AuthState>()(
           const response = await AuthService.pocLogin({ email, password });
 
           const newState = {
+            userId: response.userId,
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
             isAuthenticated: true,
             isLoading: false,
           };
           set(newState);
-
-          if (!response.pointCode || !response.eventCode) {
-            throw new Error("Invalid response from server");
-          }
-
-          return {
-            pointCode: response.pointCode,
-            eventCode: response.eventCode,
-          };
         },
 
         adminRegister: async (data: AdminRegisterData) => {
           const response = await AuthService.adminRegister(data);
 
           const newState = {
+            userId: response.userId,
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
             isAuthenticated: true,
@@ -96,31 +87,20 @@ export const useAuthStore = create<AuthState>()(
           const response = await AuthService.pocRegister(data);
 
           const newState = {
-            pointCode: response.pointCode,
-            eventCode: response.eventCode,
+            userId: response.userId,
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
             isAuthenticated: true,
           };
 
           set(newState);
-          if (!response.pointCode || !response.eventCode) {
-            throw new Error("Invalid response from server");
-          }
-
-          return {
-            pointCode: response.pointCode,
-            eventCode: response.eventCode,
-          };
         },
 
         logout: async () => {
           const { refreshToken } = get();
           if (refreshToken) {
-            // Call the logout endpoint via AuthService
             await AuthService.logout(refreshToken);
           }
-          // Clear the auth state regardless of API call success
           get().clearAuth();
         },
 
@@ -142,6 +122,7 @@ export const useAuthStore = create<AuthState>()(
             set({
               accessToken: response.accessToken,
               isAuthenticated: true,
+              userId: response.userId,
             });
           }
         },
@@ -150,9 +131,12 @@ export const useAuthStore = create<AuthState>()(
           try {
             const { accessToken } = get();
             if (accessToken) {
-              const isValid = await AuthService.verifyAccessToken(role);
-              if (isValid) {
+              const { valid, userId } = await AuthService.verifyAccessToken(
+                role
+              );
+              if (valid) {
                 set({
+                  userId: userId,
                   isAuthenticated: true,
                 });
               } else {

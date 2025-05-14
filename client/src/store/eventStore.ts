@@ -67,7 +67,7 @@ export const useEventStore = create<EventStore>()(
         }));
         return response;
       },
-      async getEventStatus(eventCode: string): Promise<EventStatus> {
+      getEventStatus: async (eventCode: string) => {
         set({ isLoading: true, error: null });
         const response = await EventService.getEventStatus(eventCode);
         set({ isLoading: false });

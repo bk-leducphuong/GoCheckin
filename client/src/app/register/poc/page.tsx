@@ -50,16 +50,10 @@ export default function PocRegisterPage() {
   const onSubmit = async (data: PocRegisterFormData) => {
     try {
       setErrorMessage(null);
-
-      // Extract data without confirmPassword
       const { confirmPassword, ...registerData } = data;
-      // Unused variable is intentional - we're extracting and discarding confirmPassword
       void confirmPassword;
-
-      const { pointCode, eventCode } = await pocRegister(registerData);
-
-      // Redirect to dashboard after successful registration
-      router.push(`/poc?pointCode=${pointCode}&eventCode=${eventCode}`);
+      await pocRegister(registerData);
+      router.push(`/poc`);
     } catch (error) {
       console.error("Registration error:", error);
       setErrorMessage(

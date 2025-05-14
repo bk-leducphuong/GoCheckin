@@ -140,18 +140,13 @@ export class PocService {
     }
   }
 
-  async getPocByUserId(userId: string): Promise<PointOfCheckin> {
+  async getPocsByUserId(userId: string): Promise<PointOfCheckin[]> {
     try {
-      const poc = await this.pocRepository.findOne({
+      const pocs = await this.pocRepository.find({
         where: { userId, enabled: true },
       });
 
-      if (!poc) {
-        throw new NotFoundException(
-          `Point of Check-in with user ID ${userId} not found`,
-        );
-      }
-      return poc;
+      return pocs.length > 0 ? pocs : [];
     } catch (error) {
       console.error('Error getting POC by user ID:', error);
       throw error;

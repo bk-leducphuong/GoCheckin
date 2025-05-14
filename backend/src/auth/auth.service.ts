@@ -25,7 +25,7 @@ import { OtpService } from './otp.service';
 import { ResetToken } from './entities/reset-token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
-
+import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -69,6 +69,7 @@ export class AuthService {
           role: user.role,
         }),
         refreshToken: refreshToken,
+        userId: user.userId,
       };
     } catch (error) {
       console.log(error);
@@ -91,13 +92,6 @@ export class AuthService {
         throw new UnauthorizedException('Invalid password');
       }
 
-      // Get eventcode and point code
-      const poc = await this.pocService.getPocByUserId(user.userId);
-      if (!poc) {
-        throw new UnauthorizedException('User is not a POC');
-      }
-
-      // Create refresh token
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
         user.userId,
       );
@@ -108,8 +102,7 @@ export class AuthService {
           role: user.role,
         }),
         refreshToken: refreshToken,
-        pointCode: poc.pointCode,
-        eventCode: poc.eventCode,
+        userId: user.userId,
       };
     } catch (error) {
       console.log(error);
@@ -159,6 +152,7 @@ export class AuthService {
           role: newUser.role,
         }),
         refreshToken: refreshToken,
+        userId: newUser.userId,
       };
     } catch (error) {
       console.log(error);
@@ -225,6 +219,7 @@ export class AuthService {
         refreshToken: refreshToken,
         pointCode: registerDto.pointCode,
         eventCode: registerDto.eventCode,
+        userId: newUser.userId,
       };
     } catch (error) {
       console.log(error);
@@ -248,9 +243,8 @@ export class AuthService {
 
   async refreshAccessToken(
     refreshToken: string,
-  ): Promise<{ accessToken: string }> {
+  ): Promise<RefreshTokenResponseDto> {
     try {
-      // Validate refresh token
       const payload =
         await this.refreshTokenService.validateRefreshToken(refreshToken);
 
@@ -258,17 +252,10 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      // Get user information
-      const user = await this.accountService.findById(payload.userId);
-
-      if (!user) {
-        throw new UnauthorizedException('User not found');
-      }
-      // Generate new access token
       const accessToken = this.jwtService.sign(
         {
-          userId: user.userId,
-          role: user.role,
+          userId: payload.userId,
+          role: payload.role,
         },
         {
           secret: this.config.get<string>('JWT_SECRET'),
@@ -276,9 +263,9 @@ export class AuthService {
         },
       );
 
-      // Return new tokens and user info
       return {
         accessToken,
+        userId: payload.userId,
       };
     } catch (error) {
       console.log(error);

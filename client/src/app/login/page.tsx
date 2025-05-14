@@ -24,12 +24,13 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const router = useRouter();
-  const { adminLogin, pocLogin, isLoading } = useAuthStore(
+  const { adminLogin, pocLogin } = useAuthStore(
     useShallow((state) => ({
       adminLogin: state.adminLogin,
       pocLogin: state.pocLogin,
-      isLoading: state.isLoading,
     }))
   );
 
@@ -52,21 +53,21 @@ export default function LoginPage() {
       setErrorMessage(null);
       const deviceInfo = navigator.userAgent; // Get device info from user agent
 
+      setIsLoading(true);
       if (data.userType === "admin") {
         await adminLogin(data.email, data.password, deviceInfo);
         router.push("/admin");
       } else {
-        const { pointCode, eventCode } = await pocLogin(
-          data.email,
-          data.password
-        );
-        router.push(`/poc?pointCode=${pointCode}&eventCode=${eventCode}`);
+        await pocLogin(data.email, data.password);
+        router.push(`/poc`);
       }
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage(
         "Login failed. Please check your credentials and try again."
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 

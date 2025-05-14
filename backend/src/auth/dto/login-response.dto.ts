@@ -14,4 +14,7 @@ export class AuthLoginResponseDto {
   @IsString()
   @IsOptional()
   eventCode?: string;
+
+  @IsString()
+  userId: string;
 }

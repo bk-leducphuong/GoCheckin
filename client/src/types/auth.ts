@@ -9,6 +9,7 @@ export interface LoginCredentials {
 
 // Auth response from API
 export interface AuthResponse {
+  userId: string;
   accessToken: string;
   refreshToken: string;
   pointCode?: string;
@@ -53,5 +54,10 @@ export interface TokenPayload {
 // Token refresh response
 export interface TokenRefreshResponse {
   accessToken: string;
-  refreshToken: string;
-} 
+  userId: string;
+}
+
+export interface VerifyAccessTokenResponse {
+  valid: boolean;
+  userId: string | null;
+}

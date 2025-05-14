@@ -53,4 +53,8 @@ export const PocService = {
     const response = await api.get(`/pocs/locations?eventCode=${eventCode}`);
     return response.data.data;
   },
+  async getPocsByUserId(userId: string): Promise<Poc[]> {
+    const response = await api.get(`/pocs/user/${userId}`);
+    return response.data.data;
+  },
 };
