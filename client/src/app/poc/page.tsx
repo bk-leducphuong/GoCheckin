@@ -164,9 +164,26 @@ export default function PocDashboardPage() {
                     {new Date(event.startTime).toLocaleDateString()} -{" "}
                     {new Date(event.endTime).toLocaleDateString()}
                   </div>
-                  <div className="mt-3">
+                  <div className="mt-3 flex flex-col gap-2">
+                    <div
+                      onClick={() =>
+                        router.push(
+                          `/poc/event-details?eventCode=${event.eventCode}`
+                        )
+                      }
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full cursor-pointer"
+                      >
+                        View Event Details
+                      </Button>
+                    </div>
                     <div onClick={() => redirectToCheckinPage(event.eventCode)}>
-                      <Button variant="outline" className="w-full">
+                      <Button
+                        variant="outline"
+                        className="w-full cursor-pointer"
+                      >
                         Go to Check-in
                       </Button>
                     </div>

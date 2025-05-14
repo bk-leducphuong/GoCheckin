@@ -1,16 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/react/shallow";
 import Button from "@/components/ui/Button";
 import Camera from "@/components/ui/Camera";
 import { GuestCheckinInfo } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
 import GuestList from "@/components/poc/GuestList";
-import { useUserStore } from "@/store/userStore";
 import { useCheckinStore } from "@/store/checkinStore";
-import MenuModal from "@/components/poc/MenuModal";
 import { useSocketStore } from "@/store/socketStore";
 import { useEventStore } from "@/store/eventStore";
 import PocAnalysis from "@/components/poc/PocAnalysis";
@@ -26,11 +23,6 @@ export default function CheckinPage() {
     }))
   );
 
-  const { user } = useUserStore(
-    useShallow((state) => ({
-      user: state.user,
-    }))
-  );
   const { checkinGuest, uploadGuestImage } = useCheckinStore(
     useShallow((state) => ({
       checkinGuest: state.checkinGuest,
@@ -55,10 +47,7 @@ export default function CheckinPage() {
   const [guestImage, setGuestImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const router = useRouter();
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -75,14 +64,11 @@ export default function CheckinPage() {
   const submitCheckin = async () => {
     try {
       setIsLoading(true);
-
-      // First upload the image if available
       let imageUrl;
       if (guestImage) {
         imageUrl = await uploadGuestImage(guestImage);
       }
 
-      // Prepare the check-in data
       const checkInData: GuestCheckinInfo = {
         guestCode,
         eventCode: eventCode,
@@ -91,12 +77,10 @@ export default function CheckinPage() {
         imageUrl,
       };
 
-      // Call the check-in service
       const checkinResponse = await checkinGuest(checkInData);
 
       sendCheckinSocketEvent(checkinResponse);
 
-      // Reset form and show success message
       setGuestImage(null);
       setGuestCode("");
       setNote("");
@@ -112,19 +96,6 @@ export default function CheckinPage() {
     setGuestImage(imageData);
   };
 
-  const openMenu = () => {
-    setShowMenu(true);
-  };
-
-  const viewEventDetails = () => {
-    const url = `/poc/event-details?pointCode=${pointCode}&eventCode=${eventCode}`;
-    router.push(url);
-  };
-
-  const closeMenu = () => {
-    setShowMenu(false);
-  };
-
   if (isLoading || !selectedEvent) {
     return <Loading />;
   }
@@ -135,58 +106,6 @@ export default function CheckinPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Section 1: Event and POC Information */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {selectedEvent.eventName}
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Date: {new Date(selectedEvent.startTime).toLocaleString()} •
-              Location: {selectedEvent.venueName}
-            </p>
-            <a
-              onClick={() => viewEventDetails()}
-              className="text-blue-500 cursor-pointer"
-            >
-              View event details
-            </a>
-          </div>
-          <div className="mt-4 md:mt-0">
-            <div
-              className="flex items-center bg-blue-50 px-4 py-2 rounded-md cursor-pointer"
-              onClick={openMenu}
-            >
-              <div className="mr-3">
-                <svg
-                  className="h-6 w-6 text-blue-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Point of Contact</p>
-                <p className="font-medium text-gray-900">
-                  {user?.username || "POC User"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {showMenu && <MenuModal onClose={closeMenu} />}
-
       {/* Section 2: Check-in Section */}
       {selectedEvent.eventStatus === EventStatus.ACTIVE && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">

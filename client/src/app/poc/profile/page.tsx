@@ -1,87 +1,124 @@
 "use client";
-
-import React from "react";
+import { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 import { useUserStore } from "@/store/userStore";
 import { useShallow } from "zustand/react/shallow";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 export default function ProfilePage() {
-  const { user } = useUserStore(
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { userId } = useAuthStore(
     useShallow((state) => ({
-      user: state.user,
+      userId: state.userId,
     }))
   );
 
-  return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">My Profile</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            View and manage your profile information
-          </p>
-        </div>
+  const { user, getUser } = useUserStore(
+    useShallow((state) => ({
+      user: state.user,
+      getUser: state.getUser,
+    }))
+  );
 
-        {/* Profile Information */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 sm:px-6 flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl font-semibold">
-                {user?.username?.charAt(0)?.toUpperCase() || "P"}
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setIsLoading(true);
+        if (userId) {
+          await getUser();
+        } else {
+          setError("Authentication error");
+        }
+      } catch (error: unknown) {
+        setError(
+          error && typeof error === "object" && "message" in error
+            ? String(error.message)
+            : "An unknown error occurred"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userId, getUser]);
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <Error message={error} redirectTo="/login" />;
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="bg-white rounded-lg shadow p-6 max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">Account Profile</h1>
+
+        <div className="space-y-6">
+          {/* Profile Information */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4 pb-2 border-b">
+              Personal Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Username
+                </label>
+                <div className="text-gray-900 bg-gray-100 p-2 rounded">
+                  {user?.username || "Not set"}
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  {user?.username || "POC User"}
-                </h3>
-                <p className="text-sm text-gray-500">{user?.email}</p>
-                <p className="text-sm text-gray-500">Point of Contact</p>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
+                <div className="text-gray-900 bg-gray-100 p-2 rounded">
+                  {user?.fullName || "Not set"}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <div className="text-gray-900 bg-gray-100 p-2 rounded">
+                  {user?.email || "Not set"}
+                </div>
               </div>
             </div>
-            <button
-              type="button"
-              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Edit Profile
-            </button>
           </div>
-          <div className="border-t border-gray-200">
-            <dl>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {user?.fullName || "Not provided"}
-                </dd>
+
+          {/* Account Details */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4 pb-2 border-b">
+              Account Details
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  User ID
+                </label>
+                <div className="text-gray-900 bg-gray-100 p-2 rounded">
+                  {userId || "Not available"}
+                </div>
               </div>
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">
-                  Email address
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {user?.email || "Not provided"}
-                </dd>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Role
+                </label>
+                <div className="text-gray-900 bg-gray-100 p-2 rounded">
+                  {user?.role || "Not available"}
+                </div>
               </div>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">Role</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  Point of Contact (POC)
-                </dd>
-              </div>
-              <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">
-                  Event Code
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {"Not available"}
-                </dd>
-              </div>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">
-                  Point Code
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  {"Not available"}
-                </dd>
-              </div>
-            </dl>
+            </div>
           </div>
         </div>
       </div>
