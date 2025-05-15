@@ -31,11 +31,18 @@ describe('EventsGateway', () => {
     }
   });
 
-  it('should join room successfully', (done) => {
-    clientSocket.emit('join_room', 'EVENT-123', (response) => {
-      expect(response.success).toBe(true);
-      done();
-    });
+  it('should send heartbeat successfully', (done) => {
+    clientSocket.emit(
+      'heartbeat',
+      {
+        eventCode: 'EVENT-123',
+        pointCode: 'P001',
+      },
+      (response) => {
+        expect(response.success).toBe(true);
+        done();
+      },
+    );
   });
 
   it('should send message to room', (done) => {
@@ -64,10 +71,16 @@ describe('EventsGateway', () => {
     );
   });
 
-  it('should leave room successfully', (done) => {
-    clientSocket.emit('leave_room', 'EVENT-123', (response) => {
-      expect(response.success).toBe(true);
-      done();
-    });
+  it('should register admin successfully', (done) => {
+    clientSocket.emit(
+      'register_admin',
+      {
+        eventCode: 'EVENT-123',
+      },
+      (response) => {
+        expect(response.success).toBe(true);
+        done();
+      },
+    );
   });
 });
