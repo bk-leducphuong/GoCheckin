@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsEmail,
-  MinLength,
-  IsOptional,
-  IsEnum,
-} from 'class-validator';
+import { IsString, IsEmail, MinLength, IsEnum } from 'class-validator';
 import { UserRole } from '../../account/entities/account.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -28,26 +22,7 @@ export class AuthPocRegisterDto {
   @MinLength(2)
   fullName: string;
 
-  @ApiProperty({
-    example: 'EVENT123',
-    description: 'Event code (required for POC)',
-  })
-  @IsString()
-  eventCode: string; // Required for POC
-
-  @ApiProperty({
-    example: 'POINT123',
-    description: 'Point of checkin code (required for POC)',
-  })
-  @IsString()
-  pointCode: string; // Required for POC
-
   @ApiProperty({ example: 'POC', description: 'User role' })
   @IsEnum(UserRole)
   role: UserRole = UserRole.POC; // Default to POC
-
-  @ApiProperty({ example: 'ACME Corp', description: 'Company name' })
-  @IsOptional()
-  @IsString()
-  companyName?: string;
 }

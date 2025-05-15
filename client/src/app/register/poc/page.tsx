@@ -123,30 +123,6 @@ export default function PocRegisterPage() {
               error={errors.fullName?.message}
               placeholder="John Doe"
             />
-
-            <Input
-              label="Event Code"
-              type="text"
-              {...register("eventCode")}
-              error={errors.eventCode?.message}
-              placeholder="EVENT123"
-            />
-
-            <Input
-              label="Point of checkin Code"
-              type="text"
-              {...register("pointCode")}
-              error={errors.pointCode?.message}
-              placeholder="POINT123"
-            />
-
-            <Input
-              label="Company Name (optional)"
-              type="text"
-              {...register("companyName")}
-              error={errors.companyName?.message}
-              placeholder="Your Company Ltd."
-            />
           </div>
 
           <Button type="submit" isLoading={isSubmitting} className="w-full">

@@ -33,8 +33,6 @@ export interface PocRegisterData {
   email: string;
   password: string;
   fullName: string;
-  eventCode: string;
-  pointCode: string;
 }
 
 // Session information

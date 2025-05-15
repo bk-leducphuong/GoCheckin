@@ -164,7 +164,6 @@ export class AuthService {
     registerDto: AuthPocRegisterDto,
   ): Promise<AuthLoginResponseDto> {
     try {
-      // Check if email already exists
       const existingUser = await this.accountService
         .findByEmail(registerDto.email)
         .catch(() => null);
@@ -172,53 +171,23 @@ export class AuthService {
         throw new ConflictException('User already exists');
       }
 
-      // Validate event code here if needed
-      const isEventCodeValid = await this.eventService.validateEventCode(
-        registerDto.eventCode,
-      );
-      if (!isEventCodeValid) {
-        throw new BadRequestException('Event code is not valid!');
-      }
-
-      // Validate point of checkin code here if needed
-      const isPointCodeValid = await this.pocService.validatePointCode(
-        registerDto.eventCode,
-        registerDto.pointCode,
-      );
-      if (!isPointCodeValid) {
-        throw new BadRequestException('Point of checkin code is not valid!');
-      }
-
-      // Hash password
       const hashedPassword = await hash(registerDto.password, 10);
-
-      // Create account
       const newUser = await this.accountService.create({
         ...registerDto,
         role: UserRole.POC,
         password: hashedPassword,
       });
 
-      await this.pocService.updatePocManager(
-        registerDto.eventCode,
-        registerDto.pointCode,
-        newUser.userId,
-      );
-
-      // Create refresh token
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
         newUser.userId,
       );
 
-      // Generate JWT token
       return {
         accessToken: this.jwtService.sign({
           userId: newUser.userId,
           role: newUser.role,
         }),
         refreshToken: refreshToken,
-        pointCode: registerDto.pointCode,
-        eventCode: registerDto.eventCode,
         userId: newUser.userId,
       };
     } catch (error) {
