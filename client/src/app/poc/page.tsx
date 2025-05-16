@@ -11,6 +11,7 @@ import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/error";
+import { GrTransaction } from "react-icons/gr";
 
 interface Activity {
   id: string;
@@ -245,20 +246,7 @@ export default function PocDashboardPage() {
                   className="flex items-start border-b pb-3 last:border-0"
                 >
                   <div className="bg-blue-100 p-2 rounded-full mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <GrTransaction className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm">{activity.description}</p>

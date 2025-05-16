@@ -7,6 +7,9 @@ import { PocService } from "@/services/poc.service";
 import { ApiError } from "@/lib/error";
 import Error from "@/components/ui/Error";
 import Loading from "@/components/ui/Loading";
+import { FaSearch } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
+
 export default function RegisterEventPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
@@ -145,20 +148,7 @@ export default function RegisterEventPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <svg
-            className="absolute right-4 top-4 h-6 w-6 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            ></path>
-          </svg>
+          <FaSearch className="absolute right-4 top-4 h-6 w-6 text-gray-400" />
         </div>
       </div>
 
@@ -230,20 +220,7 @@ export default function RegisterEventPage() {
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
               aria-label="Close"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
+              <IoClose className="h-6 w-6" />
             </button>
 
             <div className="p-6">

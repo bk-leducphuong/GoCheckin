@@ -9,6 +9,7 @@ import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { ApiError } from "@/lib/error";
 import { useFloorPlanStore } from "@/store/floorPlanStore";
+import { FaCalendarAlt } from "react-icons/fa";
 
 export default function EventDetailsPage() {
   const eventCode = useSearchParams().get("eventCode") as string;
@@ -120,19 +121,7 @@ export default function EventDetailsPage() {
             {selectedEvent.eventName}
           </h1>
           <div className="flex items-center text-gray-600 text-sm">
-            <svg
-              className="h-5 w-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+            <FaCalendarAlt className="h-5 w-5 mr-2" />
             <span>
               {new Date(selectedEvent.startTime).toLocaleDateString()}{" "}
               {new Date(selectedEvent.startTime).toLocaleTimeString()} -
