@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
 import Button from "@/components/ui/Button";
-
+import { useRouter } from "next/navigation";
 export default function SettingsPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [successMessage, setSuccessMessage] = useState("");
+  const router = useRouter();
 
   const { logout } = useAuthStore(
     useShallow((state) => ({
@@ -33,6 +34,7 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     try {
       await logout();
+      router.push("/login");
       // Redirect is handled by the logout function in the auth store
     } catch (error) {
       console.error("Logout failed:", error);
