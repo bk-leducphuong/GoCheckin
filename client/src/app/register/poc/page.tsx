@@ -10,7 +10,8 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
-
+import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
+import { Divider } from "@/components/ui/Divider";
 // POC registration validation schema
 const pocRegisterSchema = z
   .object({
@@ -33,9 +34,10 @@ type PocRegisterFormData = z.infer<typeof pocRegisterSchema>;
 export default function PocRegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  const { pocRegister } = useAuthStore(
+  const { pocRegister, pocGoogleRegister } = useAuthStore(
     useShallow((state) => ({
       pocRegister: state.pocRegister,
+      pocGoogleRegister: state.pocGoogleRegister,
     }))
   );
 
@@ -64,6 +66,16 @@ export default function PocRegisterPage() {
     }
   };
 
+  const handleGoogleSuccess = async (response: any) => {
+    console.log("Google response:", response);
+    // await pocGoogleRegister(response);
+  };
+
+  const handleGoogleError = (error: any) => {
+    console.error("Google sign-in error:", error);
+    setErrorMessage("Failed to sign in with Google. Please try again.");
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -79,6 +91,15 @@ export default function PocRegisterPage() {
             {errorMessage}
           </div>
         )}
+
+        <GoogleAuthButton
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+        />
+
+        <div className="relative my-4">
+          <Divider>or</Divider>
+        </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
@@ -115,14 +136,6 @@ export default function PocRegisterPage() {
                 placeholder="********"
               />
             </div>
-
-            <Input
-              label="Full Name"
-              type="text"
-              {...register("fullName")}
-              error={errors.fullName?.message}
-              placeholder="John Doe"
-            />
           </div>
 
           <Button type="submit" isLoading={isSubmitting} className="w-full">

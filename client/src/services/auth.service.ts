@@ -8,6 +8,9 @@ import {
   TokenRefreshResponse,
   SessionInfo,
   VerifyAccessTokenResponse,
+  GoogleAuthCredentials,
+  GoogleAdminRegisterData,
+  GooglePocRegisterData,
 } from "@/types/auth";
 
 const TOKEN_NAME = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "token";
@@ -25,6 +28,21 @@ export const AuthService = {
     return response.data.data;
   },
 
+  // Google Admin Authentication
+  async adminGoogleLogin(
+    credentials: GoogleAuthCredentials
+  ): Promise<AuthResponse> {
+    const response = await api.post("/auth/admin/google/login", credentials);
+    return response.data.data;
+  },
+
+  async adminGoogleRegister(
+    data: GoogleAdminRegisterData
+  ): Promise<AuthResponse> {
+    const response = await api.post("/auth/admin/google/register", data);
+    return response.data.data;
+  },
+
   // POC Authentication
   async pocLogin(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await api.post("/auth/poc/login", credentials);
@@ -33,6 +51,19 @@ export const AuthService = {
 
   async pocRegister(data: PocRegisterData): Promise<AuthResponse> {
     const response = await api.post("/auth/poc/register", data);
+    return response.data.data;
+  },
+
+  // Google POC Authentication
+  async pocGoogleLogin(
+    credentials: GoogleAuthCredentials
+  ): Promise<AuthResponse> {
+    const response = await api.post("/auth/poc/google/login", credentials);
+    return response.data.data;
+  },
+
+  async pocGoogleRegister(data: GooglePocRegisterData): Promise<AuthResponse> {
+    const response = await api.post("/auth/poc/google/register", data);
     return response.data.data;
   },
 

@@ -7,6 +7,12 @@ export interface LoginCredentials {
   deviceInfo?: string;
 }
 
+// Google OAuth credentials
+export interface GoogleAuthCredentials {
+  code: string;
+  deviceInfo?: string;
+}
+
 // Auth response from API
 export interface AuthResponse {
   userId: string;
@@ -33,6 +39,21 @@ export interface PocRegisterData {
   email: string;
   password: string;
   fullName: string;
+}
+
+// Google registration data for admin
+export interface GoogleAdminRegisterData {
+  code: string;
+  tenantName: string;
+  tenantCode: string;
+  phoneNumber: string;
+  deviceInfo?: string;
+}
+
+// Google registration data for POC
+export interface GooglePocRegisterData {
+  code: string;
+  deviceInfo?: string;
 }
 
 // Session information
