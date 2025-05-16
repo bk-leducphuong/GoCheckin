@@ -53,4 +53,25 @@ export class MailService {
       throw error;
     }
   }
+
+  async sendPocRegisteredMail(account: AccountDto) {
+    try {
+      const templatePath = this.configService.get<string>(
+        'POC_REGISTERED_MAIL_PATH',
+      );
+      const subject = 'You are registered as a POC';
+      await this.mailerService.sendMail({
+        to: account.email,
+        subject: subject,
+        template: templatePath,
+        context: {
+          username: account.username,
+          companyName: 'GoCheckin',
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 }

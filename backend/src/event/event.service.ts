@@ -18,6 +18,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { FloorPlanService } from '../floor-plan/floor-plan.service';
 import { PocService } from 'src/poc/poc.service';
 import { S3Service } from '../common/services/s3.service';
+import { EventConstraintsDto } from './dto/event-constraints';
 
 @Injectable()
 export class EventService {
@@ -40,6 +41,32 @@ export class EventService {
     });
 
     return !!event;
+  }
+
+  async findAll(constraints: EventConstraintsDto): Promise<Event[]> {
+    try {
+      const whereConditions: any = {};
+      Object.entries(constraints).forEach(([key, value]) => {
+        if (value !== 'undefined') {
+          whereConditions[key] = value;
+        }
+      });
+
+      const events = await this.eventRepository.find({
+        where: whereConditions,
+      });
+      return events.map((event) => {
+        if (event.images) {
+          event.images = event.images.map((key) =>
+            this.s3Service.getFileUrl(key),
+          );
+        }
+        return event;
+      });
+    } catch (error) {
+      console.error('Error finding all events:', error);
+      throw error;
+    }
   }
 
   async create(user: JwtPayload, newEventData: CreateEventDto): Promise<Event> {
@@ -72,7 +99,7 @@ export class EventService {
     }
   }
 
-  async findAll(user: JwtPayload): Promise<Event[]> {
+  async findAllEventsByAdmin(user: JwtPayload): Promise<Event[]> {
     try {
       // get tenant code from user
       const tenant = await this.accountTenantRepository.findOne({

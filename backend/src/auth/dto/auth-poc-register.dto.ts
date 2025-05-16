@@ -17,11 +17,6 @@ export class AuthPocRegisterDto {
   @MinLength(5)
   password: string;
 
-  @ApiProperty({ example: 'John Doe', description: 'Full name' })
-  @IsString()
-  @MinLength(2)
-  fullName: string;
-
   @ApiProperty({ example: 'POC', description: 'User role' })
   @IsEnum(UserRole)
   role: UserRole = UserRole.POC; // Default to POC

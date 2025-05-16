@@ -11,7 +11,7 @@ interface EventStore {
   error: string | null;
   setSelectedEvent: (event: Event) => void;
   setEvents: (events: Event[]) => void;
-  getAllEvents: () => Promise<Event[]>;
+  getAllEventsByAdmin: () => Promise<Event[]>;
   createEvent: (eventData: CreateEventRequest) => Promise<Event>;
   getEventByCode: (eventCode: string) => Promise<Event>;
   updateEvent: (
@@ -32,8 +32,8 @@ export const useEventStore = create<EventStore>()(
         set({ selectedEvent: event });
       },
       setEvents: (events) => set({ events }),
-      getAllEvents: async () => {
-        const response = await EventService.getAllEvents();
+      getAllEventsByAdmin: async () => {
+        const response = await EventService.getAllEventsByAdmin();
         set({ events: response });
         return response;
       },

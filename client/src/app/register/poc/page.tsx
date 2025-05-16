@@ -98,30 +98,20 @@ export default function PocRegisterPage() {
               placeholder="your@email.com"
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Password"
-                type="password"
-                {...register("password")}
-                error={errors.password?.message}
-                placeholder="********"
-              />
-
-              <Input
-                label="Confirm Password"
-                type="password"
-                {...register("confirmPassword")}
-                error={errors.confirmPassword?.message}
-                placeholder="********"
-              />
-            </div>
+            <Input
+              label="Password"
+              type="password"
+              {...register("password")}
+              error={errors.password?.message}
+              placeholder="********"
+            />
 
             <Input
-              label="Full Name"
-              type="text"
-              {...register("fullName")}
-              error={errors.fullName?.message}
-              placeholder="John Doe"
+              label="Confirm Password"
+              type="password"
+              {...register("confirmPassword")}
+              error={errors.confirmPassword?.message}
+              placeholder="********"
             />
           </div>
 

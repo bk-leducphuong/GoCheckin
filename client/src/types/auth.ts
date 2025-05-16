@@ -32,7 +32,6 @@ export interface PocRegisterData {
   username: string;
   email: string;
   password: string;
-  fullName: string;
 }
 
 // Session information

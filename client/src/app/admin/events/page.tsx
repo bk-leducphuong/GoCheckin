@@ -13,11 +13,15 @@ export default function EventsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { events, getAllEvents, setSelectedEvent } = useEventStore(
+  const {
+    events,
+    getAllEventsByAdmin: getAllEvents,
+    setSelectedEvent,
+  } = useEventStore(
     useShallow((state) => ({
       setSelectedEvent: state.setSelectedEvent,
       events: state.events,
-      getAllEvents: state.getAllEvents,
+      getAllEventsByAdmin: state.getAllEventsByAdmin,
     }))
   );
 

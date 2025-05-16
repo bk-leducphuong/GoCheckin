@@ -4,9 +4,17 @@ import { CreateEventRequest } from "../types/event";
 import { EventStatus } from "../types/event";
 import imageCompression from "browser-image-compression";
 import { blobToFile } from "@/utils/blobToFile";
+import { EventContraints } from "../types/event";
 
 export const EventService = {
-  async getAllEvents(): Promise<Event[]> {
+  async getAllEvents(eventContraints: EventContraints): Promise<Event[]> {
+    const response = await api.get(
+      `/events/all?status=${eventContraints.status}&type=${eventContraints.type}`
+    );
+    return response.data.data;
+  },
+
+  async getAllEventsByAdmin(): Promise<Event[]> {
     const response = await api.get("/events");
     return response.data.data;
   },

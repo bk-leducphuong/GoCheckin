@@ -73,3 +73,8 @@ export interface PocLocations {
   eventCode: string;
   locations: PocLocation[];
 }
+
+export interface RegisterPocUserRequest {
+  eventCode: string;
+  pointCode: string;
+}
