@@ -10,7 +10,8 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
-
+import { ApiError } from "@/lib/error";
+import Loading from "@/components/ui/Loading";
 // POC registration validation schema
 const pocRegisterSchema = z
   .object({
@@ -39,6 +40,8 @@ export default function PocRegisterPage() {
     }))
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -48,6 +51,7 @@ export default function PocRegisterPage() {
   });
 
   const onSubmit = async (data: PocRegisterFormData) => {
+    setIsLoading(true);
     try {
       setErrorMessage(null);
       const { confirmPassword, ...registerData } = data;
@@ -55,14 +59,19 @@ export default function PocRegisterPage() {
       await pocRegister(registerData);
       router.push(`/poc`);
     } catch (error) {
-      console.error("Registration error:", error);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Registration failed. Please try again."
-      );
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Failed to register. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">

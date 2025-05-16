@@ -19,7 +19,9 @@ import { AnalysisService } from "@/services/analysis.service";
 import { GuestService } from "@/services/guest.service";
 import { CheckInResponse } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
-
+import { ApiError } from "@/lib/error";
+import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
 // Register ChartJS components
 ChartJS.register(
   CategoryScale,
@@ -76,8 +78,11 @@ export default function PocAnalysis() {
         }));
         setCheckinData(formattedData);
       } catch (error) {
-        console.error("Error fetching point check-in analytics:", error);
-        setError("Failed to load point check-in data");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load point check-in data");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -103,7 +108,11 @@ export default function PocAnalysis() {
         }));
         setAllPointsData(formattedData);
       } catch (error) {
-        console.error("Error fetching all points check-in analytics:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load all points check-in data");
+        }
       }
     };
 
@@ -125,7 +134,11 @@ export default function PocAnalysis() {
         const allGuests = await GuestService.getAllGuestsOfEvent(eventCode);
         setTotalGuests(allGuests.length);
       } catch (error) {
-        console.error("Error fetching guest data:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load guest data");
+        }
       }
     };
 
@@ -219,19 +232,11 @@ export default function PocAnalysis() {
       : "N/A";
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {
-    return (
-      <div className="text-red-500 p-4 rounded-md bg-red-50 border border-red-200">
-        {error}
-      </div>
-    );
+    return <Error message={error} redirectTo="/login" />;
   }
 
   return (

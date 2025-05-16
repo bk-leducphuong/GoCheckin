@@ -39,8 +39,11 @@ export default function EventDetailsPage() {
           await getEventByCode(eventCode as string);
         }
       } catch (error) {
-        setError("Failed to fetch event details");
-        console.error("Error fetching event:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch event details");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -54,8 +57,11 @@ export default function EventDetailsPage() {
       try {
         await getFloorPlanImage(eventCode as string);
       } catch (error) {
-        console.error("Error loading floor plan:", error);
-        setError("Failed to load floor plan image");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load floor plan image");
+        }
       }
     };
 
@@ -86,8 +92,11 @@ export default function EventDetailsPage() {
         if (error instanceof ApiError && error.isNotFound()) {
           setMarkedPoints({});
         } else {
-          console.error("Error loading POC locations:", error);
-          setError("Failed to load POC locations. Please try again.");
+          if (error instanceof ApiError) {
+            setError(error.message);
+          } else {
+            setError("Failed to load POC locations. Please try again.");
+          }
         }
       }
     };

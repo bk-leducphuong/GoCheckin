@@ -22,6 +22,7 @@ import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import EventImages from "@/components/admin/event/EventImages";
 import { EventService } from "@/services/event.service";
+import { ApiError } from "@/lib/error";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
@@ -112,8 +113,11 @@ export default function EventDetailsPage() {
 
         setIsLoading(false);
       } catch (error) {
-        setError("Failed to fetch event details. Please try again.");
-        console.error("Error fetching event details:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch event details. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -135,8 +139,11 @@ export default function EventDetailsPage() {
       try {
         await getFloorPlanImage(params.eventCode as string);
       } catch (error) {
-        console.error("Error loading floor plan:", error);
-        setError("Failed to load floor plan image");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load floor plan image");
+        }
       }
     };
 
@@ -148,8 +155,11 @@ export default function EventDetailsPage() {
       try {
         await getAllPocs(params.eventCode as string);
       } catch (error) {
-        console.error("Error loading POCs:", error);
-        setError("Failed to load POCs. Please try again.");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load POCs. Please try again.");
+        }
       }
     };
     getPocs();
@@ -221,7 +231,6 @@ export default function EventDetailsPage() {
       }
 
       if (eventImages.length > 0) {
-        console.log("uploading event images");
         await EventService.uploadEventImages(
           params.eventCode as string,
           eventImages
@@ -230,7 +239,11 @@ export default function EventDetailsPage() {
 
       router.push("/admin/events");
     } catch (error) {
-      setError("Failed to update event. Please try again.");
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError("Failed to update event. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

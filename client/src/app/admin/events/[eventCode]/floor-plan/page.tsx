@@ -58,8 +58,11 @@ export default function FloorPlanPage() {
       try {
         await getEventByCode(params.eventCode as string);
       } catch (error) {
-        console.error("Error loading floor plan data:", error);
-        setError("Failed to load floor plan data. Please try again.");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load floor plan data. Please try again.");
+        }
       }
     };
     getEvent();
@@ -71,8 +74,11 @@ export default function FloorPlanPage() {
       try {
         await getFloorPlanImage(params.eventCode as string);
       } catch (error) {
-        console.error("Error loading floor plan:", error);
-        setError("Failed to load floor plan image");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load floor plan image");
+        }
       }
     };
 
@@ -84,8 +90,11 @@ export default function FloorPlanPage() {
       try {
         await getAllPocs(params.eventCode as string);
       } catch (error) {
-        console.error("Error loading POCs:", error);
-        setError("Failed to load POCs. Please try again.");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to load POCs. Please try again.");
+        }
       }
     };
     getPocs();
@@ -117,8 +126,11 @@ export default function FloorPlanPage() {
         if (error instanceof ApiError && error.isNotFound()) {
           setMarkedPoints({});
         } else {
-          console.error("Error loading POC locations:", error);
-          setError("Failed to load POC locations. Please try again.");
+          if (error instanceof ApiError) {
+            setError(error.message);
+          } else {
+            setError("Failed to load POC locations. Please try again.");
+          }
         }
       }
     };
@@ -188,7 +200,11 @@ export default function FloorPlanPage() {
       }
       router.push(`/admin/events/${params.eventCode}`);
     } catch (error) {
-      setError("Failed to save floor plan. Please try again.");
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError("Failed to save floor plan. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

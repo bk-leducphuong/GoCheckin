@@ -13,7 +13,7 @@ import { useEventStore } from "@/store/eventStore";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { EventStatus } from "@/types/event";
-
+import { ApiError } from "@/lib/error";
 export default function CheckinPage() {
   // Connect socket
   const { sendCheckinSocketEvent } = useSocketStore(
@@ -53,7 +53,11 @@ export default function CheckinPage() {
       try {
         await getEventByCode(eventCode);
       } catch (error) {
-        setError("Failed to fetch event details. Please try again.");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch event details. Please try again.");
+        }
       }
     };
 
@@ -84,8 +88,11 @@ export default function CheckinPage() {
       setGuestCode("");
       setNote("");
     } catch (error) {
-      console.error("Error checking in guest:", error);
-      setError("Failed to check in guest. Please try again.");
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError("Failed to check in guest. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

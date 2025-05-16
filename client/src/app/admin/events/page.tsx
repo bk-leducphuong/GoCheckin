@@ -8,7 +8,7 @@ import { useShallow } from "zustand/shallow";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { Event } from "@/types/event";
-
+import { ApiError } from "@/lib/error";
 export default function EventsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +32,11 @@ export default function EventsPage() {
         await getAllEvents();
         setIsLoading(false);
       } catch (error) {
-        setError("Failed to fetch events. Please try again.");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch events. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }

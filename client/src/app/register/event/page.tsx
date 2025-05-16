@@ -5,7 +5,8 @@ import { Event, EventStatus } from "@/types/event";
 import { EventService } from "@/services/event.service";
 import { PocService } from "@/services/poc.service";
 import { ApiError } from "@/lib/error";
-
+import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
 export default function RegisterEventPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
@@ -18,14 +19,26 @@ export default function RegisterEventPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     const fetchEvents = async () => {
-      const events = await EventService.getAllEvents({
-        status: EventStatus.PUBLISHED,
-      });
-      setEvents(events);
+      try {
+        setIsLoading(true);
+        const events = await EventService.getAllEvents({
+          status: EventStatus.PUBLISHED,
+        });
+        setEvents(events);
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch events. Please try again.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
     };
+
     fetchEvents();
   }, []);
 
@@ -70,6 +83,7 @@ export default function RegisterEventPage() {
     setError(null);
 
     try {
+      setIsLoading(true);
       await PocService.registerPocUser({
         eventCode: selectedEvent.eventCode,
         pointCode: formData.pointCode,
@@ -96,6 +110,7 @@ export default function RegisterEventPage() {
       }
     } finally {
       setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -106,6 +121,14 @@ export default function RegisterEventPage() {
     setError(null);
     setSuccess(null);
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <Error message={error} redirectTo="/login" />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

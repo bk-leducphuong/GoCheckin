@@ -10,7 +10,7 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
-
+import { ApiError } from "@/lib/error";
 // Login validation schema
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -62,10 +62,13 @@ export default function LoginPage() {
         router.push(`/poc`);
       }
     } catch (error) {
-      console.error("Login error:", error);
-      setErrorMessage(
-        "Login failed. Please check your credentials and try again."
-      );
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage(
+          "Login failed. Please check your credentials and try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }

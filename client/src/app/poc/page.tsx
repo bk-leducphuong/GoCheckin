@@ -10,6 +10,7 @@ import { Event } from "@/types/event";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ApiError } from "@/lib/error";
 
 interface Activity {
   id: string;
@@ -61,12 +62,12 @@ export default function PocDashboardPage() {
         } else {
           setError("Authentication error");
         }
-      } catch (error: unknown) {
-        setError(
-          error && typeof error === "object" && "message" in error
-            ? String(error.message)
-            : "An unknown error occurred"
-        );
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -95,12 +96,12 @@ export default function PocDashboardPage() {
         }));
 
         setActivities(mockActivities);
-      } catch (error: unknown) {
-        setError(
-          error && typeof error === "object" && "message" in error
-            ? String(error.message)
-            : "An unknown error occurred"
-        );
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setIsLoading(false);
       }

@@ -10,6 +10,7 @@ import { useEventStore } from "@/store/eventStore";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { usePocStore } from "@/store/pocStore";
+import { ApiError } from "@/lib/error";
 
 export default function RealtimeDashboard() {
   const [guests, setGuests] = useState<CheckInResponse[]>([]);
@@ -56,8 +57,11 @@ export default function RealtimeDashboard() {
         // Fetch POC list
         await getAllPocs(eventCode);
       } catch (error) {
-        setError("Failed to fetch event data");
-        console.error("Error fetching event data:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch event data");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -72,7 +76,6 @@ export default function RealtimeDashboard() {
       try {
         const isConnected = await connect();
         if (!isConnected) {
-          console.error("Failed to connect to socket"); // Don't log
           return;
         }
 
@@ -83,8 +86,11 @@ export default function RealtimeDashboard() {
           disconnect();
         };
       } catch (error) {
-        setError("Live checkin is not available");
-        console.error("Error registering admin:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Live checkin is not available");
+        }
       }
     };
 
