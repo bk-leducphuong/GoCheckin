@@ -131,6 +131,17 @@ export default function PocDashboardPage() {
     }
   };
 
+  const redirectToAnalyzeEventPage = (eventCode: string) => {
+    const poc = pocList.filter((poc) => poc.eventCode === eventCode);
+    const event = joinedEvents.find((event) => event.eventCode === eventCode);
+    if (event && poc.length > 0) {
+      setSelectedEvent(event);
+      router.push(
+        `/poc/analyze-event?eventCode=${eventCode}&pointCode=${poc[0].pointCode}`
+      );
+    }
+  };
+
   if (isLoading) {
     return <Loading />;
   }
@@ -196,6 +207,18 @@ export default function PocDashboardPage() {
                         className="w-full cursor-pointer"
                       >
                         Go to Check-in
+                      </Button>
+                    </div>
+                    <div
+                      onClick={() =>
+                        redirectToAnalyzeEventPage(event.eventCode)
+                      }
+                    >
+                      <Button
+                        variant="outline"
+                        className="w-full cursor-pointer"
+                      >
+                        Analyze Event
                       </Button>
                     </div>
                   </div>

@@ -10,7 +10,6 @@ import GuestList from "@/components/poc/GuestList";
 import { useCheckinStore } from "@/store/checkinStore";
 import { useSocketStore } from "@/store/socketStore";
 import { useEventStore } from "@/store/eventStore";
-import PocAnalysis from "@/components/poc/PocAnalysis";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { EventStatus } from "@/types/event";
@@ -243,8 +242,6 @@ export default function CheckinPage() {
       )}
       {/* Section 3: Guest List */}
       <GuestList></GuestList>
-
-      <PocAnalysis eventCode={eventCode} pointCode={pointCode}></PocAnalysis>
 
       {showCamera && (
         <Camera
