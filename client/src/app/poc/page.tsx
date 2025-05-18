@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/error";
 import { GrTransaction } from "react-icons/gr";
-
+import { EventStatus } from "@/types/event";
 interface Activity {
   id: string;
   type: string;
@@ -203,14 +203,18 @@ export default function PocDashboardPage() {
                         View Event Details
                       </Button>
                     </div>
-                    <div onClick={() => redirectToCheckinPage(event.eventCode)}>
-                      <Button
-                        variant="outline"
-                        className="w-full cursor-pointer"
+                    {event.eventStatus === EventStatus.ACTIVE && (
+                      <div
+                        onClick={() => redirectToCheckinPage(event.eventCode)}
                       >
-                        Go to Check-in
-                      </Button>
-                    </div>
+                        <Button
+                          variant="outline"
+                          className="w-full cursor-pointer"
+                        >
+                          Go to Check-in
+                        </Button>
+                      </div>
+                    )}
                     <div
                       onClick={() =>
                         redirectToAnalyzeEventPage(event.eventCode)
