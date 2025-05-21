@@ -156,7 +156,7 @@ export default function CheckinPage() {
                 );
                 faceapi.draw.drawDetections(canvas, resizedDetections);
 
-                if (count > 50) {
+                if (count > 30) {
                   capture();
                   count = 0;
                 }

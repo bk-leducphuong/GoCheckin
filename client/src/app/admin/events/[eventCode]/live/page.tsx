@@ -49,12 +49,9 @@ export default function RealtimeDashboard() {
     const fetchEventData = async () => {
       try {
         setIsLoading(true);
-        // Fetch event details
         await getEventByCode(eventCode);
-        // Fetch guest list
         const guestList = await GuestService.getAllGuestsOfEvent(eventCode);
         setGuests(guestList);
-        // Fetch POC list
         await getAllPocs(eventCode);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -70,7 +67,6 @@ export default function RealtimeDashboard() {
     fetchEventData();
   }, [eventCode, getEventByCode, getAllPocs]);
 
-  // Socket event handlers for real-time updates
   useEffect(() => {
     const setupSocket = async () => {
       try {
