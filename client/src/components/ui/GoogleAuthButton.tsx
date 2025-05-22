@@ -24,6 +24,7 @@ export default function GoogleAuthButton({
     onSuccess,
     onError,
     flow: "auth-code",
+    ux_mode: "popup",
   });
 
   const handleGoogleLogin = useCallback(() => {

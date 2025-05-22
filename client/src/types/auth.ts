@@ -31,6 +31,7 @@ export interface AdminRegisterData {
   phoneNumber: string;
   tenantName: string;
   tenantCode: string;
+  deviceInfo?: string;
 }
 
 // POC registration data
@@ -39,6 +40,7 @@ export interface PocRegisterData {
   email: string;
   password: string;
   fullName: string;
+  deviceInfo?: string;
 }
 
 // Google registration data for admin

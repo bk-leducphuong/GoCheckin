@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +9,7 @@ import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
-import { AdminRegisterData, GoogleAdminRegisterData } from "@/types/auth";
+import { GoogleAdminRegisterData } from "@/types/auth";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
 import { Divider } from "@/components/ui/Divider";
 
@@ -48,7 +48,7 @@ export default function TenantRegisterPage() {
   const router = useRouter();
   const { adminRegister, adminGoogleRegister } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [deviceInfo, setDeviceInfo] = useState<string>();
   const {
     register,
     handleSubmit,
@@ -67,15 +67,22 @@ export default function TenantRegisterPage() {
     resolver: zodResolver(googleAdminRegisterSchema),
   });
 
+  useEffect(() => {
+    const deviceInfo = navigator.userAgent;
+    setDeviceInfo(deviceInfo);
+  }, []);
+
   const onSubmit = async (data: AdminRegisterFormData) => {
     try {
       setIsLoading(true);
       const { confirmPassword, ...registerData } = data;
       void confirmPassword;
-      await adminRegister(registerData as AdminRegisterData);
+      await adminRegister({
+        ...registerData,
+        deviceInfo,
+      });
       router.push("/admin");
     } catch (error) {
-      console.error("Registration error:", error);
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -92,8 +99,11 @@ export default function TenantRegisterPage() {
   };
 
   const handleGoogleError = (error: any) => {
-    console.error("Google sign-in error:", error);
-    setErrorMessage("Failed to sign in with Google. Please try again.");
+    setErrorMessage(
+      error instanceof Error
+        ? error.message
+        : "Failed to sign in with Google. Please try again."
+    );
   };
 
   const onGoogleFormSubmit = async (data: GoogleAdminRegisterFormData) => {
@@ -109,13 +119,12 @@ export default function TenantRegisterPage() {
       const googleData: GoogleAdminRegisterData = {
         ...data,
         code: googleCode,
-        deviceInfo: navigator?.userAgent || "unknown",
+        deviceInfo,
       };
 
       await adminGoogleRegister(googleData);
       router.push("/admin");
     } catch (error) {
-      console.error("Google registration error:", error);
       setErrorMessage(
         error instanceof Error
           ? error.message
@@ -148,6 +157,7 @@ export default function TenantRegisterPage() {
             <GoogleAuthButton
               onSuccess={handleGoogleSuccess}
               onError={handleGoogleError}
+              buttonText={"Register with Google"}
             />
 
             <div className="relative my-4">

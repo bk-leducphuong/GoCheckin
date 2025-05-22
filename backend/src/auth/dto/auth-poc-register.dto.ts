@@ -1,4 +1,10 @@
-import { IsString, IsEmail, MinLength, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  MinLength,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
 import { UserRole } from '../../account/entities/account.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -25,4 +31,9 @@ export class AuthPocRegisterDto {
   @ApiProperty({ example: 'POC', description: 'User role' })
   @IsEnum(UserRole)
   role: UserRole = UserRole.POC; // Default to POC
+
+  @ApiProperty({ example: 'deviceInfo', description: 'Device info' })
+  @IsString()
+  @IsOptional()
+  deviceInfo?: string;
 }

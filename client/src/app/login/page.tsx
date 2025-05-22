@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,8 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
+import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
+import { Divider } from "@/components/ui/Divider";
 
 // Login validation schema
 const loginSchema = z.object({
@@ -25,14 +27,18 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [deviceInfo, setDeviceInfo] = useState<string>();
 
   const router = useRouter();
-  const { adminLogin, pocLogin } = useAuthStore(
-    useShallow((state) => ({
-      adminLogin: state.adminLogin,
-      pocLogin: state.pocLogin,
-    }))
-  );
+  const { adminLogin, pocLogin, adminGoogleLogin, pocGoogleLogin } =
+    useAuthStore(
+      useShallow((state) => ({
+        adminLogin: state.adminLogin,
+        pocLogin: state.pocLogin,
+        adminGoogleLogin: state.adminGoogleLogin,
+        pocGoogleLogin: state.pocGoogleLogin,
+      }))
+    );
 
   const {
     register,
@@ -48,27 +54,56 @@ export default function LoginPage() {
 
   const selectedUserType = watch("userType");
 
+  useEffect(() => {
+    const deviceInfo = navigator.userAgent;
+    setDeviceInfo(deviceInfo);
+  }, []);
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       setErrorMessage(null);
-      const deviceInfo = navigator.userAgent; // Get device info from user agent
 
       setIsLoading(true);
       if (data.userType === "admin") {
         await adminLogin(data.email, data.password, deviceInfo);
         router.push("/admin");
       } else {
-        await pocLogin(data.email, data.password);
+        await pocLogin(data.email, data.password, deviceInfo);
         router.push(`/poc`);
       }
     } catch (error) {
-      console.error("Login error:", error);
       setErrorMessage(
-        "Login failed. Please check your credentials and try again."
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please check your credentials and try again."
       );
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleSuccess = async (response: any) => {
+    try {
+      if (selectedUserType === "admin") {
+        await adminGoogleLogin(response.code, deviceInfo);
+      } else {
+        await pocGoogleLogin(response.code, deviceInfo);
+      }
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Failed to sign in with Google. Please try again."
+      );
+    }
+  };
+
+  const handleGoogleError = (error: any) => {
+    setErrorMessage(
+      error instanceof Error
+        ? error.message
+        : "Failed to sign in with Google. Please try again."
+    );
   };
 
   return (
@@ -79,6 +114,16 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-gray-600">
             Sign in to your GoCheckin account
           </p>
+        </div>
+
+        <GoogleAuthButton
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          buttonText={"Login with Google"}
+        />
+
+        <div className="relative my-4">
+          <Divider>or</Divider>
         </div>
 
         <form

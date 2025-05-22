@@ -15,6 +15,8 @@ import { MailModule } from 'src/mail/mail.module';
 import { Otp } from './entities/otp.entity';
 import { OtpService } from './otp.service';
 import { ResetToken } from './entities/reset-token.entity';
+import { GoogleService } from './google.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { ResetToken } from './entities/reset-token.entity';
     PocModule,
     TypeOrmModule.forFeature([Token, Otp, ResetToken]),
     MailModule,
+    HttpModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -33,7 +36,8 @@ import { ResetToken } from './entities/reset-token.entity';
     RefreshTokenService,
     RefreshTokenGuard,
     OtpService,
+    GoogleService,
   ],
-  exports: [AuthService, RefreshTokenService, OtpService],
+  exports: [AuthService, RefreshTokenService, OtpService, GoogleService],
 })
 export class AuthModule {}

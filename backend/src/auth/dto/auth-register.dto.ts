@@ -33,4 +33,8 @@ export class AuthRegisterDto {
   @IsOptional()
   @IsString()
   companyName?: string;
+
+  @IsOptional()
+  @IsString()
+  deviceInfo?: string;
 }

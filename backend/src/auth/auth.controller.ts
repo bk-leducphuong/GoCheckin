@@ -29,6 +29,10 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { OtpService } from './otp.service';
 import { UserRole } from 'src/account/entities/account.entity';
+import { GoogleAdminLoginDto } from './dto/google-admin-login.dto';
+import { GoogleAdminRegisterDto } from './dto/google-admin-register.dto';
+import { GooglePocLoginDto } from './dto/google-poc-login.dto';
+import { GooglePocRegisterDto } from './dto/google-poc-register.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -217,5 +221,25 @@ export class AuthController {
   @Post('verify-otp')
   verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     return this.otpService.verifyOtp(verifyOtpDto);
+  }
+
+  @Post('admin/google/login')
+  googleAdminLogin(@Body() googleAdminLoginDto: GoogleAdminLoginDto) {
+    return this.authService.googleAdminLogin(googleAdminLoginDto);
+  }
+
+  @Post('admin/google/register')
+  googleAdminRegister(@Body() googleAdminRegisterDto: GoogleAdminRegisterDto) {
+    return this.authService.googleAdminRegister(googleAdminRegisterDto);
+  }
+
+  @Post('poc/google/login')
+  googlePocLogin(@Body() googlePocLoginDto: GooglePocLoginDto) {
+    return this.authService.googlePocLogin(googlePocLoginDto);
+  }
+
+  @Post('poc/google/register')
+  googlePocRegister(@Body() googlePocRegisterDto: GooglePocRegisterDto) {
+    return this.authService.googlePocRegister(googlePocRegisterDto);
   }
 }

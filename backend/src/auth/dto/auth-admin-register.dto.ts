@@ -4,6 +4,7 @@ import {
   MinLength,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
 import { UserRole } from '../../account/entities/account.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -49,4 +50,9 @@ export class AuthAdminRegisterDto {
   @MinLength(3)
   @IsString()
   tenantCode: string;
+
+  @ApiProperty({ example: 'deviceInfo', description: 'Device info' })
+  @IsString()
+  @IsOptional()
+  deviceInfo?: string;
 }

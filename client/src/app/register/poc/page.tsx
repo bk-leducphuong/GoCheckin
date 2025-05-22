@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +12,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
 import { Divider } from "@/components/ui/Divider";
-// POC registration validation schema
+
 const pocRegisterSchema = z
   .object({
     username: z.string().min(3, "Username must be at least 3 characters"),
@@ -34,12 +34,19 @@ type PocRegisterFormData = z.infer<typeof pocRegisterSchema>;
 export default function PocRegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
+  const [deviceInfo, setDeviceInfo] = useState<string>();
+
   const { pocRegister, pocGoogleRegister } = useAuthStore(
     useShallow((state) => ({
       pocRegister: state.pocRegister,
       pocGoogleRegister: state.pocGoogleRegister,
     }))
   );
+
+  useEffect(() => {
+    const deviceInfo = navigator.userAgent;
+    setDeviceInfo(deviceInfo);
+  }, []);
 
   const {
     register,
@@ -54,7 +61,10 @@ export default function PocRegisterPage() {
       setErrorMessage(null);
       const { confirmPassword, ...registerData } = data;
       void confirmPassword;
-      await pocRegister(registerData);
+      await pocRegister({
+        ...registerData,
+        deviceInfo,
+      });
       router.push(`/poc`);
     } catch (error) {
       console.error("Registration error:", error);
@@ -67,13 +77,24 @@ export default function PocRegisterPage() {
   };
 
   const handleGoogleSuccess = async (response: any) => {
-    console.log("Google response:", response);
-    // await pocGoogleRegister(response);
+    try {
+      await pocGoogleRegister({ code: response.code, deviceInfo });
+      router.push(`/poc`);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again."
+      );
+    }
   };
 
   const handleGoogleError = (error: any) => {
-    console.error("Google sign-in error:", error);
-    setErrorMessage("Failed to sign in with Google. Please try again.");
+    setErrorMessage(
+      error instanceof Error
+        ? error.message
+        : "Failed to sign in with Google. Please try again."
+    );
   };
 
   return (
@@ -95,6 +116,7 @@ export default function PocRegisterPage() {
         <GoogleAuthButton
           onSuccess={handleGoogleSuccess}
           onError={handleGoogleError}
+          buttonText={"Register with Google"}
         />
 
         <div className="relative my-4">

@@ -20,7 +20,11 @@ interface AuthState {
     password: string,
     deviceInfo?: string
   ) => Promise<void>;
-  pocLogin: (email: string, password: string) => Promise<void>;
+  pocLogin: (
+    email: string,
+    password: string,
+    deviceInfo?: string
+  ) => Promise<void>;
   adminRegister: (data: AdminRegisterData) => Promise<void>;
   pocRegister: (data: PocRegisterData) => Promise<void>;
   adminGoogleLogin: (code: string, deviceInfo?: string) => Promise<void>;
@@ -65,8 +69,16 @@ export const useAuthStore = create<AuthState>()(
           set(newState);
         },
 
-        pocLogin: async (email: string, password: string) => {
-          const response = await AuthService.pocLogin({ email, password });
+        pocLogin: async (
+          email: string,
+          password: string,
+          deviceInfo?: string
+        ) => {
+          const response = await AuthService.pocLogin({
+            email,
+            password,
+            deviceInfo,
+          });
 
           const newState = {
             userId: response.userId,

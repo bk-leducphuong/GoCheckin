@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,15 +16,11 @@ export class RefreshTokenService {
     private tokenRepository: Repository<Token>,
   ) {}
 
-  /**
-   * Generate a new refresh token for a user
-   */
   async generateRefreshToken(
     userId: string,
     deviceInfo: string = 'unknown',
   ): Promise<string> {
     try {
-      // Clean up expired tokens
       await this.cleanupExpiredTokens();
       // Revoke existing tokens for the user
       await this.tokenRepository.update(
@@ -62,9 +58,6 @@ export class RefreshTokenService {
     }
   }
 
-  /**
-   * Validate a refresh token
-   */
   async validateRefreshToken(refreshToken: string): Promise<JwtPayload | null> {
     try {
       // Verify the token

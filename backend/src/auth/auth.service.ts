@@ -26,6 +26,11 @@ import { ResetToken } from './entities/reset-token.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
 import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
+import { GoogleAdminLoginDto } from './dto/google-admin-login.dto';
+import { GoogleAdminRegisterDto } from './dto/google-admin-register.dto';
+import { GooglePocLoginDto } from './dto/google-poc-login.dto';
+import { GooglePocRegisterDto } from './dto/google-poc-register.dto';
+import { GoogleService } from './google.service';
 @Injectable()
 export class AuthService {
   constructor(
@@ -40,6 +45,7 @@ export class AuthService {
     private otpService: OtpService,
     @InjectRepository(ResetToken)
     private readonly resetTokenRepository: Repository<ResetToken>,
+    private readonly googleService: GoogleService,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
@@ -94,6 +100,7 @@ export class AuthService {
 
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
         user.userId,
+        loginDto.deviceInfo,
       );
 
       return {
@@ -115,9 +122,9 @@ export class AuthService {
   ): Promise<AuthLoginResponseDto> {
     try {
       // Check if email already exists
-      const existingUser = await this.accountService
-        .findByEmail(registerDto.email)
-        .catch(() => null);
+      const existingUser = await this.accountService.findByEmail(
+        registerDto.email,
+      );
       if (existingUser) {
         throw new ConflictException('User already exists');
       }
@@ -145,6 +152,7 @@ export class AuthService {
       /* Create refresh and access token */
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
         newUser.userId,
+        registerDto.deviceInfo,
       );
       return {
         accessToken: this.jwtService.sign({
@@ -164,9 +172,10 @@ export class AuthService {
     registerDto: AuthPocRegisterDto,
   ): Promise<AuthLoginResponseDto> {
     try {
-      const existingUser = await this.accountService
-        .findByEmail(registerDto.email)
-        .catch(() => null);
+      const existingUser = await this.accountService.findByEmail(
+        registerDto.email,
+      );
+
       if (existingUser) {
         throw new ConflictException('User already exists');
       }
@@ -180,6 +189,7 @@ export class AuthService {
 
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
         newUser.userId,
+        registerDto.deviceInfo,
       );
 
       return {
@@ -354,6 +364,198 @@ export class AuthService {
 
       // send confirmation email
       await this.mailService.sendPasswordChangedMail(account);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async googleAdminLogin(googleAdminLoginDto: GoogleAdminLoginDto) {
+    try {
+      // Exchange code for access token and refresh token
+      const googleTokens = await this.googleService.getAccessToken(
+        googleAdminLoginDto.code,
+      );
+
+      // Get user info
+      const userInfo = await this.googleService.getUserInfo(
+        googleTokens.access_token,
+      );
+
+      // Check if user already exists
+      const existingUser = await this.accountService.findByEmail(
+        userInfo.email,
+      );
+      if (!existingUser || existingUser.role !== UserRole.ADMIN) {
+        throw new UnauthorizedException('Account is not registered');
+      }
+
+      // Create refresh token
+      const refreshToken = await this.refreshTokenService.generateRefreshToken(
+        existingUser.userId,
+        googleAdminLoginDto.deviceInfo,
+      );
+
+      return {
+        accessToken: this.jwtService.sign({
+          userId: existingUser.userId,
+          role: existingUser.role,
+        }),
+        refreshToken: refreshToken,
+        userId: existingUser.userId,
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async googleAdminRegister(googleAdminRegisterDto: GoogleAdminRegisterDto) {
+    try {
+      // Exchange code for access token and refresh token
+      const googleTokens = await this.googleService.getAccessToken(
+        googleAdminRegisterDto.code,
+      );
+
+      // Get user info
+      const userInfo = await this.googleService.getUserInfo(
+        googleTokens.access_token,
+      );
+
+      // Check if email already exists
+      const existingUser = await this.accountService.findByEmail(
+        userInfo.email,
+      );
+      if (existingUser) {
+        throw new ConflictException('Account is already registered');
+      }
+
+      /* Tenant creation */
+      const newTenant = await this.tenantService.createTenant({
+        tenantCode: googleAdminRegisterDto.tenantCode,
+        tenantName: googleAdminRegisterDto.tenantName,
+      });
+
+      /* Create account */
+      const newUser = await this.accountService.create({
+        role: UserRole.ADMIN,
+        password: '',
+        username: userInfo.given_name,
+        email: userInfo.email,
+        fullName: userInfo.name,
+      });
+
+      /* Create account and tenant relationship */
+      await this.accountService.createAccountTenant(
+        newUser.userId,
+        newTenant.tenantCode,
+      );
+
+      /* Create refresh and access token */
+      const refreshToken = await this.refreshTokenService.generateRefreshToken(
+        newUser.userId,
+        googleAdminRegisterDto.deviceInfo,
+      );
+      return {
+        accessToken: this.jwtService.sign({
+          userId: newUser.userId,
+          role: newUser.role,
+        }),
+        refreshToken: refreshToken,
+        userId: newUser.userId,
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async googlePocLogin(googlePocLoginDto: GooglePocLoginDto) {
+    try {
+      // Exchange code for access token and refresh token
+      const googleTokens = await this.googleService.getAccessToken(
+        googlePocLoginDto.code,
+      );
+
+      // Get user info
+      const userInfo = await this.googleService.getUserInfo(
+        googleTokens.access_token,
+      );
+
+      // Check if user already exists
+      const existingUser = await this.accountService.findByEmail(
+        userInfo.email,
+      );
+      if (!existingUser || existingUser.role !== UserRole.POC) {
+        throw new UnauthorizedException('Account is not registered');
+      }
+
+      // Create refresh token
+      const refreshToken = await this.refreshTokenService.generateRefreshToken(
+        existingUser.userId,
+        googlePocLoginDto.deviceInfo,
+      );
+
+      return {
+        accessToken: this.jwtService.sign({
+          userId: existingUser.userId,
+          role: existingUser.role,
+        }),
+        refreshToken: refreshToken,
+        userId: existingUser.userId,
+      };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async googlePocRegister(googlePocRegisterDto: GooglePocRegisterDto) {
+    try {
+      // Exchange code for access token and refresh token
+      const googleTokens = await this.googleService.getAccessToken(
+        googlePocRegisterDto.code,
+      );
+
+      // Get user info
+      const userInfo = await this.googleService.getUserInfo(
+        googleTokens.access_token,
+      );
+
+      // Check if user already exists
+      const existingUser = await this.accountService.findByEmail(
+        userInfo.email,
+      );
+      if (existingUser) {
+        throw new ConflictException('Account is already registered');
+      }
+
+      // Create user
+      const newUser = await this.accountService.create({
+        username: userInfo.given_name,
+        email: userInfo.email,
+        password: '',
+        role: UserRole.POC,
+        fullName: userInfo.name,
+      });
+
+      // Create refresh token
+      const refreshToken = await this.refreshTokenService.generateRefreshToken(
+        newUser.userId,
+        googlePocRegisterDto.deviceInfo,
+      );
+
+      // Create access token
+      const accessToken = this.jwtService.sign({
+        userId: newUser.userId,
+        role: newUser.role,
+      });
+
+      return {
+        accessToken,
+        refreshToken,
+        userId: newUser.userId,
+      };
     } catch (error) {
       console.log(error);
       throw error;
