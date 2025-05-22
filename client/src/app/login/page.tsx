@@ -13,6 +13,7 @@ import { useShallow } from "zustand/react/shallow";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
 import { Divider } from "@/components/ui/Divider";
 
+import { ApiError } from "@/lib/error";
 // Login validation schema
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -77,6 +78,13 @@ export default function LoginPage() {
           ? error.message
           : "Login failed. Please check your credentials and try again."
       );
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage(
+          "Login failed. Please check your credentials and try again."
+        );
+      }
     } finally {
       setIsLoading(false);
     }

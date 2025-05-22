@@ -24,6 +24,7 @@ import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { PointOfCheckin } from './entities/poc.entity';
 import { ValidatePocDto } from './dto/validate-poc.dto';
 import { PocLocationsDto } from './dto/poc-locations.dto';
+import { RegisterPocUserDto } from './dto/register-poc-user.dto';
 
 @ApiTags('points-of-checkin')
 @Controller('pocs')
@@ -178,5 +179,19 @@ export class PocController {
   })
   async getPocsByUserId(@Param('userId') userId: string) {
     return this.pocService.getPocsByUserId(userId);
+  }
+
+  @Post('register')
+  @Roles(UserRole.ADMIN, UserRole.TENANT, UserRole.POC)
+  @ApiOperation({ summary: 'Register a new POC user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POC user registered successfully',
+  })
+  async registerPocUser(
+    @CurrentUser() user: JwtPayload,
+    @Body() registerPocUserDto: RegisterPocUserDto,
+  ) {
+    return this.pocService.registerPocUser(user, registerPocUserDto);
   }
 }

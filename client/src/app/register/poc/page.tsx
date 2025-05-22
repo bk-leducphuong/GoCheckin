@@ -10,9 +10,12 @@ import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
 import { useShallow } from "zustand/react/shallow";
+import { ApiError } from "@/lib/error";
+import Loading from "@/components/ui/Loading";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
 import { Divider } from "@/components/ui/Divider";
 
+// POC registration validation schema
 const pocRegisterSchema = z
   .object({
     username: z.string().min(3, "Username must be at least 3 characters"),
@@ -35,6 +38,7 @@ export default function PocRegisterPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   const [deviceInfo, setDeviceInfo] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
 
   const { pocRegister, pocGoogleRegister } = useAuthStore(
     useShallow((state) => ({
@@ -42,7 +46,6 @@ export default function PocRegisterPage() {
       pocGoogleRegister: state.pocGoogleRegister,
     }))
   );
-
   useEffect(() => {
     const deviceInfo = navigator.userAgent;
     setDeviceInfo(deviceInfo);
@@ -57,6 +60,7 @@ export default function PocRegisterPage() {
   });
 
   const onSubmit = async (data: PocRegisterFormData) => {
+    setIsLoading(true);
     try {
       setErrorMessage(null);
       const { confirmPassword, ...registerData } = data;
@@ -67,12 +71,13 @@ export default function PocRegisterPage() {
       });
       router.push(`/poc`);
     } catch (error) {
-      console.error("Registration error:", error);
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Registration failed. Please try again."
-      );
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Failed to register. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,6 +101,10 @@ export default function PocRegisterPage() {
         : "Failed to sign in with Google. Please try again."
     );
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
@@ -141,23 +150,21 @@ export default function PocRegisterPage() {
               placeholder="your@email.com"
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Password"
-                type="password"
-                {...register("password")}
-                error={errors.password?.message}
-                placeholder="********"
-              />
+            <Input
+              label="Password"
+              type="password"
+              {...register("password")}
+              error={errors.password?.message}
+              placeholder="********"
+            />
 
-              <Input
-                label="Confirm Password"
-                type="password"
-                {...register("confirmPassword")}
-                error={errors.confirmPassword?.message}
-                placeholder="********"
-              />
-            </div>
+            <Input
+              label="Confirm Password"
+              type="password"
+              {...register("confirmPassword")}
+              error={errors.confirmPassword?.message}
+              placeholder="********"
+            />
           </div>
 
           <Button type="submit" isLoading={isSubmitting} className="w-full">

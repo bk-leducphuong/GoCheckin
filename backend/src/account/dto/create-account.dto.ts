@@ -21,7 +21,8 @@ export class CreateAccountDto {
   password: string;
 
   @IsString()
-  fullName: string;
+  @IsOptional()
+  fullName?: string;
 
   @IsOptional()
   @IsString()

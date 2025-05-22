@@ -9,7 +9,7 @@ import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { AuthService } from "@/services/auth.service";
-
+import { ApiError } from "@/lib/error";
 // Step 1: Request OTP validation schema
 const requestOtpSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -87,8 +87,11 @@ export default function ForgotPasswordPage() {
       setEmail(data.email);
       setCurrentStep(ForgotPasswordStep.VERIFY_OTP);
     } catch (error) {
-      setErrorMessage("Failed to send verification code. Please try again.");
-      console.error("Request OTP error:", error);
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Failed to send verification code. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -110,8 +113,11 @@ export default function ForgotPasswordPage() {
 
       setCurrentStep(ForgotPasswordStep.RESET_PASSWORD);
     } catch (error) {
-      console.error("Verify OTP error:", error);
-      setErrorMessage("Invalid or expired code. Please try again.");
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Invalid or expired code. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -128,8 +134,11 @@ export default function ForgotPasswordPage() {
       await AuthService.resetPassword(userId, resetToken, data.password);
       router.push("/login");
     } catch (error) {
-      setErrorMessage("Failed to reset password. Please try again.");
-      console.error("Reset password error:", error);
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Failed to reset password. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

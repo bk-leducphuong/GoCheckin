@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,10 +9,12 @@ import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
+import { AdminRegisterData } from "@/types/auth";
+import { ApiError } from "@/lib/error";
+import { useShallow } from "zustand/react/shallow";
 import { GoogleAdminRegisterData } from "@/types/auth";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
 import { Divider } from "@/components/ui/Divider";
-
 // Admin registration validation schema
 const adminRegisterSchema = z
   .object({
@@ -30,6 +32,7 @@ const adminRegisterSchema = z
     path: ["confirmPassword"],
   });
 
+
 // Google admin registration validation schema
 const googleAdminRegisterSchema = z.object({
   tenantName: z.string().min(2, "Organization name is required"),
@@ -41,14 +44,26 @@ type AdminRegisterFormData = z.infer<typeof adminRegisterSchema>;
 type GoogleAdminRegisterFormData = z.infer<typeof googleAdminRegisterSchema>;
 
 export default function TenantRegisterPage() {
+  const [isLoading, setIsLoading] = useState(false);
   const [showGoogleForm, setShowGoogleForm] = useState(false);
   const [googleCode, setGoogleCode] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const router = useRouter();
-  const { adminRegister, adminGoogleRegister } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
+   const { adminRegister, adminGoogleRegister } = useAuthStore(
+    useShallow((state) => ({
+      adminRegister: state.adminRegister,
+      adminGoogleRegister: state.adminGoogleRegister,
+    }))
+   );
   const [deviceInfo, setDeviceInfo] = useState<string>();
+
+  const router = useRouter();
+  const { adminRegister } = useAuthStore(
+    useShallow((state) => ({
+      adminRegister: state.adminRegister,
+    }))
+  );
+
   const {
     register,
     handleSubmit,
@@ -75,19 +90,19 @@ export default function TenantRegisterPage() {
   const onSubmit = async (data: AdminRegisterFormData) => {
     try {
       setIsLoading(true);
+      setErrorMessage(null);
       const { confirmPassword, ...registerData } = data;
-      void confirmPassword;
-      await adminRegister({
+       await adminRegister({
         ...registerData,
         deviceInfo,
       });
       router.push("/admin");
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Registration failed. Please try again."
-      );
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Registration failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -134,6 +149,7 @@ export default function TenantRegisterPage() {
       setIsGoogleLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
@@ -164,181 +180,113 @@ export default function TenantRegisterPage() {
               <Divider>or</Divider>
             </div>
 
-            <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-4">
-                <Input
-                  label="Username"
-                  type="text"
-                  {...register("username")}
-                  error={errors.username?.message}
-                  placeholder="johndoe"
-                />
 
-                <Input
-                  label="Email"
-                  type="email"
-                  {...register("email")}
-                  error={errors.email?.message}
-                  placeholder="your@email.com"
-                />
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+          <div className="space-y-4">
+            <Input
+              label="Username"
+              type="text"
+              {...register("username")}
+              error={errors.username?.message}
+              placeholder="johndoe"
+            />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Password"
-                    type="password"
-                    {...register("password")}
-                    error={errors.password?.message}
-                    placeholder="********"
-                  />
+            <Input
+              label="Email"
+              type="email"
+              {...register("email")}
+              error={errors.email?.message}
+              placeholder="your@email.com"
+            />
 
-                  <Input
-                    label="Confirm Password"
-                    type="password"
-                    {...register("confirmPassword")}
-                    error={errors.confirmPassword?.message}
-                    placeholder="********"
-                  />
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Password"
+                type="password"
+                {...register("password")}
+                error={errors.password?.message}
+                placeholder="********"
+              />
 
-                <Input
-                  label="Full Name"
-                  type="text"
-                  {...register("fullName")}
-                  error={errors.fullName?.message}
-                  placeholder="John Doe"
-                />
+              <Input
+                label="Confirm Password"
+                type="password"
+                {...register("confirmPassword")}
+                error={errors.confirmPassword?.message}
+                placeholder="********"
+              />
+            </div>
 
-                <Input
-                  label="Phone Number"
-                  type="tel"
-                  {...register("phoneNumber")}
-                  error={errors.phoneNumber?.message}
-                  placeholder="+1234567890"
-                />
+            <Input
+              label="Full Name"
+              type="text"
+              {...register("fullName")}
+              error={errors.fullName?.message}
+              placeholder="John Doe"
+            />
 
-                <Input
-                  label="Organization Name"
-                  type="text"
-                  {...register("tenantName")}
-                  error={errors.tenantName?.message}
-                  placeholder="Your Organization Ltd."
-                />
+            <Input
+              label="Phone Number"
+              type="tel"
+              {...register("phoneNumber")}
+              error={errors.phoneNumber?.message}
+              placeholder="+1234567890"
+            />
 
-                <div className="relative">
-                  <Input
-                    label="Organization Code"
-                    type="text"
-                    {...register("tenantCode")}
-                    error={errors.tenantCode?.message}
-                    placeholder="Your Organization Code"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const randomCode = `ORG-${Math.random()
-                        .toString(36)
-                        .substring(2, 8)
-                        .toUpperCase()}`;
-                      setValue("tenantCode", randomCode, {
-                        shouldValidate: true,
-                      });
-                    }}
-                    className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                  >
-                    Generate
-                  </button>
-                </div>
-              </div>
+            <Input
+              label="Organization Name"
+              type="text"
+              {...register("tenantName")}
+              error={errors.tenantName?.message}
+              placeholder="Your Organization Ltd."
+            />
+
+            <div className="relative">
+              <Input
+                label="Organization Code"
+                type="text"
+                {...register("tenantCode")}
+                error={errors.tenantCode?.message}
+                placeholder="Your Organization Code"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const randomCode = `ORG-${Math.random()
+                    .toString(36)
+                    .substring(2, 8)
+                    .toUpperCase()}`;
+                  setValue("tenantCode", randomCode, { shouldValidate: true });
+                }}
+                className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              >
+                Generate
+              </button>
+            </div>
+          </div>
 
               <Button type="submit" isLoading={isLoading} className="w-full">
                 Register
               </Button>
 
-              <div className="text-center mt-4">
-                <p className="text-sm text-gray-600">
-                  Already have an account?{" "}
-                  <Link href="/login" className="text-blue-600 hover:underline">
-                    Log in
-                  </Link>
-                </p>
-                <p className="text-sm text-gray-600 mt-2">
-                  Are you a POC?{" "}
-                  <Link
-                    href="/register/poc"
-                    className="text-blue-600 hover:underline"
-                  >
-                    Register as POC
-                  </Link>
-                </p>
-              </div>
-            </form>
-          </>
-        ) : (
-          <form
-            className="mt-8 space-y-6"
-            onSubmit={handleGoogleSubmit(onGoogleFormSubmit)}
-          >
-            <div className="space-y-4">
-              <Input
-                label="Phone Number"
-                type="tel"
-                {...registerGoogle("phoneNumber")}
-                error={googleErrors.phoneNumber?.message}
-                placeholder="+1234567890"
-              />
-
-              <Input
-                label="Organization Name"
-                type="text"
-                {...registerGoogle("tenantName")}
-                error={googleErrors.tenantName?.message}
-                placeholder="Your Organization Ltd."
-              />
-
-              <div className="relative">
-                <Input
-                  label="Organization Code"
-                  type="text"
-                  {...registerGoogle("tenantCode")}
-                  error={googleErrors.tenantCode?.message}
-                  placeholder="Your Organization Code"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const randomCode = `ORG-${Math.random()
-                      .toString(36)
-                      .substring(2, 8)
-                      .toUpperCase()}`;
-                    setGoogleValue("tenantCode", randomCode, {
-                      shouldValidate: true,
-                    });
-                  }}
-                  className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                >
-                  Generate
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              isLoading={isGoogleLoading}
-              className="w-full"
-            >
-              Complete Google Registration
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full mt-2"
-              onClick={() => setShowGoogleForm(false)}
-            >
-              Back to Regular Registration
-            </Button>
-          </form>
-        )}
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link href="/login" className="text-blue-600 hover:underline">
+                Log in
+              </Link>
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Are you a POC?{" "}
+              <Link
+                href="/register/poc"
+                className="text-blue-600 hover:underline"
+              >
+                Register as POC
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
     </div>
   );

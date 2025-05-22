@@ -9,7 +9,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EventStatus } from '../entities/event.entity';
+import { EventStatus, EventType } from '../entities/event.entity';
 
 export class CreateEventDto {
   @IsString()
@@ -52,7 +52,7 @@ export class CreateEventDto {
 
   @IsString()
   @IsOptional()
-  eventType?: string;
+  eventType?: EventType;
 
   @IsString()
   @IsOptional()

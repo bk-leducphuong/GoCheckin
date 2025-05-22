@@ -22,6 +22,12 @@ export enum EventStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum EventType {
+  CONFERENCE = 'conference',
+  WORKSHOP = 'workshop',
+  MEETING = 'meeting',
+}
+
 @Entity('events')
 export class Event {
   @PrimaryGeneratedColumn('uuid', { name: 'event_id' })
@@ -62,8 +68,13 @@ export class Event {
   @Column({ nullable: true })
   capacity: number;
 
-  @Column({ name: 'event_type', length: 100, nullable: true })
-  eventType: string;
+  @Column({
+    name: 'event_type',
+    type: 'enum',
+    enum: EventType,
+    nullable: true,
+  })
+  eventType: EventType;
 
   @Column({ name: 'terms_conditions', type: 'text', nullable: true })
   termsConditions: string;

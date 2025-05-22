@@ -17,7 +17,7 @@ import { EventService } from "@/services/event.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { validateImages } from "@/utils/imageValidation";
-
+import { ApiError } from "@/lib/error";
 // Event creation validation schema
 const eventSchema = z.object({
   eventName: z.string().min(3, "Event name must be at least 3 characters"),
@@ -112,7 +112,11 @@ export default function CreateEventPage() {
       setIsLoading(false);
       router.push("/admin/events");
     } catch (error) {
-      setError("Failed to create event. Please try again.");
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError("Failed to create event. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

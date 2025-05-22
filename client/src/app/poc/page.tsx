@@ -10,7 +10,9 @@ import { Event } from "@/types/event";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import { ApiError } from "@/lib/error";
+import { GrTransaction } from "react-icons/gr";
+import { EventStatus } from "@/types/event";
 interface Activity {
   id: string;
   type: string;
@@ -61,12 +63,12 @@ export default function PocDashboardPage() {
         } else {
           setError("Authentication error");
         }
-      } catch (error: unknown) {
-        setError(
-          error && typeof error === "object" && "message" in error
-            ? String(error.message)
-            : "An unknown error occurred"
-        );
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -95,12 +97,12 @@ export default function PocDashboardPage() {
         }));
 
         setActivities(mockActivities);
-      } catch (error: unknown) {
-        setError(
-          error && typeof error === "object" && "message" in error
-            ? String(error.message)
-            : "An unknown error occurred"
-        );
+      } catch (error) {
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("An unknown error occurred");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -128,6 +130,17 @@ export default function PocDashboardPage() {
     if (event) {
       setSelectedEvent(event);
       router.push(`/poc/event-details?eventCode=${eventCode}`);
+    }
+  };
+
+  const redirectToAnalyzeEventPage = (eventCode: string) => {
+    const poc = pocList.filter((poc) => poc.eventCode === eventCode);
+    const event = joinedEvents.find((event) => event.eventCode === eventCode);
+    if (event && poc.length > 0) {
+      setSelectedEvent(event);
+      router.push(
+        `/poc/analyze-event?eventCode=${eventCode}&pointCode=${poc[0].pointCode}`
+      );
     }
   };
 
@@ -190,12 +203,28 @@ export default function PocDashboardPage() {
                         View Event Details
                       </Button>
                     </div>
-                    <div onClick={() => redirectToCheckinPage(event.eventCode)}>
+                    {event.eventStatus === EventStatus.ACTIVE && (
+                      <div
+                        onClick={() => redirectToCheckinPage(event.eventCode)}
+                      >
+                        <Button
+                          variant="outline"
+                          className="w-full cursor-pointer"
+                        >
+                          Go to Check-in
+                        </Button>
+                      </div>
+                    )}
+                    <div
+                      onClick={() =>
+                        redirectToAnalyzeEventPage(event.eventCode)
+                      }
+                    >
                       <Button
                         variant="outline"
                         className="w-full cursor-pointer"
                       >
-                        Go to Check-in
+                        Analyze Event
                       </Button>
                     </div>
                   </div>
@@ -221,20 +250,7 @@ export default function PocDashboardPage() {
                   className="flex items-start border-b pb-3 last:border-0"
                 >
                   <div className="bg-blue-100 p-2 rounded-full mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <GrTransaction className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm">{activity.description}</p>

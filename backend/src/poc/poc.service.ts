@@ -19,6 +19,8 @@ import { AccountService } from 'src/account/account.service';
 import { PocLocationsDto } from './dto/poc-locations.dto';
 import { PocLocation } from './entities/poc-location.entity';
 import { FloorPlanService } from 'src/floor-plan/floor-plan.service';
+import { RegisterPocUserDto } from './dto/register-poc-user.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class PocService {
@@ -32,6 +34,7 @@ export class PocService {
     private accountService: AccountService,
     @Inject(forwardRef(() => FloorPlanService))
     private floorPlanService: FloorPlanService,
+    private mailService: MailService,
   ) {}
 
   async create(
@@ -295,6 +298,36 @@ export class PocService {
       await this.pocLocationRepository.delete({ floorPlanId });
     } catch (error) {
       console.error('Error removing POC locations:', error);
+      throw error;
+    }
+  }
+
+  async registerPocUser(
+    user: JwtPayload,
+    registerPocUserDto: RegisterPocUserDto,
+  ): Promise<void> {
+    try {
+      const { eventCode, pointCode } = registerPocUserDto;
+      const poc = await this.pocRepository.findOne({
+        where: { eventCode, pointCode },
+      });
+      if (!poc) {
+        throw new NotFoundException('Not found poc!');
+      }
+
+      if (poc.userId) {
+        throw new BadRequestException('POC already registered!');
+      }
+
+      const userId = user.userId;
+      await this.pocRepository.update(
+        { eventCode, pointCode },
+        { userId: userId },
+      );
+
+      // await this.mailService.sendPocRegisteredMail(poc);
+    } catch (error) {
+      console.error('Error registering POC user:', error);
       throw error;
     }
   }

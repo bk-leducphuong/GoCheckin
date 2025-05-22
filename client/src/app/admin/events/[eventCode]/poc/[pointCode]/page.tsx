@@ -13,6 +13,7 @@ import { useEventStore } from "@/store/eventStore";
 import { EventStatus } from "@/types/event";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
+import { ApiError } from "@/lib/error";
 
 // POC update validation schema
 const pocSchema = z.object({
@@ -74,8 +75,11 @@ export default function PocDetailsPage() {
         }
         setIsLoading(false);
       } catch (error) {
-        setError("Failed to fetch POC details. Please try again.");
-        console.error("Error fetching POC:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch POC details. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -98,8 +102,11 @@ export default function PocDetailsPage() {
         }
         setIsLoading(false);
       } catch (error) {
-        setError("Failed to fetch POC manager. Please try again.");
-        console.error("Error fetching POC manager:", error);
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch POC manager. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -123,12 +130,11 @@ export default function PocDetailsPage() {
       setIsEditing(false);
       router.refresh();
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Failed to update POC. Please try again.";
-      console.error("Update POC error:", error);
-      alert(errorMessage);
+      if (error instanceof ApiError) {
+        setError(error.message);
+      } else {
+        setError("Failed to update POC. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

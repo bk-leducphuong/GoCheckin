@@ -8,16 +8,24 @@ import { useShallow } from "zustand/shallow";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { Event } from "@/types/event";
+import { ApiError } from "@/lib/error";
+import { FaLocationDot } from "react-icons/fa6";
+import { FaCalendarAlt, FaUser } from "react-icons/fa";
+import { FaPlus } from "react-icons/fa";
 
 export default function EventsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { events, getAllEvents, setSelectedEvent } = useEventStore(
+  const {
+    events,
+    getAllEventsByAdmin: getAllEvents,
+    setSelectedEvent,
+  } = useEventStore(
     useShallow((state) => ({
       setSelectedEvent: state.setSelectedEvent,
       events: state.events,
-      getAllEvents: state.getAllEvents,
+      getAllEventsByAdmin: state.getAllEventsByAdmin,
     }))
   );
 
@@ -28,7 +36,11 @@ export default function EventsPage() {
         await getAllEvents();
         setIsLoading(false);
       } catch (error) {
-        setError("Failed to fetch events. Please try again.");
+        if (error instanceof ApiError) {
+          setError(error.message);
+        } else {
+          setError("Failed to fetch events. Please try again.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -72,20 +84,7 @@ export default function EventsPage() {
           type="button"
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          <svg
-            className="-ml-1 mr-2 h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-            />
-          </svg>
+          <FaPlus className="mr-2" />
           Create Event
         </button>
       </div>
@@ -142,61 +141,16 @@ export default function EventsPage() {
                 <div className="mt-2 sm:flex sm:justify-between">
                   <div className="sm:flex">
                     <div className="flex items-center text-sm text-gray-500">
-                      <svg
-                        className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
+                      <FaCalendarAlt className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
                       <span>{item.startTime.split("T")[0]}</span>
                     </div>
                     <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                      <svg
-                        className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                      </svg>
+                      <FaLocationDot className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
                       <span>{item.venueName}</span>
                     </div>
                   </div>
                   <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <svg
-                      className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                      />
-                    </svg>
+                    <FaUser className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
                     <span>0 Attendees</span>
                   </div>
                 </div>

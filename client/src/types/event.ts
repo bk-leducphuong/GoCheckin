@@ -5,6 +5,17 @@ export enum EventStatus {
   CANCELLED = "cancelled",
 }
 
+export enum EventType {
+  CONFERENCE = "conference",
+  WORKSHOP = "workshop",
+  MEETING = "meeting",
+}
+
+export interface EventContraints {
+  status?: EventStatus;
+  type?: EventType;
+}
+
 export interface Event {
   eventId: string;
   eventCode: string;
