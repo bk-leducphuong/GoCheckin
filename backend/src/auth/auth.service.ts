@@ -54,13 +54,13 @@ export class AuthService {
 
       // Check if user is an admin
       if (user.role !== UserRole.ADMIN) {
-        throw new UnauthorizedException('User is not an admin');
+        throw new UnauthorizedException('Account is not valid');
       }
 
       const isValidPassword = await compare(loginDto.password, user.password);
 
       if (!isValidPassword) {
-        throw new UnauthorizedException('Invalid password');
+        throw new UnauthorizedException('Account is not valid');
       }
 
       // Create refresh token
@@ -89,13 +89,13 @@ export class AuthService {
 
       // Check if user is a POC
       if (user.role !== UserRole.POC) {
-        throw new UnauthorizedException('User is not a POC');
+        throw new UnauthorizedException('Account is not valid');
       }
 
       const isValidPassword = await compare(loginDto.password, user.password);
 
       if (!isValidPassword) {
-        throw new UnauthorizedException('Invalid password');
+        throw new UnauthorizedException('Account is not valid');
       }
 
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
@@ -126,7 +126,7 @@ export class AuthService {
         registerDto.email,
       );
       if (existingUser) {
-        throw new ConflictException('User already exists');
+        throw new ConflictException('Account already exists');
       }
 
       /* Tenant creation */
@@ -177,7 +177,7 @@ export class AuthService {
       );
 
       if (existingUser) {
-        throw new ConflictException('User already exists');
+        throw new ConflictException('Account already exists');
       }
 
       const hashedPassword = await hash(registerDto.password, 10);
