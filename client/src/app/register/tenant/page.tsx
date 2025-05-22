@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +9,6 @@ import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useAuthStore } from "@/store/authStore";
-import { AdminRegisterData } from "@/types/auth";
 import { ApiError } from "@/lib/error";
 import { useShallow } from "zustand/react/shallow";
 import { GoogleAdminRegisterData } from "@/types/auth";
@@ -32,7 +31,6 @@ const adminRegisterSchema = z
     path: ["confirmPassword"],
   });
 
-
 // Google admin registration validation schema
 const googleAdminRegisterSchema = z.object({
   tenantName: z.string().min(2, "Organization name is required"),
@@ -47,22 +45,16 @@ export default function TenantRegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showGoogleForm, setShowGoogleForm] = useState(false);
   const [googleCode, setGoogleCode] = useState<string | null>(null);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-   const { adminRegister, adminGoogleRegister } = useAuthStore(
+
+  const { adminRegister, adminGoogleRegister } = useAuthStore(
     useShallow((state) => ({
       adminRegister: state.adminRegister,
       adminGoogleRegister: state.adminGoogleRegister,
     }))
-   );
-  const [deviceInfo, setDeviceInfo] = useState<string>();
-
-  const router = useRouter();
-  const { adminRegister } = useAuthStore(
-    useShallow((state) => ({
-      adminRegister: state.adminRegister,
-    }))
   );
+  const [deviceInfo, setDeviceInfo] = useState<string>();
+  const router = useRouter();
 
   const {
     register,
@@ -92,7 +84,7 @@ export default function TenantRegisterPage() {
       setIsLoading(true);
       setErrorMessage(null);
       const { confirmPassword, ...registerData } = data;
-       await adminRegister({
+      await adminRegister({
         ...registerData,
         deviceInfo,
       });
@@ -129,7 +121,7 @@ export default function TenantRegisterPage() {
 
     try {
       setErrorMessage(null);
-      setIsGoogleLoading(true);
+      setIsLoading(true);
 
       const googleData: GoogleAdminRegisterData = {
         ...data,
@@ -146,7 +138,7 @@ export default function TenantRegisterPage() {
           : "Registration with Google failed. Please try again."
       );
     } finally {
-      setIsGoogleLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -168,125 +160,176 @@ export default function TenantRegisterPage() {
           </div>
         )}
 
-        {!showGoogleForm ? (
-          <>
-            <GoogleAuthButton
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              buttonText={"Register with Google"}
-            />
+        <GoogleAuthButton
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+          buttonText={"Register with Google"}
+        />
 
-            <div className="relative my-4">
-              <Divider>or</Divider>
-            </div>
+        <div className="relative my-4">
+          <Divider>or</Divider>
+        </div>
 
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-4">
-            <Input
-              label="Username"
-              type="text"
-              {...register("username")}
-              error={errors.username?.message}
-              placeholder="johndoe"
-            />
-
-            <Input
-              label="Email"
-              type="email"
-              {...register("email")}
-              error={errors.email?.message}
-              placeholder="your@email.com"
-            />
-
-            <div className="grid grid-cols-2 gap-4">
+        {showGoogleForm ? (
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            <div className="space-y-4">
               <Input
-                label="Password"
-                type="password"
-                {...register("password")}
-                error={errors.password?.message}
-                placeholder="********"
+                label="Phone Number"
+                type="tel"
+                {...registerGoogle("phoneNumber")}
+                error={googleErrors.phoneNumber?.message}
+                placeholder="+1234567890"
               />
 
               <Input
-                label="Confirm Password"
-                type="password"
-                {...register("confirmPassword")}
-                error={errors.confirmPassword?.message}
-                placeholder="********"
-              />
-            </div>
-
-            <Input
-              label="Full Name"
-              type="text"
-              {...register("fullName")}
-              error={errors.fullName?.message}
-              placeholder="John Doe"
-            />
-
-            <Input
-              label="Phone Number"
-              type="tel"
-              {...register("phoneNumber")}
-              error={errors.phoneNumber?.message}
-              placeholder="+1234567890"
-            />
-
-            <Input
-              label="Organization Name"
-              type="text"
-              {...register("tenantName")}
-              error={errors.tenantName?.message}
-              placeholder="Your Organization Ltd."
-            />
-
-            <div className="relative">
-              <Input
-                label="Organization Code"
+                label="Organization Name"
                 type="text"
-                {...register("tenantCode")}
-                error={errors.tenantCode?.message}
-                placeholder="Your Organization Code"
+                {...registerGoogle("tenantName")}
+                error={googleErrors.tenantName?.message}
+                placeholder="Your Organization Ltd."
               />
-              <button
-                type="button"
-                onClick={() => {
-                  const randomCode = `ORG-${Math.random()
-                    .toString(36)
-                    .substring(2, 8)
-                    .toUpperCase()}`;
-                  setValue("tenantCode", randomCode, { shouldValidate: true });
-                }}
-                className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              >
-                Generate
-              </button>
-            </div>
-          </div>
 
+              <div className="relative">
+                <Input
+                  label="Organization Code"
+                  type="text"
+                  {...registerGoogle("tenantCode")}
+                  error={googleErrors.tenantCode?.message}
+                  placeholder="Your Organization Code"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const randomCode = `ORG-${Math.random()
+                      .toString(36)
+                      .substring(2, 8)
+                      .toUpperCase()}`;
+                    setGoogleValue("tenantCode", randomCode, {
+                      shouldValidate: true,
+                    });
+                  }}
+                  className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  Generate
+                </button>
+              </div>
               <Button type="submit" isLoading={isLoading} className="w-full">
                 Register
               </Button>
+            </div>
+          </form>
+        ) : (
+          <form
+            className="mt-8 space-y-6"
+            onSubmit={handleGoogleSubmit(onGoogleFormSubmit)}
+          >
+            <div className="space-y-4">
+              <Input
+                label="Username"
+                type="text"
+                {...register("username")}
+                error={errors.username?.message}
+                placeholder="johndoe"
+              />
 
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link href="/login" className="text-blue-600 hover:underline">
-                Log in
-              </Link>
-            </p>
-            <p className="text-sm text-gray-600 mt-2">
-              Are you a POC?{" "}
-              <Link
-                href="/register/poc"
-                className="text-blue-600 hover:underline"
-              >
-                Register as POC
-              </Link>
-            </p>
-          </div>
-        </form>
+              <Input
+                label="Email"
+                type="email"
+                {...register("email")}
+                error={errors.email?.message}
+                placeholder="your@email.com"
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Password"
+                  type="password"
+                  {...register("password")}
+                  error={errors.password?.message}
+                  placeholder="********"
+                />
+
+                <Input
+                  label="Confirm Password"
+                  type="password"
+                  {...register("confirmPassword")}
+                  error={errors.confirmPassword?.message}
+                  placeholder="********"
+                />
+              </div>
+
+              <Input
+                label="Full Name"
+                type="text"
+                {...register("fullName")}
+                error={errors.fullName?.message}
+                placeholder="John Doe"
+              />
+
+              <Input
+                label="Phone Number"
+                type="tel"
+                {...register("phoneNumber")}
+                error={errors.phoneNumber?.message}
+                placeholder="+1234567890"
+              />
+
+              <Input
+                label="Organization Name"
+                type="text"
+                {...register("tenantName")}
+                error={errors.tenantName?.message}
+                placeholder="Your Organization Ltd."
+              />
+
+              <div className="relative">
+                <Input
+                  label="Organization Code"
+                  type="text"
+                  {...register("tenantCode")}
+                  error={errors.tenantCode?.message}
+                  placeholder="Your Organization Code"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const randomCode = `ORG-${Math.random()
+                      .toString(36)
+                      .substring(2, 8)
+                      .toUpperCase()}`;
+                    setValue("tenantCode", randomCode, {
+                      shouldValidate: true,
+                    });
+                  }}
+                  className="absolute right-2 top-9 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  Generate
+                </button>
+              </div>
+              <Button type="submit" isLoading={isLoading} className="w-full">
+                Register
+              </Button>
+            </div>
+          </form>
+        )}
+
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Already have an account?{" "}
+            <Link href="/login" className="text-blue-600 hover:underline">
+              Log in
+            </Link>
+          </p>
+          <p className="text-sm text-gray-600 mt-2">
+            Are you a POC?{" "}
+            <Link
+              href="/register/poc"
+              className="text-blue-600 hover:underline"
+            >
+              Register as POC
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
