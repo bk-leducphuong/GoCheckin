@@ -21,12 +21,12 @@ import { FloorPlanDto } from './dto/floor-plan.dto';
 
 @Controller('floor-plan')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN, UserRole.TENANT)
 export class FloorPlanController {
   constructor(private readonly floorPlanService: FloorPlanService) {
     // Constructor logic if needed
   }
 
+  @Roles(UserRole.ADMIN)
   @Post(':eventCode/upload')
   @ApiOperation({
     summary: 'Upload Floor Plan Image',
@@ -53,6 +53,7 @@ export class FloorPlanController {
     return this.floorPlanService.uploadFloorPlan(eventCode, image);
   }
 
+  @Roles(UserRole.ADMIN)
   @Post()
   @ApiOperation({
     summary: 'Save floor plan',
@@ -66,6 +67,7 @@ export class FloorPlanController {
     return this.floorPlanService.saveFloorPlan(floorPlanDto);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.POC)
   @Get(':eventCode')
   @ApiOperation({
     summary: 'Get Floor Plan Image',

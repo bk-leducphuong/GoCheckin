@@ -87,7 +87,7 @@ export class GuestController {
   }
 
   @Get('event')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Get all guests for a specific event',
   })

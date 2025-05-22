@@ -13,7 +13,7 @@ import { ResetToken } from '../../auth/entities/reset-token.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
-  TENANT = 'tenant',
+  SUPER_ADMIN = 'super_admin',
   POC = 'poc',
 }
 

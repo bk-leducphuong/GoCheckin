@@ -47,7 +47,7 @@ export class PocController {
   }
 
   @Get('event')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all points of check-in for an event' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -73,7 +73,7 @@ export class PocController {
   }
 
   @Get('poc')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get a point of check-in' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -126,7 +126,7 @@ export class PocController {
   }
 
   @Get('poc/manager')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get POC manager' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -141,7 +141,7 @@ export class PocController {
   }
 
   @Post('locations')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Save POC location' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -156,7 +156,7 @@ export class PocController {
   }
 
   @Get('locations')
-  @Roles(UserRole.ADMIN, UserRole.TENANT, UserRole.POC)
+  @Roles(UserRole.ADMIN, UserRole.POC)
   @ApiOperation({ summary: 'Get POC locations' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -171,7 +171,7 @@ export class PocController {
   }
 
   @Get('user/:userId')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get POCs by user ID' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -182,7 +182,7 @@ export class PocController {
   }
 
   @Post('register')
-  @Roles(UserRole.ADMIN, UserRole.TENANT, UserRole.POC)
+  @Roles(UserRole.ADMIN, UserRole.POC)
   @ApiOperation({ summary: 'Register a new POC user' })
   @ApiResponse({
     status: HttpStatus.OK,

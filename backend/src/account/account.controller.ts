@@ -14,13 +14,13 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   async getAccount(@CurrentUser() user: JwtPayload) {
     return this.accountService.getAccount(user.userId);
   }
 
   @Put()
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   async updateAccount(
     @CurrentUser() user: JwtPayload,
     @Body() updateAccountDto: UpdateAccountDto,

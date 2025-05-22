@@ -15,7 +15,7 @@ export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 
   @Get('event')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Get all event check-in analytics',
   })
@@ -36,7 +36,7 @@ export class AnalysisController {
   }
 
   @Get('point')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({
     summary: 'Get all point check-in analytics',
   })

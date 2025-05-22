@@ -40,7 +40,7 @@ export class CreateTenantMemberDto {
   @ApiProperty({
     description: 'Role of the tenant member',
     enum: UserRole,
-    default: UserRole.TENANT,
+    default: UserRole.ADMIN,
   })
   role: UserRole;
 

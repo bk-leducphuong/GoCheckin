@@ -31,7 +31,7 @@ export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @Get('all')
-  @Roles(UserRole.ADMIN, UserRole.TENANT, UserRole.POC)
+  @Roles(UserRole.ADMIN, UserRole.POC)
   async getAllEvents(
     @Query('status') status: EventStatus,
     @Query('type') type: EventType,
@@ -43,13 +43,13 @@ export class EventController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   async getAllEventsByAdmin(@CurrentUser() user: JwtPayload) {
     return this.eventService.findAllEventsByAdmin(user);
   }
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   async createEventByAdmin(
     @CurrentUser() user: JwtPayload,
     @Body() createEventDto: CreateEventDto,
@@ -63,7 +63,7 @@ export class EventController {
   }
 
   @Put(':eventCode')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   async updateEventByAdmin(
     @Param('eventCode') eventCode: string,
     @Body() updateEventDto: UpdateEventDto,
@@ -77,13 +77,13 @@ export class EventController {
   }
 
   @Delete(':eventCode')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   async deleteEvent(@Param('eventCode') eventCode: string) {
     return this.eventService.remove(eventCode);
   }
 
   @Post(':eventCode/images/upload')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   @UseInterceptors(FilesInterceptor('images'))
   uploadEventImages(
     @Param('eventCode') eventCode: string,
@@ -101,7 +101,7 @@ export class EventController {
   }
 
   @Get(':eventCode/images')
-  @Roles(UserRole.ADMIN, UserRole.TENANT)
+  @Roles(UserRole.ADMIN)
   async getEventImages(@Param('eventCode') eventCode: string) {
     return await this.eventService.getEventImages(eventCode);
   }
