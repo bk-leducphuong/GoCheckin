@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { AuthService } from '@/services/auth.service';
-import { SessionInfo } from '@/types/auth';
-import { useAuthStore } from '@/store/authStore';
+import { useEffect, useState } from "react";
+import { AuthService } from "@/services/poc/auth.service";
+import { SessionInfo } from "@/types/auth";
+import { useAuthStore } from "@/store/poc/authStore";
 
 export default function SessionManager() {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
@@ -19,7 +19,7 @@ export default function SessionManager() {
       const sessionsData = await AuthService.getSessions();
       setSessions(sessionsData);
     } catch (err) {
-      setError('Failed to load sessions. Please try again.');
+      setError("Failed to load sessions. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -28,13 +28,15 @@ export default function SessionManager() {
 
   const handleRevoke = async (sessionId: string) => {
     if (!isAuthenticated) return;
-    
+
     setRevoking(sessionId);
     try {
       await AuthService.revokeSession(sessionId);
-      setSessions(prevSessions => prevSessions.filter(s => s.id !== sessionId));
+      setSessions((prevSessions) =>
+        prevSessions.filter((s) => s.id !== sessionId)
+      );
     } catch (err) {
-      setError('Failed to revoke session. Please try again.');
+      setError("Failed to revoke session. Please try again.");
       console.error(err);
     } finally {
       setRevoking(null);
@@ -42,7 +44,12 @@ export default function SessionManager() {
   };
 
   const handleRevokeAll = async () => {
-    if (!isAuthenticated || !window.confirm('Are you sure you want to revoke all sessions? You will be logged out from all devices.')) {
+    if (
+      !isAuthenticated ||
+      !window.confirm(
+        "Are you sure you want to revoke all sessions? You will be logged out from all devices."
+      )
+    ) {
       return;
     }
 
@@ -51,7 +58,7 @@ export default function SessionManager() {
       await AuthService.logoutAll();
       setSessions([]);
     } catch (err) {
-      setError('Failed to revoke all sessions. Please try again.');
+      setError("Failed to revoke all sessions. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -65,7 +72,11 @@ export default function SessionManager() {
   }, [isAuthenticated]);
 
   if (!isAuthenticated) {
-    return <div className="text-center py-4">Please log in to manage your sessions.</div>;
+    return (
+      <div className="text-center py-4">
+        Please log in to manage your sessions.
+      </div>
+    );
   }
 
   return (
@@ -77,14 +88,12 @@ export default function SessionManager() {
           className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded"
           disabled={loading}
         >
-          {loading ? 'Refreshing...' : 'Refresh'}
+          {loading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-3 rounded mb-4">
-          {error}
-        </div>
+        <div className="bg-red-50 text-red-700 p-3 rounded mb-4">{error}</div>
       )}
 
       {loading ? (
@@ -92,23 +101,37 @@ export default function SessionManager() {
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : sessions.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No active sessions found</div>
+        <div className="text-center py-8 text-gray-500">
+          No active sessions found
+        </div>
       ) : (
         <>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Device
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Started
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Expires
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Actions
                   </th>
                 </tr>
@@ -118,7 +141,7 @@ export default function SessionManager() {
                   <tr key={session.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {session.deviceInfo || 'Unknown Device'}
+                        {session.deviceInfo || "Unknown Device"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -137,7 +160,7 @@ export default function SessionManager() {
                         disabled={revoking === session.id}
                         className="text-red-600 hover:text-red-900 disabled:text-gray-400"
                       >
-                        {revoking === session.id ? 'Revoking...' : 'Revoke'}
+                        {revoking === session.id ? "Revoking..." : "Revoke"}
                       </button>
                     </td>
                   </tr>
@@ -159,4 +182,4 @@ export default function SessionManager() {
       )}
     </div>
   );
-} 
+}

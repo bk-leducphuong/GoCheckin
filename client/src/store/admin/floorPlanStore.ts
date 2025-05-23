@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { FloorPlanService } from "@/services/floor-plan.service";
+import { FloorPlanService } from "@/services/admin/floor-plan.service";
 import { ApiError } from "@/lib/error";
 
 interface FloorPlanStore {

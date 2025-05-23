@@ -1,40 +1,22 @@
 import { Poc, UpdatePocRequest } from "@/types/poc";
 import { create } from "zustand";
-import { PocService } from "@/services/poc.service";
+import { PocService } from "@/services/admin/poc.service";
 import { devtools } from "zustand/middleware";
 
 interface PocStore {
   pocList: Poc[];
-
-  // Store all POCs of an event (admin site)
   eventCode: string;
   setPocList: (pocList: Poc[]) => void;
   getAllPocs: (eventCode: string) => Promise<Poc[]>;
-
-  // Store a single POC (POC site)
-  poc: Poc | null;
-  setPoc: (poc: Poc | null) => void;
-  validatePoc: (pointCode: string, eventCode: string) => Promise<void>;
-  updatePoc: (pocId: string, pocData: UpdatePocRequest) => Promise<void>;
-  removePoc: (pocId: string) => Promise<void>;
-  getPocsByUserId: (userId: string) => Promise<Poc[]>;
 }
 
 export const usePocStore = create<PocStore>()(
   devtools(
     (set, get) => ({
       poc: null,
-      setPoc: (poc) => set({ poc }),
       pocList: [],
       setPocList: (pocList: Poc[]) => {
         set({ pocList: pocList });
-      },
-      validatePoc: async (pointCode: string, eventCode: string) => {
-        const poc = await PocService.validatePoc({
-          pointCode: pointCode,
-          eventCode: eventCode,
-        });
-        set({ poc: poc });
       },
       getAllPocs: async (eventCode: string) => {
         const currentState = get();

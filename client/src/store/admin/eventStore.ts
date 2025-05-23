@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { EventService } from "@/services/event.service";
+import { EventService } from "@/services/admin/event.service";
 import { CreateEventRequest, Event } from "@/types/event";
 import { EventStatus } from "@/types/event";
 

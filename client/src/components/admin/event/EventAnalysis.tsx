@@ -14,7 +14,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
-import { AnalysisService } from "@/services/analysis.service";
+import { AnalysisService } from "@/services/admin/analysis.service";
 
 // Register ChartJS components
 ChartJS.register(
@@ -42,13 +42,15 @@ interface CheckinPointData {
 
 export default function EventAnalysis({ eventCode }: { eventCode: string }) {
   const [checkinData, setCheckinData] = useState<CheckinData[]>([]);
-  const [checkinPointData, setCheckinPointData] = useState<CheckinPointData[]>([]);
+  const [checkinPointData, setCheckinPointData] = useState<CheckinPointData[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Generate consistent colors for points
   const getPointColor = useCallback((pointCode: string) => {
-    const hash = pointCode.split('').reduce((acc, char) => {
+    const hash = pointCode.split("").reduce((acc, char) => {
       return char.charCodeAt(0) + ((acc << 5) - acc);
     }, 0);
     const h = hash % 360;
@@ -122,16 +124,22 @@ export default function EventAnalysis({ eventCode }: { eventCode: string }) {
 
   // Check-in points performance data
   const pointCheckinAnalysisData = {
-    labels: Array.from(new Set(checkinPointData.map(d => d.timestamp))),
-    datasets: Array.from(new Set(checkinPointData.map(d => d.pointCode))).map(pointCode => ({
-      label: pointCode,
-      data: Array.from(new Set(checkinPointData.map(d => d.timestamp))).map(timestamp => {
-        const dataPoint = checkinPointData.find(d => d.timestamp === timestamp && d.pointCode === pointCode);
-        return dataPoint ? dataPoint.count : 0;
-      }),
-      backgroundColor: getPointColor(pointCode),
-      stack: 'stack1',
-    })),
+    labels: Array.from(new Set(checkinPointData.map((d) => d.timestamp))),
+    datasets: Array.from(new Set(checkinPointData.map((d) => d.pointCode))).map(
+      (pointCode) => ({
+        label: pointCode,
+        data: Array.from(new Set(checkinPointData.map((d) => d.timestamp))).map(
+          (timestamp) => {
+            const dataPoint = checkinPointData.find(
+              (d) => d.timestamp === timestamp && d.pointCode === pointCode
+            );
+            return dataPoint ? dataPoint.count : 0;
+          }
+        ),
+        backgroundColor: getPointColor(pointCode),
+        stack: "stack1",
+      })
+    ),
   };
 
   const eventCheckinChartOptions = {
@@ -149,10 +157,10 @@ export default function EventAnalysis({ eventCode }: { eventCode: string }) {
     plugins: {
       title: {
         display: true,
-        text: 'Check-in Count Across Points Over Time',
+        text: "Check-in Count Across Points Over Time",
       },
       legend: {
-        position: 'top' as const,
+        position: "top" as const,
       },
     },
     scales: {
@@ -163,7 +171,7 @@ export default function EventAnalysis({ eventCode }: { eventCode: string }) {
         stacked: true,
         title: {
           display: true,
-          text: 'Check-in Count',
+          text: "Check-in Count",
         },
       },
     },
@@ -225,17 +233,13 @@ export default function EventAnalysis({ eventCode }: { eventCode: string }) {
           <h4 className="text-sm font-medium text-gray-500">
             Active Check-in Points
           </h4>
-          <p className="text-2xl font-bold text-gray-900">
-            {}
-          </p>
+          <p className="text-2xl font-bold text-gray-900">{}</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h4 className="text-sm font-medium text-gray-500">
             Average Check-ins per Point
           </h4>
-          <p className="text-2xl font-bold text-gray-900">
-           
-          </p>
+          <p className="text-2xl font-bold text-gray-900"></p>
         </div>
       </div>
     </div>

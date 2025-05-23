@@ -2,21 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { useSocketStore } from "@/store/socketStore";
-import { GuestService } from "@/services/guest.service";
 import { useShallow } from "zustand/shallow";
 import { useParams } from "next/navigation";
 import { CheckInResponse } from "@/types/checkin";
-import { useEventStore } from "@/store/eventStore";
+import { useEventStore } from "@/store/admin/eventStore";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-import { usePocStore } from "@/store/pocStore";
+import { usePocStore } from "@/store/admin/pocStore";
 import { ApiError } from "@/lib/error";
+import { useGuestStore } from "@/store/admin/guestStore";
 
 export default function RealtimeDashboard() {
-  const [guests, setGuests] = useState<CheckInResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activePocs, setActivePocs] = useState<string[]>([]);
+  const [checkinCount, setCheckinCount] = useState(0);
+  const [checkinRate, setCheckinRate] = useState(0);
 
   const { socket, connect, registerAdmin, unregisterAdmin, disconnect } =
     useSocketStore(
@@ -42,16 +43,39 @@ export default function RealtimeDashboard() {
       pocList: state.pocList,
     }))
   );
+  const { guests, getAllGuestsOfEvent, addNewCheckinGuest } = useGuestStore(
+    useShallow((state) => ({
+      guests: state.guests,
+      getAllGuestsOfEvent: state.getAllGuestsOfEvent,
+      addNewCheckinGuest: state.addNewCheckinGuest,
+    }))
+  );
 
   const eventCode = useParams().eventCode as string;
+
+  useEffect(() => {
+    const fetchGuests = async () => {
+      try {
+        await getAllGuestsOfEvent(eventCode);
+      } catch (error) {
+        setError(
+          error instanceof ApiError ? error.message : "Failed to fetch guests"
+        );
+      }
+    };
+
+    fetchGuests();
+  }, [eventCode, getAllGuestsOfEvent]);
+
+  useEffect(() => {
+    setCheckinCount(guests.length);
+  }, [guests]);
 
   useEffect(() => {
     const fetchEventData = async () => {
       try {
         setIsLoading(true);
         await getEventByCode(eventCode);
-        const guestList = await GuestService.getAllGuestsOfEvent(eventCode);
-        setGuests(guestList);
         await getAllPocs(eventCode);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -101,7 +125,8 @@ export default function RealtimeDashboard() {
         if (guestImage) {
           newCheckin.guestInfo.imageUrl = `https://${bucketName}.s3.amazonaws.com/${guestImage}`;
         }
-        setGuests((prevGuests) => [newCheckin, ...prevGuests]);
+        addNewCheckinGuest(newCheckin);
+        setCheckinCount(checkinCount + 1);
       });
 
       socket.on(
@@ -118,12 +143,15 @@ export default function RealtimeDashboard() {
         socket.off("poc_status_update");
       }
     };
-  }, [socket]);
+  }, [socket, addNewCheckinGuest, checkinCount]);
 
-  const checkedInCount = guests.length;
-  const totalCapacity = selectedEvent?.capacity || 0;
-  const checkInRate =
-    totalCapacity > 0 ? Math.round((checkedInCount / totalCapacity) * 100) : 0;
+  useEffect(() => {
+    setCheckinRate(
+      selectedEvent.capacity && selectedEvent.capacity > 0
+        ? Math.round((checkinCount / selectedEvent.capacity) * 100)
+        : 0
+    );
+  }, [checkinCount, selectedEvent.capacity]);
 
   if (isLoading || !selectedEvent) {
     return <Loading />;
@@ -236,15 +264,17 @@ export default function RealtimeDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500">Checked In</h3>
-          <p className="text-2xl font-bold text-gray-900">{checkedInCount}</p>
+          <p className="text-2xl font-bold text-gray-900">{checkinCount}</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500">Total Capacity</h3>
-          <p className="text-2xl font-bold text-gray-900">{totalCapacity}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {selectedEvent.capacity}
+          </p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-sm font-medium text-gray-500">Check-in Rate</h3>
-          <p className="text-2xl font-bold text-gray-900">{checkInRate}%</p>
+          <p className="text-2xl font-bold text-gray-900">{checkinRate}%</p>
         </div>
       </div>
 

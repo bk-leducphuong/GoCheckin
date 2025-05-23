@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { usePocStore } from "../../store/pocStore";
-import { useCheckinStore } from "@/store/checkinStore";
+import { usePocStore } from "@/store/poc/pocStore";
+import { useCheckinStore } from "@/store/poc/checkinStore";
 import { useShallow } from "zustand/shallow";
 
 export default function GuestList() {
@@ -10,12 +10,10 @@ export default function GuestList() {
       poc: state.poc,
     }))
   );
-  const { guests, fetchGuests, isLoading, error } = useCheckinStore(
+  const { guests, fetchGuests } = useCheckinStore(
     useShallow((state) => ({
       guests: state.guests,
       fetchGuests: state.fetchGuests,
-      isLoading: state.isLoading,
-      error: state.error,
     }))
   );
 
@@ -31,8 +29,6 @@ export default function GuestList() {
   }
 
   const filteredGuests = guests.filter((guest) =>
-    // guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    // guest.guestInfo.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     guest.guestInfo.guestCode.toLowerCase().includes(searchQuery.toLowerCase())
   );
   return (
@@ -87,24 +83,6 @@ export default function GuestList() {
                 </th>
               </tr>
             </thead>
-            {isLoading && (
-              <tbody>
-                <tr>
-                  <td colSpan={5} className="text-center py-4">
-                    Loading guests...
-                  </td>
-                </tr>
-              </tbody>
-            )}
-            {error && (
-              <tbody>
-                <tr>
-                  <td colSpan={5} className="text-center py-4">
-                    {error}
-                  </td>
-                </tr>
-              </tbody>
-            )}
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredGuests.length > 0 ? (
                 filteredGuests.map((guest) => (

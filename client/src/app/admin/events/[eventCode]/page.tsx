@@ -8,20 +8,20 @@ import { z } from "zod";
 import { CreateEventRequest } from "@/types/event";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
-import { useEventStore } from "@/store/eventStore";
+import { useEventStore } from "@/store/admin/eventStore";
 import { useShallow } from "zustand/shallow";
-import { PocService } from "@/services/poc.service";
+import { PocService } from "@/services/admin/poc.service";
 import { CreatePocRequest, Poc, UpdatePocRequest } from "@/types/poc";
 import EventAnalysis from "@/components/admin/event/EventAnalysis";
 import { EventStatus } from "@/types/event";
 import Link from "next/link";
-import { usePocStore } from "@/store/pocStore";
-import { useFloorPlanStore } from "@/store/floorPlanStore";
+import { usePocStore } from "@/store/admin/pocStore";
+import { useFloorPlanStore } from "@/store/admin/floorPlanStore";
 import DeleteEventValidation from "@/components/admin/event/DeleteEventValidation";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import EventImages from "@/components/admin/event/EventImages";
-import { EventService } from "@/services/event.service";
+import { EventService } from "@/services/admin/event.service";
 import { ApiError } from "@/lib/error";
 
 // Event update validation schema - similar to create but all fields optional

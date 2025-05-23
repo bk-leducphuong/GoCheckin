@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { usePocStore } from "@/store/pocStore";
+import { usePocStore } from "@/store/poc/pocStore";
 import { useShallow } from "zustand/react/shallow";
 import { useAuthStore } from "@/store/authStore";
 import Loading from "@/components/ui/Loading";

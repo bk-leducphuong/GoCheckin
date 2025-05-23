@@ -3,14 +3,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
-import { useEventStore } from "@/store/eventStore";
-import { useFloorPlanStore } from "@/store/floorPlanStore";
-import { usePocStore } from "@/store/pocStore";
+import { useEventStore } from "@/store/admin/eventStore";
+import { useFloorPlanStore } from "@/store/admin/floorPlanStore";
+import { usePocStore } from "@/store/admin/pocStore";
 import { useShallow } from "zustand/shallow";
-import { PocService } from "@/services/poc.service";
+import { PocService } from "@/services/admin/poc.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-import { FloorPlanService } from "@/services/floor-plan.service";
+import { FloorPlanService } from "@/services/admin/floor-plan.service";
 import { ApiError } from "@/lib/error";
 import { validateImages } from "@/utils/imageValidation";
 

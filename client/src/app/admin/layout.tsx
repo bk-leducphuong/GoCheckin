@@ -2,7 +2,7 @@
 
 import React from "react";
 import Sidebar from "@/components/admin/Sidebar";
-import AuthCheck from "@/components/auth/AuthCheck";
+import AuthCheck from "@/components/auth/admin/AuthCheck";
 import { UserRole } from "@/types/user";
 
 export default function AdminLayout({

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage, devtools } from "zustand/middleware";
-import { UserService } from "@/services/user.service";
+import { UserService } from "@/services/admin/user.service";
 import { User } from "@/types/user";
 
 interface UserState {
@@ -26,7 +26,10 @@ export const useUserStore = create<UserState>()(
             return user;
           } catch (error) {
             set({
-              error: error instanceof Error ? error.message : "Error fetching user data",
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Error fetching user data",
               isLoading: false,
             });
             throw error;

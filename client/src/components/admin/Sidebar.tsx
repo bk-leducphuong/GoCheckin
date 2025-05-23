@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/admin/authStore";
 import { useShallow } from "zustand/react/shallow";
 import { FaCalendar, FaUser } from "react-icons/fa";
 import { FaCog } from "react-icons/fa";

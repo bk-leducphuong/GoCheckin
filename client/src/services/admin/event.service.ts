@@ -1,10 +1,10 @@
 import api from "./api";
-import { Event } from "../types/event";
-import { CreateEventRequest } from "../types/event";
-import { EventStatus } from "../types/event";
+import { Event } from "@/types/event";
+import { CreateEventRequest } from "@/types/event";
+import { EventStatus } from "@/types/event";
 import imageCompression from "browser-image-compression";
 import { blobToFile } from "@/utils/blobToFile";
-import { EventContraints } from "../types/event";
+import { EventContraints } from "@/types/event";
 
 export const EventService = {
   async getAllEvents(eventContraints: EventContraints): Promise<Event[]> {

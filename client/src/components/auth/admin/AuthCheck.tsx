@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/admin/authStore";
 import { UserRole } from "@/types/user";
 import { useShallow } from "zustand/shallow";
 import Loading from "@/components/ui/Loading";

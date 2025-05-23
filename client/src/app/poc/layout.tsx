@@ -1,4 +1,4 @@
-import AuthCheck from "@/components/auth/AuthCheck";
+import AuthCheck from "@/components/auth/poc/AuthCheck";
 import { UserRole } from "@/types/user";
 import Navigation from "@/components/poc/Navigation";
 

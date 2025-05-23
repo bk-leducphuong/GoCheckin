@@ -1,13 +1,11 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { CheckinService } from "../services/checkin.service";
-import { GuestService } from "@/services/guest.service";
+import { CheckinService } from "@/services/poc/checkin.service";
+import { GuestService } from "@/services/poc/guest.service";
 import { CheckInResponse, GuestCheckinInfo } from "@/types/checkin";
 
 interface CheckinStore {
   guests: CheckInResponse[];
-  isLoading: boolean;
-  error: string | null;
   uploadGuestImage: (guestImage: string | null) => Promise<string>;
   checkinGuest: (checkinDto: GuestCheckinInfo) => Promise<CheckInResponse>;
   fetchGuests: (eventCode: string, pointCode: string) => Promise<void>;
@@ -34,15 +32,15 @@ export const useCheckinStore = create<CheckinStore>()(
         console.error("Error checking in guest:", error);
         throw error;
       }
-    },  
+    },
     async fetchGuests(eventCode: string, pointCode: string) {
       try {
-        set({ isLoading: true, error: null });
-        const guests = await GuestService.getAllGuestsOfPoc(eventCode, pointCode);
+        const guests = await GuestService.getAllGuestsOfPoc(
+          eventCode,
+          pointCode
+        );
         set({ guests });
-        set({ isLoading: false });
       } catch (error) {
-        set({ isLoading: false, error: "Failed to fetch guests" });
         console.error("Error fetching guests:", error);
         throw error;
       }

@@ -1,12 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage, devtools } from "zustand/middleware";
-import { AuthService } from "@/services/auth.service";
-import {
-  AdminRegisterData,
-  PocRegisterData,
-  GoogleAdminRegisterData,
-  GooglePocRegisterData,
-} from "@/types/auth";
+import { AuthService } from "@/services/admin/auth.service";
+import { AdminRegisterData, GoogleAdminRegisterData } from "@/types/auth";
 import { UserRole } from "@/types/user";
 import { ApiError } from "@/lib/error";
 
@@ -20,17 +15,9 @@ interface AuthState {
     password: string,
     deviceInfo?: string
   ) => Promise<void>;
-  pocLogin: (
-    email: string,
-    password: string,
-    deviceInfo?: string
-  ) => Promise<void>;
   adminRegister: (data: AdminRegisterData) => Promise<void>;
-  pocRegister: (data: PocRegisterData) => Promise<void>;
   adminGoogleLogin: (code: string, deviceInfo?: string) => Promise<void>;
-  pocGoogleLogin: (code: string, deviceInfo?: string) => Promise<void>;
   adminGoogleRegister: (data: GoogleAdminRegisterData) => Promise<void>;
-  pocGoogleRegister: (data: GooglePocRegisterData) => Promise<void>;
   logout: () => Promise<void>;
   clearAuth: () => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
@@ -69,27 +56,6 @@ export const useAuthStore = create<AuthState>()(
           set(newState);
         },
 
-        pocLogin: async (
-          email: string,
-          password: string,
-          deviceInfo?: string
-        ) => {
-          const response = await AuthService.pocLogin({
-            email,
-            password,
-            deviceInfo,
-          });
-
-          const newState = {
-            userId: response.userId,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            isAuthenticated: true,
-            isLoading: false,
-          };
-          set(newState);
-        },
-
         adminRegister: async (data: AdminRegisterData) => {
           const response = await AuthService.adminRegister(data);
 
@@ -99,19 +65,6 @@ export const useAuthStore = create<AuthState>()(
             refreshToken: response.refreshToken,
             isAuthenticated: true,
             isLoading: false,
-          };
-
-          set(newState);
-        },
-
-        pocRegister: async (data: PocRegisterData) => {
-          const response = await AuthService.pocRegister(data);
-
-          const newState = {
-            userId: response.userId,
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-            isAuthenticated: true,
           };
 
           set(newState);
@@ -135,42 +88,9 @@ export const useAuthStore = create<AuthState>()(
           }
         },
 
-        pocGoogleLogin: async (code: string, deviceInfo?: string) => {
-          try {
-            const response = await AuthService.pocGoogleLogin({
-              code,
-              deviceInfo,
-            });
-
-            set({
-              userId: response.userId,
-              accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              isAuthenticated: true,
-            });
-          } catch (error) {
-            throw error;
-          }
-        },
-
         adminGoogleRegister: async (data: GoogleAdminRegisterData) => {
           try {
             const response = await AuthService.adminGoogleRegister(data);
-
-            set({
-              userId: response.userId,
-              accessToken: response.accessToken,
-              refreshToken: response.refreshToken,
-              isAuthenticated: true,
-            });
-          } catch (error) {
-            throw error;
-          }
-        },
-
-        pocGoogleRegister: async (data: GooglePocRegisterData) => {
-          try {
-            const response = await AuthService.pocGoogleRegister(data);
 
             set({
               userId: response.userId,

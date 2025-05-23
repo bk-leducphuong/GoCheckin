@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-import { usePocStore } from "@/store/pocStore";
+import { usePocStore } from "@/store/poc/pocStore";
 import { useShallow } from "zustand/shallow";
 import { useRouter } from "next/navigation";
+import { ApiError } from "@/lib/error";
 
 interface PocValidationProps {
   eventCode: string;
@@ -32,10 +33,12 @@ export default function PocValidation({
       try {
         setIsLoading(true);
         await validatePoc(pointCode, eventCode);
-        setIsLoading(false);
       } catch (error) {
+        setError(
+          error instanceof ApiError ? error.message : "Poc validation error"
+        );
+      } finally {
         setIsLoading(false);
-        setError("System is having issues. Please try again later.");
       }
     };
     validatePocData();

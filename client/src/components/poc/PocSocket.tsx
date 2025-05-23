@@ -2,7 +2,7 @@ import { useSocketStore } from "@/store/socketStore";
 import { useShallow } from "zustand/shallow";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import Error from "../ui/Error";
+import Error from "@/components/ui/Error";
 
 interface PocSocketProps {
   children: React.ReactNode;

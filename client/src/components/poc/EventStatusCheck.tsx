@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { useEventStore } from "@/store/eventStore";
+import { useEventStore } from "@/store/poc/eventStore";
 import { EventStatus } from "@/types/event";
 interface EventStatusCheckProps {
   eventCode: string;
@@ -10,7 +10,7 @@ interface EventStatusCheckProps {
 
 export default function EventStatusCheck({
   eventCode,
-  eventNotStartedFallback,  
+  eventNotStartedFallback,
   children,
 }: EventStatusCheckProps) {
   const [isEventNotStarted, setIsEventNotStarted] = useState(false);
@@ -34,7 +34,7 @@ export default function EventStatusCheck({
 
   if (isEventNotStarted) {
     return <>{eventNotStartedFallback}</>;
-  }else {
+  } else {
     return <>{children}</>;
   }
 }

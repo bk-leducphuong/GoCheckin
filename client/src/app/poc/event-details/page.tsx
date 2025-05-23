@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useEventStore } from "@/store/eventStore";
+import { useEventStore } from "@/store/poc/eventStore";
 import { useShallow } from "zustand/shallow";
 import { PocService } from "@/services/poc.service";
 import Loading from "@/components/ui/Loading";

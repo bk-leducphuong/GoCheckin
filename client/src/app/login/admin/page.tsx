@@ -8,7 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/admin/authStore";
 import { useShallow } from "zustand/react/shallow";
 import GoogleAuthButton from "@/components/ui/GoogleAuthButton";
 import { Divider } from "@/components/ui/Divider";
@@ -18,9 +18,6 @@ import { ApiError } from "@/lib/error";
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(1, "Password is required"),
-  userType: z.enum(["admin", "poc"], {
-    required_error: "Please select a user type",
-  }),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -31,29 +28,24 @@ export default function LoginPage() {
   const [deviceInfo, setDeviceInfo] = useState<string>();
 
   const router = useRouter();
-  const { adminLogin, pocLogin, adminGoogleLogin, pocGoogleLogin } =
-    useAuthStore(
-      useShallow((state) => ({
-        adminLogin: state.adminLogin,
-        pocLogin: state.pocLogin,
-        adminGoogleLogin: state.adminGoogleLogin,
-        pocGoogleLogin: state.pocGoogleLogin,
-      }))
-    );
+  const { adminLogin, adminGoogleLogin } = useAuthStore(
+    useShallow((state) => ({
+      adminLogin: state.adminLogin,
+      adminGoogleLogin: state.adminGoogleLogin,
+    }))
+  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      userType: "admin",
+      email: "",
+      password: "",
     },
   });
-
-  const selectedUserType = watch("userType");
 
   useEffect(() => {
     const deviceInfo = navigator.userAgent;
@@ -62,16 +54,9 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setErrorMessage(null);
-
       setIsLoading(true);
-      if (data.userType === "admin") {
-        await adminLogin(data.email, data.password, deviceInfo);
-        router.push("/admin");
-      } else {
-        await pocLogin(data.email, data.password, deviceInfo);
-        router.push(`/poc`);
-      }
+      await adminLogin(data.email, data.password, deviceInfo);
+      router.push("/admin");
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -92,11 +77,7 @@ export default function LoginPage() {
 
   const handleGoogleSuccess = async (response: any) => {
     try {
-      if (selectedUserType === "admin") {
-        await adminGoogleLogin(response.code, deviceInfo);
-      } else {
-        await pocGoogleLogin(response.code, deviceInfo);
-      }
+      await adminGoogleLogin(response.code, deviceInfo);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -145,8 +126,11 @@ export default function LoginPage() {
                 <input
                   type="radio"
                   value="admin"
-                  {...register("userType")}
+                  checked
                   className="h-4 w-4 text-blue-600"
+                  onChange={() => {
+                    router.push("/login/admin");
+                  }}
                 />
                 <span className="text-sm font-medium text-gray-700">Admin</span>
               </label>
@@ -155,17 +139,14 @@ export default function LoginPage() {
                 <input
                   type="radio"
                   value="poc"
-                  {...register("userType")}
+                  onChange={() => {
+                    router.push("/login/poc");
+                  }}
                   className="h-4 w-4 text-blue-600"
                 />
                 <span className="text-sm font-medium text-gray-700">POC</span>
               </label>
             </div>
-            {errors.userType && (
-              <p className="mt-1 text-sm text-red-600">
-                {errors.userType.message}
-              </p>
-            )}
 
             <Input
               autoComplete="off"
@@ -191,7 +172,7 @@ export default function LoginPage() {
           </div>
 
           <Button type="submit" isLoading={isLoading} className="w-full">
-            {selectedUserType === "admin" ? "Login as Admin" : "Login as POC"}
+            Login as Admin
           </Button>
 
           <div className="text-center mt-4">
@@ -205,21 +186,12 @@ export default function LoginPage() {
           <div className="text-center mt-4">
             <p className="text-sm text-gray-600">
               Don&apos;t have an account?{" "}
-              {selectedUserType === "admin" ? (
-                <Link
-                  href="/register/tenant"
-                  className="text-blue-600 hover:underline"
-                >
-                  Register as Admin
-                </Link>
-              ) : (
-                <Link
-                  href="/register/poc"
-                  className="text-blue-600 hover:underline"
-                >
-                  Register as POC
-                </Link>
-              )}
+              <Link
+                href="/register/tenant"
+                className="text-blue-600 hover:underline"
+              >
+                Register as Admin
+              </Link>
             </p>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EventService } from "@/services/event.service";
+import { EventService } from "@/services/admin/event.service";
 
 interface DeleteEventValidationProps {
   isOpen: boolean;

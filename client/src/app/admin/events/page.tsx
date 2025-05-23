@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEventStore } from "@/store/eventStore";
+import { useEventStore } from "@/store/admin/eventStore";
 import { EventStatus } from "@/types/event";
 import { useShallow } from "zustand/shallow";
 import Loading from "@/components/ui/Loading";
