@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { AccountTenantService } from 'src/account/account-tenant.service';
+import { UpdateTenantDto } from './dto/update-tenant.dto';
 
 @Injectable()
 export class TenantService {
@@ -58,5 +59,24 @@ export class TenantService {
     }
 
     return tenant;
+  }
+
+  async updateTenantInformation(
+    userId: string,
+    updateTenantDto: UpdateTenantDto,
+  ) {
+    const accountTenants =
+      await this.accountTenantService.findTenantsByUserId(userId);
+
+    const tenant = await this.tenantRepository.findOne({
+      where: { tenantCode: accountTenants.tenantCode },
+    });
+
+    if (!tenant) {
+      throw new NotFoundException('No tenant found for user');
+    }
+
+    const updatedTenant = this.tenantRepository.merge(tenant, updateTenantDto);
+    return this.tenantRepository.save(updatedTenant);
   }
 }
