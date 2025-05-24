@@ -4,7 +4,7 @@ import { AccountController } from './account.controller';
 import { AccountService } from './account.service';
 import { Account } from './entities/account.entity';
 import { AccountTenant } from './entities/account-tenant.entity';
-import { AccountTenantService } from './services/account-tenant.service';
+import { AccountTenantService } from './account-tenant.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Account, AccountTenant])],

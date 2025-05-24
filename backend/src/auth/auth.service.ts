@@ -13,9 +13,7 @@ import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
 import { compare, hash } from 'bcrypt';
 import { AccountService } from 'src/account/account.service';
 import { UserRole } from 'src/account/entities/account.entity';
-import { EventService } from 'src/event/event.service';
 import { TenantService } from 'src/tenant/tenant.service';
-import { PocService } from 'src/poc/poc.service';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from './refresh-token.service';
 import { RequestResetPassword } from './dto/request-reset-password';
@@ -31,14 +29,17 @@ import { GoogleAdminRegisterDto } from './dto/google-admin-register.dto';
 import { GooglePocLoginDto } from './dto/google-poc-login.dto';
 import { GooglePocRegisterDto } from './dto/google-poc-register.dto';
 import { GoogleService } from './google.service';
+import { AccountTenantService } from 'src/account/account-tenant.service';
+import { GoogleTokenResponse } from './dto/google-token-response';
+import { GoogleUserInfo } from './dto/google-user-info';
+
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly accountService: AccountService,
-    private readonly eventService: EventService,
+    private readonly accountTenantService: AccountTenantService,
     private readonly tenantService: TenantService,
-    private readonly pocService: PocService,
     private config: ConfigService,
     private refreshTokenService: RefreshTokenService,
     private mailService: MailService,
@@ -144,7 +145,7 @@ export class AuthService {
       });
 
       /* Create account and tenant relationship */
-      await this.accountService.createAccountTenant(
+      await this.accountTenantService.createAccountTenantRelation(
         newUser.userId,
         newTenant.tenantCode,
       );
@@ -373,12 +374,10 @@ export class AuthService {
   async googleAdminLogin(googleAdminLoginDto: GoogleAdminLoginDto) {
     try {
       // Exchange code for access token and refresh token
-      const googleTokens = await this.googleService.getAccessToken(
-        googleAdminLoginDto.code,
-      );
+      const googleTokens: GoogleTokenResponse =
+        await this.googleService.getAccessToken(googleAdminLoginDto.code);
 
-      // Get user info
-      const userInfo = await this.googleService.getUserInfo(
+      const userInfo: GoogleUserInfo = await this.googleService.getUserInfo(
         googleTokens.access_token,
       );
 
@@ -413,12 +412,11 @@ export class AuthService {
   async googleAdminRegister(googleAdminRegisterDto: GoogleAdminRegisterDto) {
     try {
       // Exchange code for access token and refresh token
-      const googleTokens = await this.googleService.getAccessToken(
-        googleAdminRegisterDto.code,
-      );
+      const googleTokens: GoogleTokenResponse =
+        await this.googleService.getAccessToken(googleAdminRegisterDto.code);
 
       // Get user info
-      const userInfo = await this.googleService.getUserInfo(
+      const userInfo: GoogleUserInfo = await this.googleService.getUserInfo(
         googleTokens.access_token,
       );
 
@@ -446,7 +444,7 @@ export class AuthService {
       });
 
       /* Create account and tenant relationship */
-      await this.accountService.createAccountTenant(
+      await this.accountTenantService.createAccountTenantRelation(
         newUser.userId,
         newTenant.tenantCode,
       );
@@ -473,12 +471,11 @@ export class AuthService {
   async googlePocLogin(googlePocLoginDto: GooglePocLoginDto) {
     try {
       // Exchange code for access token and refresh token
-      const googleTokens = await this.googleService.getAccessToken(
-        googlePocLoginDto.code,
-      );
+      const googleTokens: GoogleTokenResponse =
+        await this.googleService.getAccessToken(googlePocLoginDto.code);
 
       // Get user info
-      const userInfo = await this.googleService.getUserInfo(
+      const userInfo: GoogleUserInfo = await this.googleService.getUserInfo(
         googleTokens.access_token,
       );
 
@@ -513,12 +510,11 @@ export class AuthService {
   async googlePocRegister(googlePocRegisterDto: GooglePocRegisterDto) {
     try {
       // Exchange code for access token and refresh token
-      const googleTokens = await this.googleService.getAccessToken(
-        googlePocRegisterDto.code,
-      );
+      const googleTokens: GoogleTokenResponse =
+        await this.googleService.getAccessToken(googlePocRegisterDto.code);
 
       // Get user info
-      const userInfo = await this.googleService.getUserInfo(
+      const userInfo: GoogleUserInfo = await this.googleService.getUserInfo(
         googleTokens.access_token,
       );
 

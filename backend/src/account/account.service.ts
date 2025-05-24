@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
@@ -30,7 +26,7 @@ export class AccountService {
     }
   }
 
-  async getAccount(userId: string): Promise<AccountDto> {
+  async getAccountInformation(userId: string): Promise<AccountDto> {
     try {
       const account = await this.accountRepository.findOne({
         where: { userId: userId },
@@ -155,25 +151,6 @@ export class AccountService {
 
       // If you want to completely remove the account, use this instead:
       // await this.accountRepository.remove(account);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async createAccountTenant(userId: string, tenantCode: string) {
-    try {
-      const accountTenant = await this.accountTenantRepository.findOne({
-        where: { userId: userId, tenantCode: tenantCode },
-      });
-      if (accountTenant) {
-        throw new UnauthorizedException('Account already exists in tenant');
-      }
-      const newAccountTenant = this.accountTenantRepository.create({
-        userId: userId,
-        tenantCode: tenantCode,
-      });
-      await this.accountTenantRepository.save(newAccountTenant);
     } catch (error) {
       console.log(error);
       throw error;

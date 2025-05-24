@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
+import { GoogleTokenResponse } from './dto/google-token-response';
+import { GoogleUserInfo } from './dto/google-user-info';
+
 @Injectable()
 export class GoogleService {
   constructor(
@@ -23,7 +26,7 @@ export class GoogleService {
       },
     );
 
-    return response.data;
+    return response.data as GoogleTokenResponse;
   }
 
   async getUserInfo(accessToken: string) {
@@ -32,6 +35,6 @@ export class GoogleService {
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
-    return response.data;
+    return response.data as GoogleUserInfo;
   }
 }

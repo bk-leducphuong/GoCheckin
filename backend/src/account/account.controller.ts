@@ -14,14 +14,14 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Get()
-  @Roles(UserRole.ADMIN)
-  async getAccount(@CurrentUser() user: JwtPayload) {
-    return this.accountService.getAccount(user.userId);
+  @Roles(UserRole.ADMIN, UserRole.POC)
+  async getAccountInformation(@CurrentUser() user: JwtPayload) {
+    return this.accountService.getAccountInformation(user.userId);
   }
 
   @Put()
-  @Roles(UserRole.ADMIN)
-  async updateAccount(
+  @Roles(UserRole.ADMIN, UserRole.POC)
+  async updateAccountInformation(
     @CurrentUser() user: JwtPayload,
     @Body() updateAccountDto: UpdateAccountDto,
   ) {
@@ -29,7 +29,7 @@ export class AccountController {
   }
 
   @Delete()
-  @Roles(UserRole.ADMIN) // Only admins can delete accounts
+  @Roles(UserRole.ADMIN, UserRole.POC)
   async deleteAccount(@CurrentUser() user: JwtPayload) {
     return this.accountService.deleteAccount(user.userId);
   }
