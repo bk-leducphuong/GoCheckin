@@ -2,10 +2,10 @@
 import { useEffect, useState } from "react";
 import { usePocStore } from "@/store/poc/pocStore";
 import { useShallow } from "zustand/react/shallow";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/poc/authStore";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
-import { useEventStore } from "@/store/eventStore";
+import { useEventStore } from "@/store/poc/eventStore";
 import { Event } from "@/types/event";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
@@ -55,7 +55,7 @@ export default function PocDashboardPage() {
   );
 
   useEffect(() => {
-    const getAllPocs = async () => {
+    const getAllRegisteredPocs = async () => {
       try {
         if (userId) {
           setIsLoading(true);
@@ -73,7 +73,8 @@ export default function PocDashboardPage() {
         setIsLoading(false);
       }
     };
-    getAllPocs();
+
+    getAllRegisteredPocs();
   }, [getPocsByUserId, userId]);
 
   useEffect(() => {

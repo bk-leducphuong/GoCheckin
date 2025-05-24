@@ -4,11 +4,11 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEventStore } from "@/store/poc/eventStore";
 import { useShallow } from "zustand/shallow";
-import { PocService } from "@/services/poc.service";
+import { PocService } from "@/services/poc/poc.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { ApiError } from "@/lib/error";
-import { useFloorPlanStore } from "@/store/floorPlanStore";
+import { useFloorPlanStore } from "@/store/poc/floorPlanStore";
 import { FaCalendarAlt } from "react-icons/fa";
 
 export default function EventDetailsPage() {

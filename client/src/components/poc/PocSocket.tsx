@@ -1,8 +1,9 @@
-import { useSocketStore } from "@/store/socketStore";
+import { useSocketStore } from "@/store/poc/socketStore";
 import { useShallow } from "zustand/shallow";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Error from "@/components/ui/Error";
+import { ApiError } from "@/lib/error";
 
 interface PocSocketProps {
   children: React.ReactNode;
@@ -34,7 +35,11 @@ export default function PocSocket({ children }: PocSocketProps) {
           sendHeartbeatSignal(eventCode, pointCode);
         }, 30000); // 30 seconds
       } catch (error) {
-        setError("Failed to connect to socket");
+        setError(
+          error instanceof ApiError
+            ? error.message
+            : "Failed to connect to socket"
+        );
       }
     };
 

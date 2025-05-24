@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Event, EventStatus } from "@/types/event";
-import { EventService } from "@/services/event.service";
-import { PocService } from "@/services/poc.service";
+import { EventService } from "@/services/poc/event.service";
+import { PocService } from "@/services/poc/poc.service";
 import { ApiError } from "@/lib/error";
 import Error from "@/components/ui/Error";
 import Loading from "@/components/ui/Loading";
@@ -27,7 +27,7 @@ export default function RegisterEventPage() {
     const fetchEvents = async () => {
       try {
         setIsLoading(true);
-        const events = await EventService.getAllEvents({
+        const events = await EventService.getAllEventsByConstraints({
           status: EventStatus.PUBLISHED,
         });
         setEvents(events);

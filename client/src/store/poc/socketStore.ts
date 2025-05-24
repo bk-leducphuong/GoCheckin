@@ -9,8 +9,6 @@ interface SocketStore {
   isSocketConnected: boolean;
   connect: () => Promise<boolean>;
   disconnect: () => void;
-  registerAdmin: (eventCode: string) => void;
-  unregisterAdmin: (eventCode: string) => void;
   sendCheckinSocketEvent: (checkinData: CheckInResponse) => void;
   sendHeartbeatSignal: (eventCode: string, pointCode: string) => void;
 }
@@ -67,28 +65,6 @@ export const useSocketStore = create<SocketStore>()(
           socket.disconnect();
         } catch (error) {
           console.error("Error disconnecting from socket:", error);
-          throw error;
-        }
-      },
-      registerAdmin: (eventCode: string) => {
-        const socket = get().socket;
-        if (!socket || !get().isSocketConnected) return;
-
-        try {
-          socket.emit("register_admin", eventCode);
-        } catch (error) {
-          console.error("Error registering admin:", error);
-          throw error;
-        }
-      },
-      unregisterAdmin: (eventCode: string) => {
-        const socket = get().socket;
-        if (!socket || !get().isSocketConnected) return;
-
-        try {
-          socket.emit("unregister_admin", eventCode);
-        } catch (error) {
-          console.error("Error unregistering admin:", error);
           throw error;
         }
       },

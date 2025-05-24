@@ -15,8 +15,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { AnalysisService } from "@/services/analysis.service";
-import { GuestService } from "@/services/guest.service";
+import { AnalysisService } from "@/services/poc/analysis.service";
+import { GuestService } from "@/services/poc/guest.service";
 import { CheckInResponse } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
 import { ApiError } from "@/lib/error";
@@ -119,31 +119,31 @@ export default function PocAnalysis() {
     getAllPointsData();
   }, [eventCode]);
 
-  // Fetch guest data
-  useEffect(() => {
-    const getGuestData = async () => {
-      try {
-        // Get guests for this specific point
-        const pointGuests = await GuestService.getAllGuestsOfPoc(
-          eventCode,
-          pointCode
-        );
-        setGuests(pointGuests);
+  // // Fetch guest data
+  // useEffect(() => {
+  //   const getGuestData = async () => {
+  //     try {
+  //       // Get guests for this specific point
+  //       const pointGuests = await GuestService.getAllGuestsOfPoc(
+  //         eventCode,
+  //         pointCode
+  //       );
+  //       setGuests(pointGuests);
 
-        // Get all guests for the event to calculate total
-        const allGuests = await GuestService.getAllGuestsOfEvent(eventCode);
-        setTotalGuests(allGuests.length);
-      } catch (error) {
-        if (error instanceof ApiError) {
-          setError(error.message);
-        } else {
-          setError("Failed to load guest data");
-        }
-      }
-    };
+  //       // Get all guests for the event to calculate total
+  //       const allGuests = await GuestService.getAllGuestsOfEvent(eventCode);
+  //       setTotalGuests(allGuests.length);
+  //     } catch (error) {
+  //       if (error instanceof ApiError) {
+  //         setError(error.message);
+  //       } else {
+  //         setError("Failed to load guest data");
+  //       }
+  //     }
+  //   };
 
-    getGuestData();
-  }, [eventCode, pointCode]);
+  //   getGuestData();
+  // }, [eventCode, pointCode]);
 
   // Check-in timeline data
   const pocCheckinAnalysisData = {

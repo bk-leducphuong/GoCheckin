@@ -7,11 +7,9 @@ import { EventStatus } from "@/types/event";
 interface EventStore {
   selectedEvent: Event;
   events: Event[];
-  isLoading: boolean;
-  error: string | null;
   setSelectedEvent: (event: Event) => void;
   setEvents: (events: Event[]) => void;
-  getAllEventsByAdmin: () => Promise<Event[]>;
+  getAllManagedEvents: () => Promise<Event[]>;
   createEvent: (eventData: CreateEventRequest) => Promise<Event>;
   getEventByCode: (eventCode: string) => Promise<Event>;
   updateEvent: (
@@ -26,14 +24,12 @@ export const useEventStore = create<EventStore>()(
     (set, get) => ({
       events: [],
       selectedEvent: null,
-      isLoading: false,
-      error: null,
       setSelectedEvent: (event: Event) => {
         set({ selectedEvent: event });
       },
       setEvents: (events) => set({ events }),
-      getAllEventsByAdmin: async () => {
-        const response = await EventService.getAllEventsByAdmin();
+      getAllManagedEvents: async () => {
+        const response = await EventService.getAllManagedEvents();
         set({ events: response });
         return response;
       },
@@ -68,9 +64,7 @@ export const useEventStore = create<EventStore>()(
         return response;
       },
       getEventStatus: async (eventCode: string) => {
-        set({ isLoading: true, error: null });
         const response = await EventService.getEventStatus(eventCode);
-        set({ isLoading: false });
         return response;
       },
     }),

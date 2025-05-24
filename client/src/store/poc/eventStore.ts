@@ -7,8 +7,6 @@ import { EventStatus } from "@/types/event";
 interface EventStore {
   selectedEvent: Event;
   events: Event[];
-  isLoading: boolean;
-  error: string | null;
   setSelectedEvent: (event: Event) => void;
   setEvents: (events: Event[]) => void;
   getEventByCode: (eventCode: string) => Promise<Event>;

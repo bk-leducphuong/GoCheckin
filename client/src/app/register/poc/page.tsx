@@ -8,7 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/poc/authStore";
 import { useShallow } from "zustand/react/shallow";
 import { ApiError } from "@/lib/error";
 import Loading from "@/components/ui/Loading";
@@ -60,9 +60,8 @@ export default function PocRegisterPage() {
   });
 
   const onSubmit = async (data: PocRegisterFormData) => {
-    setIsLoading(true);
     try {
-      setErrorMessage(null);
+      setIsLoading(true);
       const { confirmPassword, ...registerData } = data;
       void confirmPassword;
       await pocRegister({

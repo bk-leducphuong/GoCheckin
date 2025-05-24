@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useAuthStore } from "@/store/authStore";
-import { useUserStore } from "@/store/userStore";
+import { useAuthStore } from "@/store/poc/authStore";
+import { useUserStore } from "@/store/poc/userStore";
 import { useShallow } from "zustand/react/shallow";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";

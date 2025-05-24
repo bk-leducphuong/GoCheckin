@@ -6,7 +6,6 @@ import { ApiError } from "@/lib/error";
 interface FloorPlanStore {
   floorPlanImageUrl: string | null;
   eventCode: string | null;
-  setFloorPlanImageUrl: (floorPlanImageUrl: string) => void;
   getFloorPlanImage: (eventCode: string) => Promise<string | null>;
 }
 
@@ -15,9 +14,6 @@ export const useFloorPlanStore = create<FloorPlanStore>()(
     (set, get) => ({
       floorPlanImageUrl: null,
       eventCode: null,
-      setFloorPlanImageUrl: (floorPlanImageUrl: string) => {
-        set({ floorPlanImageUrl: floorPlanImageUrl });
-      },
       getFloorPlanImage: async (eventCode: string) => {
         const currentState = get();
         if (

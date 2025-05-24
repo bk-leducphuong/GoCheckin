@@ -17,15 +17,11 @@ export default function EventsPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {
-    events,
-    getAllEventsByAdmin: getAllEvents,
-    setSelectedEvent,
-  } = useEventStore(
+  const { events, getAllManagedEvents, setSelectedEvent } = useEventStore(
     useShallow((state) => ({
       setSelectedEvent: state.setSelectedEvent,
       events: state.events,
-      getAllEventsByAdmin: state.getAllEventsByAdmin,
+      getAllManagedEvents: state.getAllManagedEvents,
     }))
   );
 
@@ -33,8 +29,7 @@ export default function EventsPage() {
     const fetchEvents = async () => {
       try {
         setIsLoading(true);
-        await getAllEvents();
-        setIsLoading(false);
+        await getAllManagedEvents();
       } catch (error) {
         if (error instanceof ApiError) {
           setError(error.message);
@@ -46,7 +41,7 @@ export default function EventsPage() {
       }
     };
     fetchEvents();
-  }, [getAllEvents]);
+  }, [getAllManagedEvents]);
 
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);

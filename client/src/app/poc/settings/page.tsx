@@ -1,15 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/poc/authStore";
 import { useShallow } from "zustand/react/shallow";
 import Button from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
+import { ApiError } from "@/lib/error";
+
 export default function SettingsPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { logout } = useAuthStore(
     useShallow((state) => ({
@@ -33,13 +39,27 @@ export default function SettingsPage() {
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true);
       await logout();
-      router.push("/login");
-      // Redirect is handled by the logout function in the auth store
+      router.push("/login/poc");
     } catch (error) {
-      console.error("Logout failed:", error);
+      setError(
+        error instanceof ApiError
+          ? error.message
+          : "Failed to logout. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <Error message={error} />;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

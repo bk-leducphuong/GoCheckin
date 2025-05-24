@@ -7,7 +7,7 @@ import { GuestCheckinInfo } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
 import GuestList from "@/components/poc/GuestList";
 import { useCheckinStore } from "@/store/poc/checkinStore";
-import { useSocketStore } from "@/store/socketStore";
+import { useSocketStore } from "@/store/poc/socketStore";
 import { useEventStore } from "@/store/poc/eventStore";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";

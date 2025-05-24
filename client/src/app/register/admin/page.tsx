@@ -8,7 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/store/admin/authStore";
 import { ApiError } from "@/lib/error";
 import { useShallow } from "zustand/react/shallow";
 import { GoogleAdminRegisterData } from "@/types/auth";
@@ -82,7 +82,6 @@ export default function TenantRegisterPage() {
   const onSubmit = async (data: AdminRegisterFormData) => {
     try {
       setIsLoading(true);
-      setErrorMessage(null);
       const { confirmPassword, ...registerData } = data;
       await adminRegister({
         ...registerData,

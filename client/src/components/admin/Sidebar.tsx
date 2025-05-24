@@ -14,6 +14,9 @@ import {
   MdKeyboardDoubleArrowLeft,
   MdKeyboardDoubleArrowRight,
 } from "react-icons/md";
+import { ApiError } from "@/lib/error";
+import Loading from "@/components/ui/Loading";
+import Error from "@/components/ui/Error";
 
 interface NavItem {
   name: string;
@@ -25,6 +28,8 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { logout } = useAuthStore(
     useShallow((state) => ({
       logout: state.logout,
@@ -38,9 +43,28 @@ export default function Sidebar() {
   };
 
   const handleLogout = () => {
-    logout();
-    router.push("/login");
+    try {
+      setIsLoading(true);
+      logout();
+      router.push("/login/admin");
+    } catch (error) {
+      setError(
+        error instanceof ApiError
+          ? error.message
+          : "Failed to logout. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <Error message={error} />;
+  }
 
   const navItems: NavItem[] = [
     {

@@ -11,9 +11,4 @@ export const GuestService = {
     );
     return response.data.data;
   },
-
-  async getAllGuestsOfEvent(eventCode: string): Promise<CheckInResponse[]> {
-    const response = await api.get(`/guests/event?eventCode=${eventCode}`);
-    return response.data.data;
-  },
 };

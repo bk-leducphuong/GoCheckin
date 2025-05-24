@@ -8,7 +8,7 @@ import { z } from "zod";
 import Link from "next/link";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import { AuthService } from "@/services/auth.service";
+import { AuthService } from "@/services/admin/auth.service";
 import { ApiError } from "@/lib/error";
 // Step 1: Request OTP validation schema
 const requestOtpSchema = z.object({
@@ -132,7 +132,7 @@ export default function ForgotPasswordPage() {
       }
 
       await AuthService.resetPassword(userId, resetToken, data.password);
-      router.push("/login");
+      router.push("/login/admin");
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(error.message);

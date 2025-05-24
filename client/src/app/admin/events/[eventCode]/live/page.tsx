@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSocketStore } from "@/store/socketStore";
+import { useSocketStore } from "@/store/admin/socketStore";
 import { useShallow } from "zustand/shallow";
 import { useParams } from "next/navigation";
 import { CheckInResponse } from "@/types/checkin";
