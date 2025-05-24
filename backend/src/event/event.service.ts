@@ -7,7 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { Event } from './entities/event.entity';
 import { AccountTenant } from 'src/account/entities/account-tenant.entity';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -43,14 +43,19 @@ export class EventService {
     return !!event;
   }
 
-  async findAll(constraints: EventConstraintsDto): Promise<Event[]> {
+  async findEventsByConstraints(
+    constraints: EventConstraintsDto,
+  ): Promise<Event[]> {
     try {
-      const whereConditions: any = {};
-      Object.entries(constraints).forEach(([key, value]) => {
-        if (value !== 'undefined') {
-          whereConditions[key] = value;
-        }
-      });
+      const whereConditions: FindOptionsWhere<Event> = {};
+
+      if (constraints.eventStatus !== undefined) {
+        whereConditions.eventStatus = constraints.eventStatus;
+      }
+
+      if (constraints.eventType !== undefined) {
+        whereConditions.eventType = constraints.eventType;
+      }
 
       const events = await this.eventRepository.find({
         where: whereConditions,
@@ -69,7 +74,10 @@ export class EventService {
     }
   }
 
-  async create(user: JwtPayload, newEventData: CreateEventDto): Promise<Event> {
+  async createEvent(
+    user: JwtPayload,
+    newEventData: CreateEventDto,
+  ): Promise<Event> {
     try {
       // check if event code is already in use
       const event = await this.eventRepository.findOne({
@@ -99,7 +107,7 @@ export class EventService {
     }
   }
 
-  async findAllEventsByAdmin(user: JwtPayload): Promise<Event[]> {
+  async getAllManagedEvents(user: JwtPayload): Promise<Event[]> {
     try {
       // get tenant code from user
       const tenant = await this.accountTenantRepository.findOne({
@@ -126,7 +134,7 @@ export class EventService {
     }
   }
 
-  async findOne(eventCode: string): Promise<Event> {
+  async getEventByCode(eventCode: string): Promise<Event> {
     try {
       const event = await this.eventRepository.findOne({
         where: { eventCode },
@@ -149,13 +157,18 @@ export class EventService {
     }
   }
 
-  async update(
+  async updateEvent(
     eventCode: string,
     updateEventDto: UpdateEventDto,
   ): Promise<Event> {
     try {
-      const event = await this.findOne(eventCode);
-      // Update the event
+      const event = await this.getEventByCode(eventCode);
+      if (!event) {
+        throw new NotFoundException(
+          `Event with event code ${eventCode} not found`,
+        );
+      }
+
       Object.assign(event, updateEventDto);
       return this.eventRepository.save(event);
     } catch (error) {
@@ -164,9 +177,9 @@ export class EventService {
     }
   }
 
-  async remove(eventCode: string): Promise<void> {
+  async removeEvent(eventCode: string): Promise<void> {
     try {
-      const event = await this.findOne(eventCode);
+      const event = await this.getEventByCode(eventCode);
       if (!event) {
         throw new NotFoundException(
           `Event with event code ${eventCode} not found`,
@@ -184,7 +197,7 @@ export class EventService {
 
   async getEventStatus(eventCode: string): Promise<EventStatus> {
     try {
-      const event = await this.findOne(eventCode);
+      const event = await this.getEventByCode(eventCode);
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
@@ -226,7 +239,7 @@ export class EventService {
     images: Array<Express.Multer.File>,
   ): Promise<string[]> {
     try {
-      const event = await this.findOne(eventCode);
+      const event = await this.getEventByCode(eventCode);
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
@@ -256,7 +269,7 @@ export class EventService {
   // Update getEventImages to use S3
   async getEventImages(eventCode: string): Promise<string[]> {
     try {
-      const event = await this.findOne(eventCode);
+      const event = await this.getEventByCode(eventCode);
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
@@ -271,7 +284,7 @@ export class EventService {
   // Delete image files
   async deleteEventImages(eventCode: string) {
     try {
-      const event = await this.findOne(eventCode);
+      const event = await this.getEventByCode(eventCode);
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }

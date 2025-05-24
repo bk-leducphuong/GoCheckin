@@ -24,6 +24,7 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventStatus, EventType } from './entities/event.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { EventConstraintsDto } from './dto/event-constraints';
 
 @Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -32,43 +33,47 @@ export class EventController {
 
   @Get('all')
   @Roles(UserRole.ADMIN, UserRole.POC)
-  async getAllEvents(
-    @Query('status') status: EventStatus,
-    @Query('type') type: EventType,
+  async getAllEventsByConstraints(
+    @Query('status') status?: EventStatus,
+    @Query('type') type?: EventType,
   ) {
-    return this.eventService.findAll({
-      eventStatus: status,
-      eventType: type,
-    });
+    const constraints: EventConstraintsDto = {
+      ...(status &&
+        Object.values(EventStatus).includes(status) && { eventStatus: status }),
+      ...(type &&
+        Object.values(EventType).includes(type) && { eventType: type }),
+    };
+
+    return this.eventService.findEventsByConstraints(constraints);
   }
 
   @Get()
   @Roles(UserRole.ADMIN)
-  async getAllEventsByAdmin(@CurrentUser() user: JwtPayload) {
-    return this.eventService.findAllEventsByAdmin(user);
+  async getAllManagedEvents(@CurrentUser() user: JwtPayload) {
+    return this.eventService.getAllManagedEvents(user);
   }
 
   @Post()
   @Roles(UserRole.ADMIN)
-  async createEventByAdmin(
+  async createEvent(
     @CurrentUser() user: JwtPayload,
     @Body() createEventDto: CreateEventDto,
   ) {
-    return this.eventService.create(user, createEventDto);
+    return this.eventService.createEvent(user, createEventDto);
   }
 
   @Get(':eventCode')
   async getEventByCode(@Param('eventCode') eventCode: string) {
-    return await this.eventService.findOne(eventCode);
+    return await this.eventService.getEventByCode(eventCode);
   }
 
   @Put(':eventCode')
   @Roles(UserRole.ADMIN)
-  async updateEventByAdmin(
+  async updateEvent(
     @Param('eventCode') eventCode: string,
     @Body() updateEventDto: UpdateEventDto,
   ) {
-    return this.eventService.update(eventCode, updateEventDto);
+    return this.eventService.updateEvent(eventCode, updateEventDto);
   }
 
   @Get(':eventCode/status')
@@ -79,7 +84,7 @@ export class EventController {
   @Delete(':eventCode')
   @Roles(UserRole.ADMIN)
   async deleteEvent(@Param('eventCode') eventCode: string) {
-    return this.eventService.remove(eventCode);
+    return this.eventService.removeEvent(eventCode);
   }
 
   @Post(':eventCode/images/upload')
