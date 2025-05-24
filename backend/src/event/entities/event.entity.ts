@@ -15,6 +15,11 @@ import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-ana
 import { EventCheckinAnalytics } from '../../analysis/entities/event-checkin-analytics.entity';
 import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
 
+export enum AccessType {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+}
+
 export enum EventStatus {
   PUBLISHED = 'published',
   ACTIVE = 'active',
@@ -84,6 +89,14 @@ export class Event {
 
   @Column({ default: true })
   enabled: boolean;
+
+  @Column({
+    name: 'access_type',
+    type: 'enum',
+    enum: AccessType,
+    default: AccessType.PUBLIC,
+  })
+  accessType: AccessType;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

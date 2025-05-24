@@ -11,6 +11,11 @@ export enum EventType {
   MEETING = "meeting",
 }
 
+export enum AccessType {
+  PUBLIC = "public",
+  PRIVATE = "private",
+}
+
 export interface EventContraints {
   status?: EventStatus;
   type?: EventType;
@@ -29,10 +34,26 @@ export interface Event {
   venueAddress: string | null;
   capacity: number | null;
   termsConditions: string | null;
+  accessType: AccessType;
   images: string[];
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CreateEventData {
+  eventName: string;
+  eventCode: string;
+  startTime: string;
+  endTime: string;
+  eventDescription: string;
+  eventStatus: EventStatus;
+  venueName: string;
+  venueAddress: string;
+  capacity: number;
+  termsConditions: string;
+  accessType: AccessType;
+  images: string[];
 }
 
 export interface CheckInPoint {
@@ -42,20 +63,20 @@ export interface CheckInPoint {
   pocId: string;
 }
 
-export interface CreateEventRequest {
-  eventName: string;
-  eventCode: string;
-  startTime: string;
-  endTime: string;
+export interface UpdateEventData {
+  eventCode?: string;
+  eventName?: string;
+  startTime?: string;
+  endTime?: string;
   eventDescription?: string;
   eventStatus?: EventStatus;
-  venueName: string;
-  venueAddress: string;
+  venueName?: string;
+  venueAddress?: string;
   capacity?: number;
-  eventType?: string;
+  eventType?: EventType;
   termsConditions?: string;
+  accessType?: AccessType;
   images?: string[];
-  enabled?: boolean;
 }
 
 export interface EventResponse {

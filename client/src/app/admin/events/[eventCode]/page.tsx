@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { CreateEventRequest } from "@/types/event";
+import { AccessType, UpdateEventData } from "@/types/event";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useEventStore } from "@/store/admin/eventStore";
@@ -26,15 +26,16 @@ import { ApiError } from "@/lib/error";
 
 // Event update validation schema - similar to create but all fields optional
 const eventSchema = z.object({
-  eventName: z.string().min(3, "Event name must be at least 3 characters"),
-  eventCode: z.string().min(3, "Event code must be at least 3 characters"),
-  startTime: z.string().min(1, "Start date is required"),
-  endTime: z.string().min(1, "End date is required"),
+  eventName: z.string().optional(),
+  eventCode: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
   eventDescription: z.string().optional(),
   termsConditions: z.string().optional(),
   capacity: z.number().optional(),
-  venueName: z.string().min(1, "Venue name is required"),
-  venueAddress: z.string().min(1, "Venue address is required"),
+  accessType: z.nativeEnum(AccessType).optional(),
+  venueName: z.string().optional(),
+  venueAddress: z.string().optional(),
   images: z.array(z.string()).optional(),
 });
 
@@ -108,6 +109,7 @@ export default function EventDetailsPage() {
             venueAddress: selectedEvent.venueAddress || "",
             capacity: selectedEvent.capacity || undefined,
             termsConditions: selectedEvent.termsConditions || "",
+            accessType: selectedEvent.accessType || AccessType.PUBLIC,
           });
         }
 
@@ -163,7 +165,7 @@ export default function EventDetailsPage() {
       }
     };
     getPocs();
-  }, [params.eventCode, getAllPocs]); // Add dependencies
+  }, [params.eventCode, getAllPocs]);
 
   const removeCheckInPoint = (index: number) => {
     setRemovedCheckinPoint([...removedCheckinPoint, pocList[index]]);
@@ -202,13 +204,11 @@ export default function EventDetailsPage() {
     setNewCheckInPoints(newPoints);
   };
 
-  // Function to handle form submission
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     try {
       // Update event
-      const eventData: CreateEventRequest = data;
-      await updateEvent(params.eventCode as string, eventData);
+      await updateEvent(params.eventCode as string, data as UpdateEventData);
 
       // Handle POC updates if needed
       for (const point of pocList) {
@@ -328,6 +328,19 @@ export default function EventDetailsPage() {
               {...register("capacity", { valueAsNumber: true })}
               error={errors.capacity?.message}
             />
+
+            <div className="flex flex-col gap-2">
+              <label className="block text-sm font-medium text-gray-700 ">
+                Access Type
+              </label>
+              <select
+                {...register("accessType")}
+                className="w-full border border-gray-300 rounded-md p-2"
+              >
+                <option value={AccessType.PUBLIC}>Public</option>
+                <option value={AccessType.PRIVATE}>Private</option>
+              </select>
+            </div>
           </div>
 
           <div>

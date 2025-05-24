@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { EventService } from "@/services/admin/event.service";
-import { CreateEventRequest, Event } from "@/types/event";
+import { UpdateEventData, Event, CreateEventData } from "@/types/event";
 import { EventStatus } from "@/types/event";
 
 interface EventStore {
@@ -10,11 +10,11 @@ interface EventStore {
   setSelectedEvent: (event: Event) => void;
   setEvents: (events: Event[]) => void;
   getAllManagedEvents: () => Promise<Event[]>;
-  createEvent: (eventData: CreateEventRequest) => Promise<Event>;
+  createEvent: (eventData: CreateEventData) => Promise<Event>;
   getEventByCode: (eventCode: string) => Promise<Event>;
   updateEvent: (
     eventCode: string,
-    eventData: CreateEventRequest
+    eventData: UpdateEventData
   ) => Promise<Event>;
   getEventStatus: (eventCode: string) => Promise<EventStatus>;
 }
@@ -33,7 +33,7 @@ export const useEventStore = create<EventStore>()(
         set({ events: response });
         return response;
       },
-      createEvent: async (eventData: CreateEventRequest) => {
+      createEvent: async (eventData: CreateEventData) => {
         try {
           const response = await EventService.createEvent(eventData);
           set((state) => ({
@@ -54,7 +54,7 @@ export const useEventStore = create<EventStore>()(
         set({ selectedEvent: event });
         return event;
       },
-      updateEvent: async (eventCode: string, eventData: CreateEventRequest) => {
+      updateEvent: async (eventCode: string, eventData: UpdateEventData) => {
         const response = await EventService.updateEvent(eventCode, eventData);
         set((state) => ({
           events: state.events.map((event) =>

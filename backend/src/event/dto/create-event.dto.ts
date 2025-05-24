@@ -1,15 +1,13 @@
 import {
   IsString,
   IsNotEmpty,
-  IsOptional,
   IsEnum,
   IsDate,
   IsNumber,
-  IsBoolean,
   IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EventStatus, EventType } from '../entities/event.entity';
+import { AccessType, EventStatus, EventType } from '../entities/event.entity';
 
 export class CreateEventDto {
   @IsString()
@@ -21,12 +19,12 @@ export class CreateEventDto {
   eventName: string;
 
   @IsString()
-  @IsOptional()
-  eventDescription?: string;
+  @IsNotEmpty()
+  eventDescription: string;
 
   @IsEnum(EventStatus)
-  @IsOptional()
-  eventStatus?: EventStatus;
+  @IsNotEmpty()
+  eventStatus: EventStatus;
 
   @IsDate()
   @Type(() => Date)
@@ -39,30 +37,30 @@ export class CreateEventDto {
   endTime: Date;
 
   @IsString()
-  @IsOptional()
-  venueName?: string;
+  @IsNotEmpty()
+  venueName: string;
 
   @IsString()
-  @IsOptional()
-  venueAddress?: string;
+  @IsNotEmpty()
+  venueAddress: string;
 
   @IsNumber()
-  @IsOptional()
-  capacity?: number;
+  @IsNotEmpty()
+  capacity: number;
 
   @IsString()
-  @IsOptional()
-  eventType?: EventType;
+  @IsNotEmpty()
+  eventType: EventType;
 
   @IsString()
-  @IsOptional()
-  termsConditions?: string;
+  @IsNotEmpty()
+  termsConditions: string;
+
+  @IsEnum(AccessType)
+  @IsNotEmpty()
+  accessType: AccessType;
 
   @IsArray()
-  @IsOptional()
-  images?: string[];
-
-  @IsBoolean()
-  @IsOptional()
-  enabled?: boolean;
+  @IsNotEmpty()
+  images: string[];
 }

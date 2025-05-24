@@ -4,11 +4,10 @@ import {
   IsEnum,
   IsDate,
   IsNumber,
-  IsBoolean,
   IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { EventStatus, EventType } from '../entities/event.entity';
+import { AccessType, EventStatus, EventType } from '../entities/event.entity';
 
 export class UpdateEventDto {
   @IsString()
@@ -60,11 +59,11 @@ export class UpdateEventDto {
   @IsOptional()
   termsConditions?: string;
 
+  @IsEnum(AccessType)
+  @IsOptional()
+  accessType?: AccessType;
+
   @IsArray()
   @IsOptional()
   images?: string[];
-
-  @IsBoolean()
-  @IsOptional()
-  enabled?: boolean;
 }

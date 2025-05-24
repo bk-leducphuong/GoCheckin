@@ -18,18 +18,22 @@ import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { validateImages } from "@/utils/imageValidation";
 import { ApiError } from "@/lib/error";
+import { AccessType, EventStatus } from "@/types/event";
+
 // Event creation validation schema
 const eventSchema = z.object({
   eventName: z.string().min(3, "Event name must be at least 3 characters"),
   eventCode: z.string().min(3, "Event code must be at least 3 characters"),
   startTime: z.string().min(1, "Start date is required"),
   endTime: z.string().min(1, "End date is required"),
-  eventDescription: z.string().optional(),
-  termsConditions: z.string().optional(),
-  capacity: z.number().optional(),
+  eventDescription: z.string().min(1, "Event description is required"),
+  termsConditions: z.string().min(1, "Terms and conditions are required"),
+  capacity: z.number().min(1, "Capacity is required"),
+  accessType: z.nativeEnum(AccessType).default(AccessType.PUBLIC),
   venueName: z.string().min(1, "Venue name is required"),
   venueAddress: z.string().min(1, "Venue address is required"),
-  images: z.array(z.string()).optional(),
+  images: z.array(z.string()).min(1, "At least one image is required"),
+  eventStatus: z.nativeEnum(EventStatus).default(EventStatus.PUBLISHED),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -241,6 +245,19 @@ export default function CreateEventPage() {
               error={errors.capacity?.message}
               placeholder="100"
             ></Input>
+
+            <div className="flex flex-col gap-2">
+              <label className="block text-sm font-medium text-gray-700 ">
+                Access Type
+              </label>
+              <select
+                {...register("accessType")}
+                className="w-full border border-gray-300 rounded-md p-2"
+              >
+                <option value={AccessType.PUBLIC}>Public</option>
+                <option value={AccessType.PRIVATE}>Private</option>
+              </select>
+            </div>
           </div>
 
           <div>
