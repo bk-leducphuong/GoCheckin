@@ -15,6 +15,8 @@ import { FloorPlan } from './floor-plan/entities/floor-plan.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { SocketModule } from './gateways/socket.module';
 import { RedisModule } from './redis/redis.module';
+import { HealthModule } from './health/health.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,6 +43,7 @@ import { RedisModule } from './redis/redis.module';
     MailModule,
     FloorPlan,
     SocketModule,
+    HealthModule,
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],

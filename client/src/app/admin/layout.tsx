@@ -11,7 +11,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthCheck allowedRoles={UserRole.ADMIN} redirectTo="/login">
+    <AuthCheck allowedRoles={UserRole.ADMIN} redirectTo="/login/admin">
       <div className="flex h-screen bg-gray-100">
         {/* Sidebar */}
         <Sidebar />

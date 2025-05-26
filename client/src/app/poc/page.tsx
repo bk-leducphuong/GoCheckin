@@ -22,11 +22,6 @@ interface Activity {
 }
 
 export default function PocDashboardPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const router = useRouter();
-
   const { pocList, getPocsByUserId } = usePocStore(
     useShallow((state) => ({
       pocList: state.pocList,
@@ -54,20 +49,21 @@ export default function PocDashboardPage() {
     }))
   );
 
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const router = useRouter();
+
   useEffect(() => {
     const getAllRegisteredPocs = async () => {
       try {
-        if (userId) {
-          setIsLoading(true);
-          await getPocsByUserId(userId);
-        } else {
-          setError("Authentication error");
-        }
+        setIsLoading(true);
+        await getPocsByUserId(userId as string);
       } catch (error) {
         if (error instanceof ApiError) {
           setError(error.message);
         } else {
-          setError("An unknown error occurred");
+          setError("Something went wrong when getting pocs");
         }
       } finally {
         setIsLoading(false);
@@ -102,7 +98,7 @@ export default function PocDashboardPage() {
         if (error instanceof ApiError) {
           setError(error.message);
         } else {
-          setError("An unknown error occurred");
+          setError("Something went wrong when getting events and activities");
         }
       } finally {
         setIsLoading(false);

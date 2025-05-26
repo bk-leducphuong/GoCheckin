@@ -50,7 +50,6 @@ export const useAuthStore = create<AuthState>()(
             accessToken: response.accessToken,
             refreshToken: response.refreshToken,
             isAuthenticated: true,
-            isLoading: false,
           };
           set(newState);
         },
@@ -132,7 +131,7 @@ export const useAuthStore = create<AuthState>()(
           }
         },
 
-        verifyAccessToken: async (role: UserRole, deviceInfo?: string) => {
+        verifyAccessToken: async (role: UserRole) => {
           try {
             const { accessToken } = get();
             if (accessToken) {

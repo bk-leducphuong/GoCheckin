@@ -159,7 +159,8 @@ export class AuthController {
   })
   @Post('verify-access-token')
   @UseGuards(JwtAuthGuard)
-  verifyToken(@CurrentUser() user: JwtPayload, @Body() role: UserRole) {
+  verifyToken(@CurrentUser() user: JwtPayload, @Body('role') role: UserRole) {
+    // console.log('Verify token', user, 'with role: ', role);
     if (role === user.role) {
       return {
         valid: true,

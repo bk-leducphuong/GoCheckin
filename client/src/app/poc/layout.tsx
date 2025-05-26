@@ -4,7 +4,7 @@ import Navigation from "@/components/poc/Navigation";
 
 export default function PocLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AuthCheck allowedRoles={UserRole.POC} redirectTo="/login">
+    <AuthCheck allowedRoles={UserRole.POC} redirectTo="/login/poc">
       <div className="min-h-screen flex flex-col">
         <Navigation />
         <main className="flex-1 bg-gray-50">{children}</main>

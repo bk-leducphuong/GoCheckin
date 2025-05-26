@@ -7,6 +7,7 @@ import { useShallow } from "zustand/shallow";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import AuthenticationFail from "@/components/ui/AuthenticationFail";
+import { ApiError } from "@/lib/error";
 
 interface AuthCheckProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ interface AuthCheckProps {
 export default function AuthCheck({
   children,
   allowedRoles,
-  redirectTo = "/login",
+  redirectTo = "/login/admin",
 }: AuthCheckProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,11 +34,14 @@ export default function AuthCheck({
       try {
         setIsLoading(true);
         await verifyAccessToken(allowedRoles as UserRole);
-        setIsLoading(false);
       } catch (error) {
+        setError(
+          error instanceof ApiError
+            ? error.message
+            : "Something went wrong when verifying token"
+        );
+      } finally {
         setIsLoading(false);
-        setError("System is having issues. Please try again later.");
-        console.error("Error verifying access token:", error);
       }
     };
     verifyToken();

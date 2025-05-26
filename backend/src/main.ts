@@ -9,7 +9,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const appOptions = {
     cors: {
-      origin: process.env.CLIENT_URL || 'https://localhost:3000',
+      origin: process.env.CLIENT_URL,
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
       allowedHeaders: ['Content-Type', 'Authorization'],
       credentials: true,
