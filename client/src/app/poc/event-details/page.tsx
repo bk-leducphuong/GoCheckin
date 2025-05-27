@@ -12,7 +12,7 @@ import { useFloorPlanStore } from "@/store/poc/floorPlanStore";
 import { FaCalendarAlt } from "react-icons/fa";
 
 export default function EventDetailsPage() {
-  const eventCode = useSearchParams().get("eventCode") as string;
+  const searchParams = useSearchParams();
   const [markedPoints, setMarkedPoints] = useState<{
     [key: string]: { x: number; y: number };
   }>({});
@@ -35,6 +35,14 @@ export default function EventDetailsPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
+        if (!searchParams) {
+          return <Error message="Event code is required" redirectTo="/login" />;
+        }
+        const eventCode = searchParams.get("eventCode");
+        if (!eventCode) {
+          return <Error message="Event code is required" redirectTo="/login" />;
+        }
+
         setIsLoading(true);
         if (!selectedEvent) {
           await getEventByCode(eventCode as string);
@@ -51,27 +59,45 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [eventCode, getEventByCode]);
+  }, [searchParams, getEventByCode]);
 
   useEffect(() => {
     const getFloorPlanImageUrl = async () => {
       try {
-        await getFloorPlanImage(eventCode as string);
+        if (!searchParams) {
+          return <Error message="Event code is required" redirectTo="/login" />;
+        }
+        const eventCode = searchParams.get("eventCode");
+        if (!eventCode) {
+          return <Error message="Event code is required" redirectTo="/login" />;
+        }
+
+        setIsLoading(true);
+        await getFloorPlanImage(eventCode);
       } catch (error) {
         if (error instanceof ApiError) {
           setError(error.message);
         } else {
           setError("Failed to load floor plan image");
         }
+        setIsLoading(false);
       }
     };
 
     getFloorPlanImageUrl();
-  }, [eventCode, getFloorPlanImage]);
+  }, [searchParams, getFloorPlanImage]);
 
   useEffect(() => {
     const getPocLocations = async () => {
       try {
+        if (!searchParams) {
+          return <Error message="Event code is required" redirectTo="/login" />;
+        }
+        const eventCode = searchParams.get("eventCode");
+        if (!eventCode) {
+          return <Error message="Event code is required" redirectTo="/login" />;
+        }
+        setIsLoading(true);
         const pocLocationsArray = await PocService.getPocLocations(eventCode);
         const pocLocationsObject = pocLocationsArray.reduce(
           (acc, location) => {
@@ -99,10 +125,12 @@ export default function EventDetailsPage() {
             setError("Failed to load POC locations. Please try again.");
           }
         }
+      } finally {
+        setIsLoading(false);
       }
     };
     getPocLocations();
-  }, [setMarkedPoints, eventCode]);
+  }, [setMarkedPoints, searchParams]);
 
   if (isLoading || !selectedEvent) {
     return <Loading />;

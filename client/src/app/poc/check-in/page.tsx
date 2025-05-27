@@ -41,15 +41,13 @@ export default function CheckinPage() {
   );
 
   const searchParams = useSearchParams();
-  const eventCode = searchParams.get("eventCode") as string;
-  const pointCode = searchParams.get("pointCode") as string;
   const [guestCode, setGuestCode] = useState("");
   const [note, setNote] = useState("");
   const [guestImage, setGuestImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [deviceId, setDeviceId] = useState({});
-  const [devices, setDevices] = useState([]);
+  // const [deviceId, setDeviceId] = useState({});
+  // const [devices, setDevices] = useState([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -57,6 +55,24 @@ export default function CheckinPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
+        if (!searchParams) {
+          return (
+            <Error
+              message="Point code and event code are required"
+              redirectTo="/login"
+            />
+          );
+        }
+        const eventCode = searchParams.get("eventCode");
+        if (!eventCode) {
+          return (
+            <Error
+              message="Point code and event code are required"
+              redirectTo="/login"
+            />
+          );
+        }
+        setIsLoading(true);
         await getEventByCode(eventCode);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -64,15 +80,24 @@ export default function CheckinPage() {
         } else {
           setError("Failed to fetch event details. Please try again.");
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEvent();
-  }, [eventCode, getEventByCode]);
+  }, [searchParams, getEventByCode]);
 
   useEffect(() => {
     const loadModels = async () => {
-      await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
+      try {
+        setIsLoading(true);
+        await faceapi.nets.ssdMobilenetv1.loadFromUri("/models");
+      } catch (error) {
+        setError("Failed to load face detection models. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadModels();
@@ -80,6 +105,25 @@ export default function CheckinPage() {
 
   const submitCheckin = async () => {
     try {
+      if (!searchParams) {
+        return (
+          <Error
+            message="Point code and event code are required"
+            redirectTo="/login"
+          />
+        );
+      }
+      const eventCode = searchParams.get("eventCode");
+      const pointCode = searchParams.get("pointCode");
+      if (!eventCode || !pointCode) {
+        return (
+          <Error
+            message="Point code and event code are required"
+            redirectTo="/login"
+          />
+        );
+      }
+
       setIsLoading(true);
       let imageUrl;
       if (guestImage) {

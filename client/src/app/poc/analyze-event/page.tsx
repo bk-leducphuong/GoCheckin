@@ -16,7 +16,6 @@ import {
   Legend,
 } from "chart.js";
 import { AnalysisService } from "@/services/poc/analysis.service";
-import { GuestService } from "@/services/poc/guest.service";
 import { CheckInResponse } from "@/types/checkin";
 import { useSearchParams } from "next/navigation";
 import { ApiError } from "@/lib/error";
@@ -47,22 +46,38 @@ interface CheckinPointData {
 }
 
 export default function PocAnalysis() {
-  const pointCode = useSearchParams().get("pointCode") as string;
-  const eventCode = useSearchParams().get("eventCode") as string;
+  const searchParams = useSearchParams();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [checkinData, setCheckinData] = useState<CheckinData[]>([]);
   const [allPointsData, setAllPointsData] = useState<CheckinPointData[]>([]);
-  const [guests, setGuests] = useState<CheckInResponse[]>([]);
-  const [totalGuests, setTotalGuests] = useState(0);
+  const [guests] = useState<CheckInResponse[]>([]);
+  const [totalGuests] = useState(0);
 
   // Fetch point-specific check-in data
   useEffect(() => {
     const getPocAnalytics = async () => {
-      setIsLoading(true);
-      setError(null);
       try {
+        if (!searchParams) {
+          return (
+            <Error
+              message="Point code and event code are required"
+              redirectTo="/login"
+            />
+          );
+        }
+        const pointCode = searchParams.get("pointCode");
+        const eventCode = searchParams.get("eventCode");
+        if (!pointCode || !eventCode) {
+          return (
+            <Error
+              message="Point code and event code are required"
+              redirectTo="/login"
+            />
+          );
+        }
+        setIsLoading(true);
         const response = await AnalysisService.getAllPointCheckinAnalytics(
           eventCode,
           "hourly"
@@ -89,12 +104,25 @@ export default function PocAnalysis() {
     };
 
     getPocAnalytics();
-  }, [pointCode, eventCode]);
+  }, [searchParams]);
 
   // Fetch all points data for comparison
   useEffect(() => {
     const getAllPointsData = async () => {
       try {
+        if (!searchParams) {
+          return (
+            <Error
+              message="Point code and event code are required"
+              redirectTo="/login"
+            />
+          );
+        }
+        const eventCode = searchParams.get("eventCode");
+        if (!eventCode) {
+          return <Error message="Event code is required" redirectTo="/login" />;
+        }
+        setIsLoading(true);
         const response = await AnalysisService.getAllPointCheckinAnalytics(
           eventCode,
           "hourly"
@@ -113,11 +141,13 @@ export default function PocAnalysis() {
         } else {
           setError("Failed to load all points check-in data");
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     getAllPointsData();
-  }, [eventCode]);
+  }, [searchParams]);
 
   // // Fetch guest data
   // useEffect(() => {

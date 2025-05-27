@@ -4,13 +4,13 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:17.5-alpine
-    container_name: gocheckin-postgres-dev
+    container_name: gocheckin-postgres-prod
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
     env_file:
       - .env
     environment:
@@ -27,13 +27,13 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: gocheckin-redis-dev
+    container_name: gocheckin-redis-prod
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     env_file:
       - .env
@@ -46,24 +46,21 @@ services:
 
   # Backend API (NestJS)
   backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
-    container_name: gocheckin-backend-dev
+    image: ${DOCKER_REGISTRY}/gocheckin-backend:${IMAGE_TAG}
+    container_name: gocheckin-backend-prod
     restart: unless-stopped
     healthcheck:
-      test:
-        ["CMD-SHELL", "curl -f http://localhost:3001/api/health || exit 1"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "curl -f http://localhost:3001/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
     volumes:
-      - ../backend/src:/app/src
-      - ../backend/logs:/app/logs
+      - backend_logs:/app/logs
     ports:
       - "3001:3001"
     networks:
@@ -76,21 +73,13 @@ services:
 
   # Frontend (Next.js)
   frontend:
-    build:
-      context: ../client
-      dockerfile: Dockerfile
-    environment:
-      - NODE_ENV=development
+    image: ${DOCKER_REGISTRY}/gocheckin-frontend:${IMAGE_TAG}
+    container_name: gocheckin-frontend-prod
+    restart: unless-stopped
     env_file:
       - .env
-    container_name: gocheckin-frontend-dev
-    restart: unless-stopped
-    volumes:
-      - ../client/src:/app/src
-      - ../client/pages:/app/pages
-      - ../client/components:/app/components
-      - ../client/styles:/app/styles
-      - ../client/public:/app/public
+    environment:
+      - NODE_ENV=production
     ports:
       - "3000:3000"
     networks:
@@ -102,6 +91,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  backend_logs:
 
 networks:
   app-network:

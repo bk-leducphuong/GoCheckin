@@ -1,0 +1,201 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  DOCKER_REGISTRY: docker.io
+  BACKEND_IMAGE_NAME: gocheckin-backend
+  FRONTEND_IMAGE_NAME: gocheckin-frontend
+
+jobs:
+  # Test jobs
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run backend tests
+        working-directory: backend
+        run: npm run test
+
+      - name: Run backend lint
+        working-directory: backend
+        run: npm run lint
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Run frontend build
+        working-directory: client
+        run: npm run build
+
+      - name: Run frontend lint
+        working-directory: client
+        run: npm run lint
+
+  # Build and push Docker images
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || startsWith(github.ref, 'refs/tags/'))
+
+    strategy:
+      matrix:
+        service: [backend, frontend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service == 'backend' && env.BACKEND_IMAGE_NAME || env.FRONTEND_IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ matrix.service }}
+          file: ./${{ matrix.service }}/Dockerfile.prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy to staging/production
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'staging' || 'production' }}
+      url: ${{ github.ref == 'refs/heads/main' && secrets.STAGING_URL || secrets.PRODUCTION_URL }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment variables
+        run: |
+          if [[ $GITHUB_REF == refs/heads/main ]]; then
+            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
+            echo "IMAGE_TAG=main" >> $GITHUB_ENV
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "DEPLOY_ENV=production" >> $GITHUB_ENV
+            echo "IMAGE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            # Navigate to application directory
+            cd ${{ secrets.SERVER_APP_PATH || '/opt/gocheckin' }}
+
+            # Pull latest code
+            git pull origin main
+
+            # Set environment variables
+            export DOCKER_REGISTRY="${{ secrets.DOCKER_HUB_USERNAME }}"
+            export IMAGE_TAG="${{ env.IMAGE_TAG }}"
+
+            # Stop existing containers
+            docker-compose -f docker/docker-compose.prod.yml down
+
+            # Pull latest images
+            docker-compose -f docker/docker-compose.prod.yml pull
+
+            # Start services
+            docker-compose -f docker/docker-compose.prod.yml up -d
+
+            # Clean up unused images
+            docker image prune -f
+
+            # Health check
+            sleep 30
+            curl -f http://localhost:3001/api/health || exit 1
+            curl -f http://localhost:3000 || exit 1
+
+  # Security scan
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    strategy:
+      matrix:
+        service: [backend, frontend]
+
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ matrix.service == 'backend' && env.BACKEND_IMAGE_NAME || env.FRONTEND_IMAGE_NAME }}:main
+          format: "sarif"
+          output: "trivy-results-${{ matrix.service }}.sarif"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: "trivy-results-${{ matrix.service }}.sarif"

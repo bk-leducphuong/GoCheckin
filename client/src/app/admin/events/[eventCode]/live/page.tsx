@@ -13,6 +13,7 @@ import { ApiError } from "@/lib/error";
 import { useGuestStore } from "@/store/admin/guestStore";
 
 export default function RealtimeDashboard() {
+  const params = useParams();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activePocs, setActivePocs] = useState<string[]>([]);
@@ -51,12 +52,18 @@ export default function RealtimeDashboard() {
     }))
   );
 
-  const eventCode = useParams().eventCode as string;
-
   useEffect(() => {
     const fetchGuests = async () => {
       try {
-        await getAllGuestsOfEvent(eventCode);
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
+        await getAllGuestsOfEvent(params.eventCode as string);
       } catch (error) {
         setError(
           error instanceof ApiError ? error.message : "Failed to fetch guests"
@@ -65,7 +72,7 @@ export default function RealtimeDashboard() {
     };
 
     fetchGuests();
-  }, [eventCode, getAllGuestsOfEvent]);
+  }, [params, getAllGuestsOfEvent]);
 
   useEffect(() => {
     setCheckinCount(guests.length);
@@ -75,8 +82,16 @@ export default function RealtimeDashboard() {
     const fetchEventData = async () => {
       try {
         setIsLoading(true);
-        await getEventByCode(eventCode);
-        await getAllPocs(eventCode);
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
+        await getEventByCode(params.eventCode as string);
+        await getAllPocs(params.eventCode as string);
       } catch (error) {
         if (error instanceof ApiError) {
           setError(error.message);
@@ -89,7 +104,7 @@ export default function RealtimeDashboard() {
     };
 
     fetchEventData();
-  }, [eventCode, getEventByCode, getAllPocs]);
+  }, [params, getEventByCode, getAllPocs]);
 
   useEffect(() => {
     const setupSocket = async () => {
@@ -98,11 +113,18 @@ export default function RealtimeDashboard() {
         if (!isConnected) {
           return;
         }
-
-        registerAdmin(eventCode);
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
+        registerAdmin(params.eventCode as string);
 
         return () => {
-          unregisterAdmin(eventCode);
+          unregisterAdmin(params.eventCode as string);
           disconnect();
         };
       } catch (error) {
@@ -115,7 +137,7 @@ export default function RealtimeDashboard() {
     };
 
     setupSocket();
-  }, [eventCode, connect, registerAdmin, unregisterAdmin, disconnect]);
+  }, [params, connect, registerAdmin, unregisterAdmin, disconnect]);
 
   useEffect(() => {
     if (socket) {

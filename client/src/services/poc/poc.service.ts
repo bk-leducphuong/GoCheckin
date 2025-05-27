@@ -1,4 +1,9 @@
-import { Poc, PocValidationData, PocLocation } from "@/types/poc";
+import {
+  Poc,
+  PocValidationData,
+  PocLocation,
+  RegisterPocUserRequest,
+} from "@/types/poc";
 import api from "./api";
 
 export const PocService = {
@@ -17,5 +22,8 @@ export const PocService = {
   async getPocsByUserId(userId: string): Promise<Poc[]> {
     const response = await api.get(`/pocs/user/${userId}`);
     return response.data.data;
+  },
+  async registerPocUser(data: RegisterPocUserRequest): Promise<void> {
+    await api.post("/pocs/register", data);
   },
 };

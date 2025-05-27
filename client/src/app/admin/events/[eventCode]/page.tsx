@@ -93,6 +93,14 @@ export default function EventDetailsPage() {
         setIsLoading(true);
 
         if (!selectedEvent) {
+          if (!params || !params.eventCode) {
+            return (
+              <Error
+                message="Event code is required"
+                redirectTo="/admin/events"
+              />
+            );
+          }
           await getEventByCode(params.eventCode as string);
         }
 
@@ -126,19 +134,20 @@ export default function EventDetailsPage() {
     };
 
     fetchEvent();
-  }, [
-    params.eventCode,
-    getEventByCode,
-    reset,
-    router,
-    setSelectedEvent,
-    selectedEvent,
-  ]);
+  }, [params, getEventByCode, reset, router, setSelectedEvent, selectedEvent]);
 
   // Get floor plan image
   useEffect(() => {
     const getFloorPlanImageUrl = async () => {
       try {
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
         await getFloorPlanImage(params.eventCode as string);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -150,11 +159,19 @@ export default function EventDetailsPage() {
     };
 
     getFloorPlanImageUrl();
-  }, [params.eventCode, getFloorPlanImage]);
+  }, [params, getFloorPlanImage]);
 
   useEffect(() => {
     const getPocs = async () => {
       try {
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
         await getAllPocs(params.eventCode as string);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -165,7 +182,7 @@ export default function EventDetailsPage() {
       }
     };
     getPocs();
-  }, [params.eventCode, getAllPocs]);
+  }, [params, getAllPocs]);
 
   const removeCheckInPoint = (index: number) => {
     setRemovedCheckinPoint([...removedCheckinPoint, pocList[index]]);
@@ -208,6 +225,11 @@ export default function EventDetailsPage() {
     setIsLoading(true);
     try {
       // Update event
+      if (!params || !params.eventCode) {
+        return (
+          <Error message="Event code is required" redirectTo="/admin/events" />
+        );
+      }
       await updateEvent(params.eventCode as string, data as UpdateEventData);
 
       // Handle POC updates if needed
@@ -380,7 +402,7 @@ export default function EventDetailsPage() {
               <h2 className="text-lg font-medium text-gray-900">Floor Plan</h2>
               {selectedEvent.eventStatus === EventStatus.PUBLISHED && (
                 <Link
-                  href={`/admin/events/${params.eventCode}/floor-plan`}
+                  href={`/admin/events/${params?.eventCode}/floor-plan`}
                   className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Manage Floor Plan
@@ -428,7 +450,7 @@ export default function EventDetailsPage() {
                     <h3 className="text-sm font-medium text-gray-900">
                       Check-in Point {index + 1}
                       <Link
-                        href={`/admin/events/${params.eventCode}/poc/${point.pointCode}`}
+                        href={`/admin/events/${params?.eventCode}/poc/${point.pointCode}`}
                         className="text-blue-600 ml-2"
                       >
                         View details
@@ -580,14 +602,14 @@ export default function EventDetailsPage() {
       {deleteEvent && (
         <DeleteEventValidation
           isOpen={deleteEvent}
-          eventCode={params.eventCode as string}
+          eventCode={params?.eventCode as string}
           onClose={() => setDeleteEvent(false)}
         />
       )}
 
       {selectedEvent.eventStatus !== EventStatus.PUBLISHED && (
         <div className="mt-8">
-          <EventAnalysis eventCode={params.eventCode as string} />
+          <EventAnalysis eventCode={params?.eventCode as string} />
         </div>
       )}
     </div>

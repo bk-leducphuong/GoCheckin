@@ -2,6 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import PocValidation from "@/components/poc/PocValidation";
+import Error from "@/components/ui/Error";
 
 export default function CheckinLayout({
   children,
@@ -9,8 +10,25 @@ export default function CheckinLayout({
   children: React.ReactNode;
 }) {
   const searchParams = useSearchParams();
-  const pointCode = searchParams.get("pointCode") as string;
-  const eventCode = searchParams.get("eventCode") as string;
+  if (!searchParams) {
+    return (
+      <Error
+        message="Point code and event code are required"
+        redirectTo="/login"
+      />
+    );
+  }
+  const eventCode = searchParams.get("eventCode");
+  const pointCode = searchParams.get("pointCode");
+
+  if (!eventCode || !pointCode) {
+    return (
+      <Error
+        message="Point code and event code are required"
+        redirectTo="/login"
+      />
+    );
+  }
 
   return (
     <PocValidation

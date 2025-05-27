@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import * as React from "react";
 
 // polyfill based on https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia

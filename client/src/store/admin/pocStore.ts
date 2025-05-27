@@ -61,10 +61,6 @@ export const usePocStore = create<PocStore>()(
           throw error;
         }
       },
-      getPocsByUserId: async (userId: string) => {
-        const pocs = await PocService.getPocsByUserId(userId);
-        set({ pocList: pocs });
-      },
     }),
     {
       name: "Poc Storage",

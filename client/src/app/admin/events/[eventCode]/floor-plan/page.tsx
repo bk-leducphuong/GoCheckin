@@ -16,6 +16,7 @@ import { validateImages } from "@/utils/imageValidation";
 
 export default function FloorPlanPage() {
   const params = useParams();
+
   const uploadFloorPlan = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [newFloorPlanImage, setNewFloorPlanImage] = useState<File | null>(null);
@@ -56,6 +57,14 @@ export default function FloorPlanPage() {
   useEffect(() => {
     const getEvent = async () => {
       try {
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
         await getEventByCode(params.eventCode as string);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -66,12 +75,20 @@ export default function FloorPlanPage() {
       }
     };
     getEvent();
-  }, [params.eventCode, getEventByCode, setSelectedEvent]); // Add dependencies
+  }, [params, getEventByCode, setSelectedEvent]); // Add dependencies
 
   // Get floor plan image
   useEffect(() => {
     const getFloorPlanImageUrl = async () => {
       try {
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
         await getFloorPlanImage(params.eventCode as string);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -83,11 +100,19 @@ export default function FloorPlanPage() {
     };
 
     getFloorPlanImageUrl();
-  }, [params.eventCode, getFloorPlanImage]);
+  }, [params, getFloorPlanImage]);
 
   useEffect(() => {
     const getPocs = async () => {
       try {
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
         await getAllPocs(params.eventCode as string);
       } catch (error) {
         if (error instanceof ApiError) {
@@ -98,11 +123,19 @@ export default function FloorPlanPage() {
       }
     };
     getPocs();
-  }, [params.eventCode, getAllPocs]); // Add dependencies
+  }, [params, getAllPocs]); // Add dependencies
 
   useEffect(() => {
     const getPocLocations = async () => {
       try {
+        if (!params || !params.eventCode) {
+          return (
+            <Error
+              message="Event code is required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
         const pocLocationsArray = await PocService.getPocLocations(
           params.eventCode as string
         );
@@ -135,7 +168,7 @@ export default function FloorPlanPage() {
       }
     };
     getPocLocations();
-  }, [params.eventCode, setMarkedPoints]); // Add dependencies
+  }, [params, setMarkedPoints]); // Add dependencies
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,6 +207,11 @@ export default function FloorPlanPage() {
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      if (!params || !params.eventCode) {
+        return (
+          <Error message="Event code is required" redirectTo="/admin/events" />
+        );
+      }
       if (newFloorPlanImage && isFloorPlanChanged) {
         const uploadedFloorPlanImage =
           await FloorPlanService.uploadFloorPlanImage(

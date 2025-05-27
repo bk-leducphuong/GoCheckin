@@ -53,6 +53,14 @@ export default function PocDetailsPage() {
     const fetchPoc = async () => {
       try {
         setIsLoading(true);
+        if (!params || !params.eventCode || !params.pointCode) {
+          return (
+            <Error
+              message="Event code and point code are required"
+              redirectTo="/admin/events"
+            />
+          );
+        }
 
         const currentPoc = await PocService.getPoc(
           params.pointCode as string,
@@ -86,7 +94,7 @@ export default function PocDetailsPage() {
     };
 
     fetchPoc();
-  }, [params.eventCode, params.pointCode, reset, router]);
+  }, [params, reset, router]);
 
   // Get POC manager information
   useEffect(() => {
@@ -113,7 +121,7 @@ export default function PocDetailsPage() {
     };
 
     fetchPocManager();
-  }, [poc, params.eventCode, params.pointCode, reset, router]);
+  }, [poc, reset, router]);
 
   const onSubmit = async (data: PocFormData) => {
     setIsLoading(true);

@@ -11,8 +11,6 @@ interface PocSocketProps {
 export default function PocSocket({ children }: PocSocketProps) {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
-  const eventCode = searchParams.get("eventCode") as string;
-  const pointCode = searchParams.get("pointCode") as string;
 
   const { connect, disconnect, sendHeartbeatSignal } = useSocketStore(
     useShallow((state) => ({
@@ -27,6 +25,25 @@ export default function PocSocket({ children }: PocSocketProps) {
     const connectSocket = async () => {
       try {
         await connect();
+
+        if (!searchParams) {
+          return (
+            <Error
+              message="Event code and point code are required"
+              redirectTo="/login"
+            />
+          );
+        }
+        const eventCode = searchParams.get("eventCode");
+        const pointCode = searchParams.get("pointCode");
+        if (!eventCode || !pointCode) {
+          return (
+            <Error
+              message="Event code and point code are required"
+              redirectTo="/login"
+            />
+          );
+        }
 
         sendHeartbeatSignal(eventCode, pointCode);
 
@@ -51,7 +68,7 @@ export default function PocSocket({ children }: PocSocketProps) {
       }
       disconnect();
     };
-  }, [connect, disconnect, sendHeartbeatSignal, eventCode, pointCode]);
+  }, [connect, disconnect, sendHeartbeatSignal, searchParams]);
 
   if (error) {
     return <Error message={error} redirectTo="/login" />;

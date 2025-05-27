@@ -1,0 +1,34 @@
+# Multi-stage Dockerfile for Next.js Frontend (Production)
+FROM node:24-alpine AS dependencies
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM node:24-alpine AS build
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:24-alpine AS production
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+WORKDIR /app
+
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=build /app/.next ./.next
+COPY --from=build /app/public ./public
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/next.config.ts ./
+
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
