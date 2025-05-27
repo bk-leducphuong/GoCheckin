@@ -1,5 +1,7 @@
 # GoCheckin - Hệ thống quản lí và hỗ trợ check in đa điểm
 
+![System_image](./images/system_image.png)
+
 Hệ thống GoCheckin sẽ giúp bạn trong việc tổ chức và quản lí sự kiện nhiều điểm check in. Ngoài ra bạn cũng có thể sử dụng hệ thống để tham gia vào việc check in của sự kiện với nhiều tính năng đặc biệt, hay, hữu dụng như áp dụng học máy vào tự động quy trình check in bằng khuôn mặt, v.v..
 
 ## Table of Contents
