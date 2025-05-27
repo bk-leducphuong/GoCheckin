@@ -148,13 +148,11 @@ Follow these steps to get your development environment set up:
 
 ## Running with Docker
 
-    You can easily run project with Docker by following the below steps:
+You can easily run project with Docker:
 
-````bash
- cd docker
- cp .env.example .env
- ./dev-start.sh
- ```
+    cd docker
+    cp .env.example .env
+    ./dev-start.sh
 
 ## API Documentation
 
@@ -170,17 +168,15 @@ Alternatively, you can provide a brief overview of key endpoints here:
 
 - **GET /api/users** - Get all users
 - **POST /api/users** - Create a new user
-- Body: `{ "username": "testuser", "password": "password123" }`
 - **GET /api/users/:id** - Get a user by ID
 - ...
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](./LICENSE.md) file for details.
 
 ## Contact
 
 Le Duc Phuong - [@My_X](https://x.com/PhngLc66337009) - phuongtroc2004@gmail.com
 
 Project Link: [GoCheckin](https://github.com/bk-leducphuong/GoCheckin)
-````
