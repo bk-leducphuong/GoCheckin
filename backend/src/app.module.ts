@@ -46,15 +46,16 @@ import { HealthModule } from './health/health.module';
     HealthModule,
     JwtModule.registerAsync({
       global: true,
-      imports: [ConfigModule],
+      imports: [ConfigModule], // The imports array lists other modules that the injected providers of the factory function belong to
       useFactory: (configService: ConfigService) => ({
+        // use useFactory to inject other providers like configService
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
           expiresIn:
             configService.get<string>('JWT_ACCESS_EXPIRATION') || '15m',
         },
       }),
-      inject: [ConfigService],
+      inject: [ConfigService], // The inject array lists providers that Nest will resolve and pass as arguments to the factory function.
     }),
   ],
   controllers: [],
