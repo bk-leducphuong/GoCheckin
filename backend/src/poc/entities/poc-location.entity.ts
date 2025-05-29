@@ -5,6 +5,8 @@ import {
   OneToOne,
   ManyToOne,
   JoinColumn,
+  UpdateDateColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { PointOfCheckin } from 'src/poc/entities/poc.entity';
 import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
@@ -28,6 +30,12 @@ export class PocLocation {
 
   @Column({ name: 'y_coordinate', type: 'float', nullable: true })
   yCoordinate: number;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   @OneToOne(() => PointOfCheckin, (poc) => poc.location)
   poc: PointOfCheckin;

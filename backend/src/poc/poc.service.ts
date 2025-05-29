@@ -21,6 +21,9 @@ import { PocLocation } from './entities/poc-location.entity';
 import { FloorPlanService } from 'src/floor-plan/floor-plan.service';
 import { RegisterPocUserDto } from './dto/register-poc-user.dto';
 import { MailService } from 'src/mail/mail.service';
+import { InvitePocUserDto } from './dto/invite-poc-user.dto';
+import { InvitedPoc, InvitedPocStatus } from './entities/invited-poc.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class PocService {
@@ -29,11 +32,14 @@ export class PocService {
     private pocRepository: Repository<PointOfCheckin>,
     @InjectRepository(PocLocation)
     private pocLocationRepository: Repository<PocLocation>,
+    @InjectRepository(InvitedPoc)
+    private invitedPocRepository: Repository<InvitedPoc>,
     @Inject(forwardRef(() => EventService))
     private eventService: EventService,
     private accountService: AccountService,
     @Inject(forwardRef(() => FloorPlanService))
     private floorPlanService: FloorPlanService,
+    @Inject(forwardRef(() => MailService))
     private mailService: MailService,
   ) {}
 
@@ -328,6 +334,76 @@ export class PocService {
       // await this.mailService.sendPocRegisteredMail(poc);
     } catch (error) {
       console.error('Error registering POC user:', error);
+      throw error;
+    }
+  }
+
+  async invitePocUser(invitePocUserDto: InvitePocUserDto): Promise<void> {
+    try {
+      const { eventCode, pointCode, email } = invitePocUserDto;
+      if (!eventCode || !pointCode || !email) {
+        throw new BadRequestException(
+          'Event code, point code and email are required',
+        );
+      }
+
+      const poc = await this.pocRepository.findOne({
+        where: { eventCode, pointCode },
+      });
+      if (!poc) {
+        throw new NotFoundException('Not found poc!');
+      }
+
+      const existingInvitedPoc = await this.invitedPocRepository.findOne({
+        where: { eventCode, pointCode, email },
+      });
+      if (existingInvitedPoc) {
+        throw new BadRequestException('POC already invited!');
+      }
+
+      const inviteCode = uuidv4();
+
+      const invitedPoc = this.invitedPocRepository.create({
+        eventCode,
+        pointCode,
+        email,
+        status: InvitedPocStatus.PENDING,
+        inviteCode,
+      });
+      await this.invitedPocRepository.save(invitedPoc);
+
+      await this.mailService.sendPocInviteMail(
+        email,
+        eventCode,
+        pointCode,
+        inviteCode,
+      );
+    } catch (error) {
+      console.error('Error inviting POC user:', error);
+      throw error;
+    }
+  }
+
+  async acceptPocInvite(user: JwtPayload, inviteCode: string): Promise<void> {
+    try {
+      const invitedPoc = await this.invitedPocRepository.findOne({
+        where: { inviteCode, status: InvitedPocStatus.PENDING },
+      });
+      if (!invitedPoc) {
+        throw new NotFoundException('Not found invited poc!');
+      }
+
+      await this.invitedPocRepository.update(
+        { inviteCode },
+        { status: InvitedPocStatus.ACCEPTED },
+      );
+
+      await this.pocRepository.update(
+        { eventCode: invitedPoc.eventCode, pointCode: invitedPoc.pointCode },
+        { userId: user.userId },
+      );
+    } catch (error) {
+      console.error('Error accepting POC invite:', error);
       throw error;
     }
   }

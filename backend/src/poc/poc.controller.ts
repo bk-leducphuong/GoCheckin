@@ -25,6 +25,7 @@ import { PointOfCheckin } from './entities/poc.entity';
 import { ValidatePocDto } from './dto/validate-poc.dto';
 import { PocLocationsDto } from './dto/poc-locations.dto';
 import { RegisterPocUserDto } from './dto/register-poc-user.dto';
+import { InvitePocUserDto } from './dto/invite-poc-user.dto';
 
 @ApiTags('points-of-checkin')
 @Controller('pocs')
@@ -193,5 +194,30 @@ export class PocController {
     @Body() registerPocUserDto: RegisterPocUserDto,
   ) {
     return this.pocService.registerPocUser(user, registerPocUserDto);
+  }
+
+  @Post('invite')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Invite a POC user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POC user invited successfully',
+  })
+  async invitePocUser(@Body() invitePocUserDto: InvitePocUserDto) {
+    return this.pocService.invitePocUser(invitePocUserDto);
+  }
+
+  @Post('invite/accept')
+  @Roles(UserRole.POC)
+  @ApiOperation({ summary: 'Accept a POC invite' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POC invite accepted successfully',
+  })
+  async acceptPocInvite(
+    @CurrentUser() user: JwtPayload,
+    @Query('inviteCode') inviteCode: string,
+  ) {
+    return this.pocService.acceptPocInvite(user, inviteCode);
   }
 }

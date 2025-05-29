@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Invitation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 0;">
+                <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #1a73e8; padding: 40px 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Event Invitation</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.5; color: #333333;">
+                                Dear {{recipientName}},
+                            </p>
+                            <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.5; color: #333333;">
+                                You are cordially invited to {{eventName}} as a POC. We would be delighted to have you join us for this special occasion.
+                            </p>
+                            
+                            <!-- Event Details Box -->
+                            <div style="background-color: #f8f9fa; border-radius: 6px; padding: 20px; margin: 30px 0;">
+                                <h2 style="margin: 0 0 15px; color: #1a73e8; font-size: 20px;">Event Details</h2>
+                                <p style="margin: 0 0 10px; font-size: 16px; color: #333333;">
+                                    <strong>Date:</strong> {{eventDate}}
+                                </p>
+                                <p style="margin: 0 0 10px; font-size: 16px; color: #333333;">
+                                    <strong>Time:</strong> {{eventTime}}
+                                </p>
+                                <p style="margin: 0 0 10px; font-size: 16px; color: #333333;">
+                                    <strong>Location:</strong> {{eventLocation}}
+                                </p>
+                            </div>
+
+                            <!-- POC Details Box -->
+                            <div style="background-color: #f8f9fa; border-radius: 6px; padding: 20px; margin: 30px 0;">
+                                <h2 style="margin: 0 0 15px; color: #1a73e8; font-size: 20px;">POC Details</h2>
+                                <p style="margin: 0 0 10px; font-size: 16px; color: #333333;">
+                                    <strong>POC Code:</strong> {{pointCode}}
+                                </p>
+                                <p style="margin: 0 0 10px; font-size: 16px; color: #333333;">
+                                    <strong>POC Name:</strong> {{pocName}}
+                                </p>
+                                <p style="margin: 0 0 10px; font-size: 16px; color: #333333;">
+                                    <strong>Poc location:</strong> {{pocLocation}}
+                                </p>
+                            </div>
+
+                            <!-- CTA Button -->
+                            <div style="text-align: center; margin: 30px 0;">
+                                <a href="{{confirmationLink}}" style="display: inline-block; padding: 12px 30px; background-color: #1a73e8; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px;">
+                                    Confirm Attendance
+                                </a>
+                            </div>
+
+                            <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.5; color: #333333;">
+                                If you have any questions or need additional information, please don't hesitate to contact us.
+                            </p>
+                            
+                            <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #333333;">
+                                Best regards,<br>
+                                {{senderName}}
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="margin: 0; font-size: 14px; color: #666666;">
+                                This is an automated email. Please do not reply directly to this message.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

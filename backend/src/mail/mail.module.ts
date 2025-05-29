@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventModule } from 'src/event/event.module';
+import { PocModule } from 'src/poc/poc.module';
 
 @Module({
   imports: [
@@ -12,11 +14,14 @@ import { ConfigService } from '@nestjs/config';
         transport: {
           host: configService.get<string>('MAIL_HOST'),
           port: configService.get<number>('MAIL_PORT'),
-          secure: configService.get<boolean>('MAIL_SECURE'),
+          secure: configService.get<string>('MAIL_SECURE') === 'true',
           auth: {
             user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASS'),
+            pass: configService.get<string>('MAIL_PASSWORD'),
           },
+          debug: configService.get<string>('MAIL_DEBUG') === 'true',
+          logger: configService.get<string>('MAIL_LOGGER') === 'true',
+          requireTLS: configService.get<string>('MAIL_REQUIRE_TLS') === 'true',
         },
         defaults: {
           from: `"${configService.get<string>('MAIL_FROM_NAME')}" <${configService.get<string>('MAIL_FROM_EMAIL')}>`,
@@ -29,6 +34,9 @@ import { ConfigService } from '@nestjs/config';
         },
       }),
     }),
+    forwardRef(() => EventModule),
+    forwardRef(() => PocModule),
+    ConfigModule,
   ],
   providers: [MailService],
   exports: [MailService],

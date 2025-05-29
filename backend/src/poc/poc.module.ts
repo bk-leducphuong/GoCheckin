@@ -8,14 +8,15 @@ import { AccountModule } from 'src/account/account.module';
 import { PocLocation } from './entities/poc-location.entity';
 import { FloorPlanModule } from 'src/floor-plan/floor-plan.module';
 import { MailModule } from 'src/mail/mail.module';
+import { InvitedPoc } from './entities/invited-poc.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PointOfCheckin, PocLocation]),
+    TypeOrmModule.forFeature([PointOfCheckin, PocLocation, InvitedPoc]),
     forwardRef(() => EventModule),
     AccountModule,
     forwardRef(() => FloorPlanModule),
-    MailModule,
+    forwardRef(() => MailModule),
   ],
   controllers: [PocController],
   providers: [PocService],
