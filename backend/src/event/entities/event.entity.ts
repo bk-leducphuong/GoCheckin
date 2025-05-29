@@ -41,10 +41,10 @@ export class Event {
   @Column({ name: 'event_code', length: 50, unique: true })
   eventCode: string;
 
-  @Column({ name: 'event_name', length: 255 })
+  @Column({ name: 'event_name', length: 255, unique: true })
   eventName: string;
 
-  @Column({ name: 'tenant_code', length: 50 })
+  @Column({ name: 'tenant_code', length: 50, unique: true })
   tenantCode: string;
 
   @Column({ name: 'event_description', type: 'text', nullable: true })
