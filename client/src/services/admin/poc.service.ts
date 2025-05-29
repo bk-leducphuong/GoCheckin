@@ -6,6 +6,7 @@ import {
   PocManager,
   PocLocations,
   PocLocation,
+  SendPocInviteRequest,
 } from "@/types/poc";
 
 export const PocService = {
@@ -43,5 +44,8 @@ export const PocService = {
   async getPocLocations(eventCode: string): Promise<PocLocation[]> {
     const response = await api.get(`/pocs/locations?eventCode=${eventCode}`);
     return response.data.data;
+  },
+  async sendPocInvite(data: SendPocInviteRequest): Promise<void> {
+    await api.post("/pocs/invite", data);
   },
 };

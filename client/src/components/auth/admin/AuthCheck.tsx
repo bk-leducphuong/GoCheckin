@@ -45,18 +45,18 @@ export default function AuthCheck({
       }
     };
     verifyToken();
-  }, [isAuthenticated, verifyAccessToken, allowedRoles]);
+  }, [verifyAccessToken, allowedRoles]);
 
   if (isLoading) {
     return <Loading />;
   }
 
-  if (error) {
+  if (error && !isLoading) {
     return <Error message={error} redirectTo={redirectTo} />;
   }
 
-  if (!isAuthenticated) {
-    return <AuthenticationFail />;
+  if (!isAuthenticated && !isLoading) {
+    return <AuthenticationFail loginType="admin" redirectTo={redirectTo} />;
   }
 
   return <>{children}</>;

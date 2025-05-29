@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuthStore } from "@/store/admin/authStore";
+import { useAuthStore } from "@/store/poc/authStore";
 import { UserRole } from "@/types/user";
 import { useShallow } from "zustand/shallow";
 import Loading from "@/components/ui/Loading";
@@ -34,7 +34,6 @@ export default function AuthCheck({
       try {
         setIsLoading(true);
         await verifyAccessToken(allowedRoles as UserRole);
-        setIsLoading(false);
       } catch (error) {
         setError(
           error instanceof ApiError
@@ -46,18 +45,18 @@ export default function AuthCheck({
       }
     };
     verifyToken();
-  }, [isAuthenticated, verifyAccessToken, allowedRoles]);
+  }, [verifyAccessToken, allowedRoles]);
 
   if (isLoading) {
     return <Loading />;
   }
 
-  if (error) {
+  if (error && !isLoading) {
     return <Error message={error} redirectTo={redirectTo} />;
   }
 
-  if (!isAuthenticated) {
-    return <AuthenticationFail />;
+  if (!isAuthenticated && !isLoading) {
+    return <AuthenticationFail loginType="poc" redirectTo={redirectTo} />;
   }
 
   return <>{children}</>;

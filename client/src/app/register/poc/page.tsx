@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,6 +35,7 @@ const pocRegisterSchema = z
 type PocRegisterFormData = z.infer<typeof pocRegisterSchema>;
 
 export default function PocRegisterPage() {
+  const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
   const [deviceInfo, setDeviceInfo] = useState<string>();
@@ -68,7 +69,13 @@ export default function PocRegisterPage() {
         ...registerData,
         deviceInfo,
       });
-      router.push(`/poc`);
+
+      const redirectUrl = searchParams?.get("redirectUrl");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push(`/poc`);
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(error.message);

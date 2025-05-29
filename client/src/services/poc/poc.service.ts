@@ -26,4 +26,7 @@ export const PocService = {
   async registerPocUser(data: RegisterPocUserRequest): Promise<void> {
     await api.post("/pocs/register", data);
   },
+  async acceptPocInvite(inviteCode: string): Promise<void> {
+    await api.post(`/pocs/invite/accept?inviteCode=${inviteCode}`);
+  },
 };

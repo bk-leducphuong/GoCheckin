@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,6 +42,7 @@ type AdminRegisterFormData = z.infer<typeof adminRegisterSchema>;
 type GoogleAdminRegisterFormData = z.infer<typeof googleAdminRegisterSchema>;
 
 export default function TenantRegisterPage() {
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showGoogleForm, setShowGoogleForm] = useState(false);
   const [googleCode, setGoogleCode] = useState<string | null>(null);
@@ -87,7 +88,12 @@ export default function TenantRegisterPage() {
         ...registerData,
         deviceInfo,
       });
-      router.push("/admin");
+      const redirectUrl = searchParams?.get("redirectUrl");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push(`/admin`);
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(error.message);
@@ -129,7 +135,13 @@ export default function TenantRegisterPage() {
       };
 
       await adminGoogleRegister(googleData);
-      router.push("/admin");
+
+      const redirectUrl = searchParams?.get("redirectUrl");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push(`/admin`);
+      }
     } catch (error) {
       setErrorMessage(
         error instanceof Error

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,6 +23,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState<string>();
@@ -56,7 +57,13 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
       await adminLogin(data.email, data.password, deviceInfo);
-      router.push("/admin");
+
+      const redirectUrl = searchParams?.get("redirectUrl");
+      if (redirectUrl) {
+        router.push(redirectUrl);
+      } else {
+        router.push(`/admin`);
+      }
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -187,7 +194,9 @@ export default function LoginPage() {
             <p className="text-sm text-gray-600">
               Don&apos;t have an account?{" "}
               <Link
-                href="/register/tenant"
+                href={`/register/admin?redirectUrl=${searchParams?.get(
+                  "redirectUrl"
+                )}`}
                 className="text-blue-600 hover:underline"
               >
                 Register as Admin

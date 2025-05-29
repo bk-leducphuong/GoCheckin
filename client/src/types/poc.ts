@@ -78,3 +78,9 @@ export interface RegisterPocUserRequest {
   eventCode: string;
   pointCode: string;
 }
+
+export interface SendPocInviteRequest {
+  eventCode: string;
+  pointCode: string;
+  email: string;
+}

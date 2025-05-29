@@ -265,9 +265,23 @@ export default function PocDetailsPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center text-orange-500">
-                This POC is not assigned to any manager.
-              </div>
+              <>
+                <div className="text-center text-orange-500">
+                  This POC is not assigned to any manager.
+                </div>
+                <div className="flex justify-center mt-4">
+                  <Button
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        `/admin/events/${params?.eventCode}/poc/${params?.pointCode}/event-invite`
+                      )
+                    }
+                  >
+                    Assign POC Manager
+                  </Button>
+                </div>
+              </>
             )}
           </div>
 
