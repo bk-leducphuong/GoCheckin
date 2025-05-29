@@ -33,7 +33,12 @@ export class Guest {
   @Column({ name: 'guest_code', type: 'varchar', length: 255, nullable: false })
   guestCode: string;
 
-  @Column({ name: 'event_code', type: 'varchar', length: 255, nullable: false })
+  @Column({
+    name: 'event_code',
+    type: 'varchar',
+    length: 255,
+    nullable: false,
+  })
   eventCode: string;
 
   @Column({ name: 'image_url', type: 'varchar', length: 255, nullable: true })
@@ -63,16 +68,6 @@ export class Guest {
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   gender: string;
-
-  @Column({
-    name: 'registration_date',
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-  })
-  registrationDate: Date;
-
-  @Column({ type: 'boolean', default: true })
-  enabled: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

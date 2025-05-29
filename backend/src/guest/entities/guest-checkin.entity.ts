@@ -16,13 +16,13 @@ export class GuestCheckin {
   @Column({ name: 'guest_id', type: 'uuid' })
   guestId: string;
 
-  @Column({ name: 'guest_code', type: 'varchar', length: 50 })
+  @Column({ name: 'guest_code', type: 'varchar' })
   guestCode: string;
 
-  @Column({ name: 'event_code', type: 'varchar', length: 50 })
+  @Column({ name: 'event_code', type: 'varchar' })
   eventCode: string;
 
-  @Column({ name: 'point_code', type: 'varchar', length: 50 })
+  @Column({ name: 'point_code', type: 'varchar' })
   pointCode: string;
 
   @CreateDateColumn({
@@ -30,9 +30,6 @@ export class GuestCheckin {
     default: () => 'CURRENT_TIMESTAMP',
   })
   checkinTime: Date;
-
-  @Column({ type: 'boolean', default: true })
-  active: boolean;
 
   // Relations
   @ManyToOne(() => Guest, (guest) => guest.checkins)
