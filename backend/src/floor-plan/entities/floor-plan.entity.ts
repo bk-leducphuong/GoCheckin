@@ -13,7 +13,7 @@ export class FloorPlan {
   @PrimaryGeneratedColumn('uuid', { name: 'floor_plan_id' })
   floorPlanId: string;
 
-  @Column({ name: 'event_code' })
+  @Column({ name: 'event_code', unique: true })
   eventCode: string;
 
   @Column({ name: 'floor_plan_image_url' })
