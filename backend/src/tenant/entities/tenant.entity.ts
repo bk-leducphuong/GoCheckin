@@ -13,10 +13,10 @@ export class Tenant {
   @PrimaryGeneratedColumn('uuid', { name: 'tenant_id' })
   tenantId: string;
 
-  @Column({ name: 'tenant_code', type: 'varchar', length: 50, unique: true })
+  @Column({ name: 'tenant_code', type: 'varchar', unique: true })
   tenantCode: string;
 
-  @Column({ name: 'tenant_name', type: 'varchar', length: 255 })
+  @Column({ name: 'tenant_name', type: 'varchar' })
   tenantName: string;
 
   @Column({ name: 'tenant_address', type: 'text', nullable: true })
@@ -48,15 +48,6 @@ export class Tenant {
     nullable: true,
   })
   contactEmail: string;
-
-  @CreateDateColumn({ name: 'registration_date', type: 'timestamp' })
-  registrationDate: Date;
-
-  @Column({ name: 'expiration_date', type: 'timestamp', nullable: true })
-  expirationDate: Date;
-
-  @Column({ name: 'enabled', type: 'boolean', default: true })
-  enabled: boolean;
 
   @OneToMany(() => Event, (event) => event.tenant)
   events: Event[];
