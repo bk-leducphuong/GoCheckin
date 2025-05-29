@@ -6,7 +6,7 @@ export class EventCheckinAnalytics {
   @PrimaryGeneratedColumn('uuid')
   analyticsId: string;
 
-  @Column({ name: 'event_code', type: 'varchar' })
+  @Column({ name: 'event_code', type: 'varchar', unique: true })
   eventCode: string;
 
   @Column({ name: 'time_interval' })

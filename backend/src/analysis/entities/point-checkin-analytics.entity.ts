@@ -10,7 +10,7 @@ export class PointCheckinAnalytics {
   @Column({ name: 'point_code', type: 'varchar' })
   pointCode: string;
 
-  @Column({ name: 'event_code', type: 'varchar' })
+  @Column({ name: 'event_code', type: 'varchar', unique: true })
   eventCode: string;
 
   @Column({ name: 'time_interval' })
