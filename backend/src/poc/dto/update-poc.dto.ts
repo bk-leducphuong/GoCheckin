@@ -1,13 +1,5 @@
-import {
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsEnum,
-  IsDate,
-  Min,
-} from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsEnum, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import { PointStatus } from '../entities/poc.entity';
 
 export class UpdatePocDto {
@@ -40,25 +32,8 @@ export class UpdatePocDto {
   })
   status?: PointStatus;
 
-  @IsDate()
-  @IsOptional()
-  @Type(() => Date)
-  @ApiPropertyOptional({ description: 'Opening time of the point' })
-  openTime?: Date;
-
-  @IsDate()
-  @IsOptional()
-  @Type(() => Date)
-  @ApiPropertyOptional({ description: 'Closing time of the point' })
-  closeTime?: Date;
-
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({ description: 'Description of the location' })
   locationDescription?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional({ description: 'Floor level of the point' })
-  floorLevel?: string;
 }

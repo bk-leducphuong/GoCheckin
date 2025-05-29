@@ -22,7 +22,7 @@ export class PocLocation {
   @Column({ name: 'poc_id', type: 'uuid' })
   pocId: string;
 
-  @Column({ name: 'label', type: 'varchar', length: 255 })
+  @Column({ name: 'label', type: 'varchar' })
   label: string;
 
   @Column({ name: 'x_coordinate', type: 'float', nullable: true })

@@ -14,22 +14,22 @@ export enum PocInviteStatus {
 
 @Entity()
 export class PocInvite {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn('uuid', { name: 'invite_id' })
+  inviteId: string;
 
-  @Column({ name: 'event_code', type: 'varchar', length: 50 })
+  @Column({ name: 'event_code', type: 'varchar' })
   eventCode: string;
 
-  @Column({ name: 'point_code', type: 'varchar', length: 50 })
+  @Column({ name: 'point_code', type: 'varchar' })
   pointCode: string;
 
-  @Column({ name: 'email', type: 'varchar', length: 255 })
+  @Column({ name: 'email', type: 'varchar' })
   email: string;
 
   @Column({ name: 'status', type: 'enum', enum: PocInviteStatus })
   status: PocInviteStatus;
 
-  @Column({ name: 'invite_code', type: 'varchar', length: 50, nullable: true })
+  @Column({ name: 'invite_code', type: 'varchar', nullable: true })
   inviteCode: string;
 
   @CreateDateColumn({ name: 'created_at' })

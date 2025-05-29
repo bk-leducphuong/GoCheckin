@@ -25,16 +25,16 @@ export class PointOfCheckin {
   @PrimaryGeneratedColumn('uuid', { name: 'poc_id' })
   pocId: string;
 
-  @Column({ name: 'point_code', type: 'varchar', length: 50, unique: true })
+  @Column({ name: 'point_code', type: 'varchar' })
   pointCode: string;
 
-  @Column({ name: 'point_name', type: 'varchar', length: 255 })
+  @Column({ name: 'point_name', type: 'varchar' })
   pointName: string;
 
   @Column({ name: 'point_note', type: 'text', nullable: true })
   pointNote: string;
 
-  @Column({ name: 'event_code', type: 'varchar', length: 50 })
+  @Column({ name: 'event_code', type: 'varchar' })
   eventCode: string;
 
   @Column({ name: 'user_id', type: 'varchar', nullable: true })
@@ -51,20 +51,8 @@ export class PointOfCheckin {
   })
   status: PointStatus;
 
-  @Column({ name: 'open_time', type: 'time', nullable: true })
-  openTime: Date;
-
-  @Column({ name: 'close_time', type: 'time', nullable: true })
-  closeTime: Date;
-
   @Column({ name: 'location_description', type: 'text', nullable: true })
   locationDescription: string;
-
-  @Column({ name: 'floor_level', type: 'varchar', length: 10, nullable: true })
-  floorLevel: string;
-
-  @Column({ name: 'enabled', type: 'boolean', default: true })
-  enabled: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

@@ -28,10 +28,6 @@ export class PocManagerDto {
   phoneNumber: string;
 
   @IsString()
-  @IsOptional()
-  companyName: string;
-
-  @IsString()
   @IsNotEmpty()
   createdAt: Date;
 }
