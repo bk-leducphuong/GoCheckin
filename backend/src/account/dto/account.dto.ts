@@ -1,12 +1,5 @@
 import { UserRole } from '../entities/account.entity';
-import {
-  IsString,
-  IsEmail,
-  IsOptional,
-  IsBoolean,
-  IsEnum,
-  IsDate,
-} from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsEnum, IsDate } from 'class-validator';
 
 export class AccountDto {
   @IsString()
@@ -26,22 +19,8 @@ export class AccountDto {
   @IsString()
   phoneNumber?: string;
 
-  @IsBoolean()
-  active: boolean;
-
   @IsEnum(UserRole)
   role: UserRole;
-
-  @IsOptional()
-  @IsString()
-  companyName?: string;
-
-  @IsOptional()
-  @IsDate()
-  lastLogin?: Date;
-
-  @IsBoolean()
-  enabled: boolean;
 
   @IsDate()
   createdAt: Date;

@@ -22,7 +22,7 @@ export class Account {
   @PrimaryGeneratedColumn('uuid', { name: 'user_id' })
   userId: string;
 
-  @Column({ length: 100, unique: true })
+  @Column({ length: 100 })
   username: string;
 
   @Column({ length: 255 })
@@ -31,26 +31,14 @@ export class Account {
   @Column({ name: 'full_name', length: 255, nullable: true })
   fullName: string;
 
-  @Column({ name: 'phone_number', length: 50, nullable: true })
+  @Column({ name: 'phone_number', length: 50, nullable: true, unique: true })
   phoneNumber: string;
 
-  @Column({ length: 255 })
+  @Column({ length: 255, unique: true })
   email: string;
-
-  @Column({ default: true })
-  active: boolean;
 
   @Column({ type: 'enum', enum: UserRole })
   role: UserRole;
-
-  @Column({ name: 'company_name', length: 255, nullable: true })
-  companyName: string;
-
-  @Column({ name: 'last_login', type: 'timestamp', nullable: true })
-  lastLogin: Date;
-
-  @Column({ default: true })
-  enabled: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

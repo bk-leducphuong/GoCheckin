@@ -31,11 +31,6 @@ export class UpdateAccountDto {
 
   @IsOptional()
   @IsString()
-  @MinLength(2)
-  companyName?: string;
-
-  @IsOptional()
-  @IsString()
   @MinLength(6)
   password?: string;
 }

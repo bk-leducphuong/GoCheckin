@@ -3,7 +3,6 @@ import {
   IsString,
   IsEmail,
   IsOptional,
-  IsBoolean,
   IsEnum,
   MinLength,
 } from 'class-validator';
@@ -30,16 +29,4 @@ export class CreateAccountDto {
 
   @IsEnum(UserRole)
   role: UserRole;
-
-  @IsOptional()
-  @IsString()
-  companyName?: string;
-
-  @IsOptional()
-  @IsBoolean()
-  active?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  enabled?: boolean;
 }
