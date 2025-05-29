@@ -6,11 +6,13 @@ import { PocService } from "@/services/poc/poc.service";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { ApiError } from "@/lib/error";
+import { useRouter } from "next/navigation";
 
 export default function PocInvitePage() {
   const params = useParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const acceptInvite = async () => {
     if (!params || !params.inviteCode) {
@@ -20,6 +22,7 @@ export default function PocInvitePage() {
     try {
       setIsLoading(true);
       await PocService.acceptPocInvite(params.inviteCode as string);
+      router.push("/poc");
     } catch (error) {
       setError(
         error instanceof ApiError ? error.message : "An unknown error occurred"

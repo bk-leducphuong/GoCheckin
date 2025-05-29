@@ -16,7 +16,7 @@ import { Otp } from 'src/auth/entities/otp.entity';
 import { ResetToken } from 'src/auth/entities/reset-token.entity';
 import { FloorPlan } from 'src/floor-plan/entities/floor-plan.entity';
 import { PocLocation } from '../../poc/entities/poc-location.entity';
-import { InvitedPoc } from 'src/poc/entities/invited-poc.entity';
+import { PocInvite } from 'src/poc/entities/poc-invite';
 
 // Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../../logs');
@@ -82,7 +82,7 @@ export const getDatabaseConfig = (
     ResetToken,
     FloorPlan,
     PocLocation,
-    InvitedPoc,
+    PocInvite,
   ],
   migrations: [__dirname + '/../database/migrations/*{.ts,.js}'], // looks for migration files in the migrations directory
   synchronize: configService.get('NODE_ENV') === 'development', // automatically updates database schema

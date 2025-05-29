@@ -26,6 +26,7 @@ import { ValidatePocDto } from './dto/validate-poc.dto';
 import { PocLocationsDto } from './dto/poc-locations.dto';
 import { RegisterPocUserDto } from './dto/register-poc-user.dto';
 import { InvitePocUserDto } from './dto/invite-poc-user.dto';
+import { PocInvite } from './entities/poc-invite';
 
 @ApiTags('points-of-checkin')
 @Controller('pocs')
@@ -219,5 +220,19 @@ export class PocController {
     @Query('inviteCode') inviteCode: string,
   ) {
     return this.pocService.acceptPocInvite(user, inviteCode);
+  }
+
+  @Get('invite')
+  @Roles(UserRole.POC)
+  @ApiOperation({ summary: 'Get POC invite' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'POC invite found successfully',
+  })
+  async getPocInvite(
+    @Query('eventCode') eventCode: string,
+    @Query('pointCode') pointCode: string,
+  ): Promise<PocInvite> {
+    return this.pocService.getPocInvite(eventCode, pointCode);
   }
 }

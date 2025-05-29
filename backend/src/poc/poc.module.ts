@@ -8,11 +8,11 @@ import { AccountModule } from 'src/account/account.module';
 import { PocLocation } from './entities/poc-location.entity';
 import { FloorPlanModule } from 'src/floor-plan/floor-plan.module';
 import { MailModule } from 'src/mail/mail.module';
-import { InvitedPoc } from './entities/invited-poc.entity';
+import { PocInvite } from './entities/poc-invite';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PointOfCheckin, PocLocation, InvitedPoc]),
+    TypeOrmModule.forFeature([PointOfCheckin, PocLocation, PocInvite]),
     forwardRef(() => EventModule),
     AccountModule,
     forwardRef(() => FloorPlanModule),

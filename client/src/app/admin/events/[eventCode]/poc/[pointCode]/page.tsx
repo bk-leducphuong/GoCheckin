@@ -8,12 +8,13 @@ import { z } from "zod";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { PocService } from "@/services/admin/poc.service";
-import { Poc, PocManager, UpdatePocRequest } from "@/types/poc";
+import { Poc, UpdatePocRequest } from "@/types/poc";
 import { useEventStore } from "@/store/admin/eventStore";
 import { EventStatus } from "@/types/event";
 import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { ApiError } from "@/lib/error";
+import PocManagerInfo from "@/components/admin/poc/PocManagerInfo";
 
 // POC update validation schema
 const pocSchema = z.object({
@@ -36,7 +37,6 @@ export default function PocDetailsPage() {
   const [poc, setPoc] = useState<Poc | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [pocManager, setPocManager] = useState<PocManager | null>(null);
   const selectedEvent = useEventStore((state) => state.selectedEvent);
 
   const {
@@ -96,33 +96,6 @@ export default function PocDetailsPage() {
     fetchPoc();
   }, [params, reset, router]);
 
-  // Get POC manager information
-  useEffect(() => {
-    const fetchPocManager = async () => {
-      try {
-        if (!poc || !poc.userId) return;
-
-        setIsLoading(true);
-
-        const pocManager = await PocService.getPocManager(poc.userId);
-        if (pocManager) {
-          setPocManager(pocManager);
-        }
-        setIsLoading(false);
-      } catch (error) {
-        if (error instanceof ApiError) {
-          setError(error.message);
-        } else {
-          setError("Failed to fetch POC manager. Please try again.");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPocManager();
-  }, [poc, reset, router]);
-
   const onSubmit = async (data: PocFormData) => {
     setIsLoading(true);
     if (selectedEvent?.eventStatus !== EventStatus.PUBLISHED) {
@@ -148,11 +121,11 @@ export default function PocDetailsPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !poc) {
     return <Loading />;
   }
 
-  if (error || !poc) {
+  if (error && !isLoading) {
     return <Error message={error || "POC not found"} redirectTo="/login" />;
   }
 
@@ -241,85 +214,7 @@ export default function PocDetailsPage() {
             />
           </div>
 
-          {/* POC Manager Information */}
-          <div className="mt-8">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              POC Manager Information
-            </h2>
-            {pocManager ? (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-center">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl font-semibold">
-                    {poc.userId?.charAt(0)?.toUpperCase() || "P"}
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-sm font-medium text-gray-900">
-                      {pocManager?.username}
-                    </h3>
-                    <p className="text-sm text-gray-500">{pocManager?.email}</p>
-                    <p className="text-sm text-gray-500">
-                      Registered on{" "}
-                      {new Date(pocManager?.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="text-center text-orange-500">
-                  This POC is not assigned to any manager.
-                </div>
-                <div className="flex justify-center mt-4">
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      router.push(
-                        `/admin/events/${params?.eventCode}/poc/${params?.pointCode}/event-invite`
-                      )
-                    }
-                  >
-                    Assign POC Manager
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Activity History */}
-          {pocManager && (
-            <div className="mt-8">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">
-                Recent Activity
-              </h2>
-              <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
-                  {[1, 2, 3].map((item) => (
-                    <li key={item}>
-                      <div className="px-4 py-4 sm:px-6">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-blue-600 truncate">
-                            Activity {item}
-                          </p>
-                          <div className="ml-2 flex-shrink-0 flex">
-                            <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              {item} hour{item === 1 ? "" : "s"} ago
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-2 sm:flex sm:justify-between">
-                          <div className="sm:flex">
-                            <p className="flex items-center text-sm text-gray-500">
-                              Activity description here
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
+          <PocManagerInfo poc={poc} event={selectedEvent} />
 
           {isEditing && (
             <div className="flex justify-end space-x-4">

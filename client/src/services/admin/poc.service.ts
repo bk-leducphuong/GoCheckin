@@ -7,6 +7,7 @@ import {
   PocLocations,
   PocLocation,
   SendPocInviteRequest,
+  PocInvite,
 } from "@/types/poc";
 
 export const PocService = {
@@ -47,5 +48,11 @@ export const PocService = {
   },
   async sendPocInvite(data: SendPocInviteRequest): Promise<void> {
     await api.post("/pocs/invite", data);
+  },
+  async getPocInvite(eventCode: string, pointCode: string): Promise<PocInvite> {
+    const response = await api.get(
+      `/pocs/invite?eventCode=${eventCode}&pointCode=${pointCode}`
+    );
+    return response.data.data;
   },
 };

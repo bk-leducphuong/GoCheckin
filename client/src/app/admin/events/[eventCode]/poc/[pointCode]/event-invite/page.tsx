@@ -4,17 +4,49 @@ import Loading from "@/components/ui/Loading";
 import Error from "@/components/ui/Error";
 import { ApiError } from "@/lib/error";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { PocService } from "@/services/admin/poc.service";
 import { useRouter } from "next/navigation";
+import { usePocStore } from "@/store/admin/pocStore";
+import { useShallow } from "zustand/react/shallow";
 
 export default function EventInvitePage() {
   const params = useParams();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+  const { pocInvite, setPocInvite, getPocInvite } = usePocStore(
+    useShallow((state) => ({
+      pocInvite: state.pocInvite,
+      setPocInvite: state.setPocInvite,
+      getPocInvite: state.getPocInvite,
+    }))
+  );
+
+  useEffect(() => {
+    const fetchPocInvite = async () => {
+      try {
+        if (!params) {
+          setError("Event code and point code are required");
+          return;
+        }
+        const eventCode = params.eventCode as string;
+        const pointCode = params.pointCode as string;
+        await getPocInvite(eventCode, pointCode);
+      } catch (error) {
+        setError(
+          error instanceof ApiError
+            ? error.message
+            : "Failed to fetch POC invite"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPocInvite();
+  }, [params, getPocInvite]);
 
   // Call api to sent invite email
   const sendInvite = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -66,13 +98,30 @@ export default function EventInvitePage() {
   }
 
   return (
-    <div>
-      <h1>Event Invite</h1>
-      <p>This page is used to send an invite email to the POC for the event.</p>
-      <form onSubmit={sendInvite}>
-        <Input type="email" name="email" placeholder="Email" />
-        <Button type="submit">Send Invite</Button>
-      </form>
-    </div>
+    <>
+      {pocInvite ? (
+        <div>
+          <h1>Event Invite</h1>
+          <p>
+            This page is used to send an invite email to the POC for the event.
+          </p>
+          <form onSubmit={sendInvite}>
+            <Input type="email" name="email" placeholder="Email" />
+            <Button type="submit">Send Invite</Button>
+          </form>
+        </div>
+      ) : (
+        <div>
+          <h1>Event Invite</h1>
+          <p>
+            This page is used to send an invite email to the POC for the event.
+          </p>
+          <form onSubmit={sendInvite}>
+            <Input type="email" name="email" placeholder="Email" />
+            <Button type="submit">Send Invite</Button>
+          </form>
+        </div>
+      )}
+    </>
   );
 }

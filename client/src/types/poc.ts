@@ -84,3 +84,20 @@ export interface SendPocInviteRequest {
   pointCode: string;
   email: string;
 }
+
+export enum PocInviteStatus {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+}
+
+export interface PocInvite {
+  id: string;
+  eventCode: string;
+  pointCode: string;
+  email: string;
+  status: PocInviteStatus;
+  inviteCode: string;
+  createdAt: string;
+  updatedAt: string;
+}

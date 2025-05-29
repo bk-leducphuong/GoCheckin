@@ -6,14 +6,14 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum InvitedPocStatus {
+export enum PocInviteStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
 }
 
 @Entity()
-export class InvitedPoc {
+export class PocInvite {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -26,8 +26,8 @@ export class InvitedPoc {
   @Column({ name: 'email', type: 'varchar', length: 255 })
   email: string;
 
-  @Column({ name: 'status', type: 'enum', enum: InvitedPocStatus })
-  status: InvitedPocStatus;
+  @Column({ name: 'status', type: 'enum', enum: PocInviteStatus })
+  status: PocInviteStatus;
 
   @Column({ name: 'invite_code', type: 'varchar', length: 50, nullable: true })
   inviteCode: string;

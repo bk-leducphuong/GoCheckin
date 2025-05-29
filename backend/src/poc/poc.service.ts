@@ -22,7 +22,7 @@ import { FloorPlanService } from 'src/floor-plan/floor-plan.service';
 import { RegisterPocUserDto } from './dto/register-poc-user.dto';
 import { MailService } from 'src/mail/mail.service';
 import { InvitePocUserDto } from './dto/invite-poc-user.dto';
-import { InvitedPoc, InvitedPocStatus } from './entities/invited-poc.entity';
+import { PocInvite, PocInviteStatus } from './entities/poc-invite';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -32,8 +32,8 @@ export class PocService {
     private pocRepository: Repository<PointOfCheckin>,
     @InjectRepository(PocLocation)
     private pocLocationRepository: Repository<PocLocation>,
-    @InjectRepository(InvitedPoc)
-    private invitedPocRepository: Repository<InvitedPoc>,
+    @InjectRepository(PocInvite)
+    private invitedPocRepository: Repository<PocInvite>,
     @Inject(forwardRef(() => EventService))
     private eventService: EventService,
     private accountService: AccountService,
@@ -367,7 +367,7 @@ export class PocService {
         eventCode,
         pointCode,
         email,
-        status: InvitedPocStatus.PENDING,
+        status: PocInviteStatus.PENDING,
         inviteCode,
       });
       await this.invitedPocRepository.save(invitedPoc);
@@ -387,7 +387,7 @@ export class PocService {
   async acceptPocInvite(user: JwtPayload, inviteCode: string): Promise<void> {
     try {
       const invitedPoc = await this.invitedPocRepository.findOne({
-        where: { inviteCode, status: InvitedPocStatus.PENDING },
+        where: { inviteCode, status: PocInviteStatus.PENDING },
       });
       if (!invitedPoc) {
         throw new NotFoundException('Not found invited poc!');
@@ -395,7 +395,7 @@ export class PocService {
 
       await this.invitedPocRepository.update(
         { inviteCode },
-        { status: InvitedPocStatus.ACCEPTED },
+        { status: PocInviteStatus.ACCEPTED },
       );
 
       await this.pocRepository.update(
@@ -404,6 +404,21 @@ export class PocService {
       );
     } catch (error) {
       console.error('Error accepting POC invite:', error);
+      throw error;
+    }
+  }
+
+  async getPocInvite(eventCode: string, pointCode: string): Promise<PocInvite> {
+    try {
+      const pocInvite = await this.invitedPocRepository.findOne({
+        where: { eventCode, pointCode },
+      });
+      if (!pocInvite) {
+        throw new NotFoundException('Not found poc invite!');
+      }
+      return pocInvite;
+    } catch (error) {
+      console.error('Error getting POC invite:', error);
       throw error;
     }
   }

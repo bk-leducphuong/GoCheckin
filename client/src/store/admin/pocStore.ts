@@ -1,4 +1,4 @@
-import { Poc, UpdatePocRequest } from "@/types/poc";
+import { Poc, PocInvite, UpdatePocRequest } from "@/types/poc";
 import { create } from "zustand";
 import { PocService } from "@/services/admin/poc.service";
 import { devtools } from "zustand/middleware";
@@ -6,8 +6,11 @@ import { devtools } from "zustand/middleware";
 interface PocStore {
   pocList: Poc[];
   eventCode: string;
+  pocInvite: PocInvite | null;
+  setPocInvite: (pocInvite: PocInvite | null) => void;
   setPocList: (pocList: Poc[]) => void;
   getAllPocs: (eventCode: string) => Promise<Poc[]>;
+  getPocInvite: (eventCode: string, pointCode: string) => Promise<PocInvite>;
 }
 
 export const usePocStore = create<PocStore>()(
@@ -15,6 +18,10 @@ export const usePocStore = create<PocStore>()(
     (set, get) => ({
       poc: null,
       pocList: [],
+      pocInvite: null,
+      setPocInvite: (pocInvite: PocInvite | null) => {
+        set({ pocInvite: pocInvite });
+      },
       setPocList: (pocList: Poc[]) => {
         set({ pocList: pocList });
       },
@@ -58,6 +65,15 @@ export const usePocStore = create<PocStore>()(
           }));
         } catch (error) {
           console.error("Error removing POC:", error);
+          throw error;
+        }
+      },
+      getPocInvite: async (eventCode: string, pointCode: string) => {
+        try {
+          const pocInvite = await PocService.getPocInvite(eventCode, pointCode);
+          set({ pocInvite: pocInvite });
+        } catch (error) {
+          console.error("Error getting POC invite:", error);
           throw error;
         }
       },
