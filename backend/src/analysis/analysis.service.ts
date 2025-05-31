@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EventCheckinAnalysisRepository } from '../repositories/event-checkin-analysis.repository';
+import { PointCheckinAnalysisRepository } from '../repositories/point-checkin-analysis.repository';
 import { EventCheckinAnalytics } from './entities/event-checkin-analytics.entity';
 import { PointCheckinAnalytics } from './entities/point-checkin-analytics.entity';
 import { GuestService } from 'src/guest/guest.service';
@@ -12,10 +12,8 @@ import { EventStatus } from 'src/event/entities/event.entity';
 @Injectable()
 export class AnalysisService {
   constructor(
-    @InjectRepository(EventCheckinAnalytics)
-    private eventCheckinAnalyticsRepository: Repository<EventCheckinAnalytics>,
-    @InjectRepository(PointCheckinAnalytics)
-    private pointCheckinAnalyticsRepository: Repository<PointCheckinAnalytics>,
+    private readonly eventCheckinAnalyticsRepository: EventCheckinAnalysisRepository,
+    private readonly pointCheckinAnalyticsRepository: PointCheckinAnalysisRepository,
     private guestService: GuestService,
     private eventService: EventService,
     private pocService: PocService,
@@ -30,9 +28,8 @@ export class AnalysisService {
 
       if (eventStatus == EventStatus.COMPLETED) {
         // Check if analytics already exist
-        const oldAnalytics = await this.eventCheckinAnalyticsRepository.find({
-          where: { eventCode },
-        });
+        const oldAnalytics =
+          await this.eventCheckinAnalyticsRepository.findByEventCode(eventCode);
         if (oldAnalytics.length > 0) {
           return oldAnalytics;
         }
@@ -112,9 +109,8 @@ export class AnalysisService {
       const eventStatus = await this.eventService.getEventStatus(eventCode);
 
       if (eventStatus == EventStatus.COMPLETED) {
-        const oldAnalytics = await this.pointCheckinAnalyticsRepository.find({
-          where: { eventCode },
-        });
+        const oldAnalytics =
+          await this.pointCheckinAnalyticsRepository.findByEventCode(eventCode);
         if (oldAnalytics.length > 0) {
           return oldAnalytics;
         }
@@ -170,7 +166,7 @@ export class AnalysisService {
         const analytic = this.pointCheckinAnalyticsRepository.create({
           eventCode,
           pointCode,
-          timeInterval,
+          timeInterval: new Date(timeInterval),
           intervalDuration,
           checkinCount,
           createdAt: new Date(),

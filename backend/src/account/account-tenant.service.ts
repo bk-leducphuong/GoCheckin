@@ -3,47 +3,40 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { AccountTenantRepository } from '../repositories/account-tenant.repository';
 import { AccountTenant } from './entities/account-tenant.entity';
 
 @Injectable()
 export class AccountTenantService {
   constructor(
-    @InjectRepository(AccountTenant)
-    private accountTenantRepository: Repository<AccountTenant>,
+    private readonly accountTenantRepository: AccountTenantRepository,
   ) {}
 
   async createAccountTenantRelation(
     userId: string,
     tenantCode: string,
   ): Promise<void> {
-    try {
-      const accountTenant = await this.accountTenantRepository.findOne({
-        where: { userId: userId, tenantCode: tenantCode },
-      });
-      if (accountTenant) {
-        throw new UnauthorizedException('Account already exists in tenant');
-      }
-      const newAccountTenant = this.accountTenantRepository.create({
-        userId: userId,
-        tenantCode: tenantCode,
-      });
-      await this.accountTenantRepository.save(newAccountTenant);
-    } catch (error) {
-      console.log(error);
-      throw error;
+    const existingAccountTenant =
+      await this.accountTenantRepository.findByUserIdAndTenantCode(
+        userId,
+        tenantCode,
+      );
+
+    if (existingAccountTenant) {
+      throw new UnauthorizedException('Account already exists in tenant');
     }
+
+    await this.accountTenantRepository.create(userId, tenantCode);
   }
 
   async findTenantsByUserId(userId: string): Promise<AccountTenant> {
-    const accountTenant = await this.accountTenantRepository.findOne({
-      where: { userId },
-      relations: ['tenant'],
-    });
+    const accountTenant =
+      await this.accountTenantRepository.findTenantsByUserId(userId);
+
     if (!accountTenant) {
       throw new NotFoundException('No tenant found for user');
     }
+
     return accountTenant;
   }
 }

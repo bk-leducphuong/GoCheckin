@@ -1,19 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { TokenRepository } from '../repositories/token.repository';
 import { Token } from './entities/token.entity';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
-import { LessThan, MoreThan } from 'typeorm';
 
 @Injectable()
 export class RefreshTokenService {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
-    @InjectRepository(Token)
-    private tokenRepository: Repository<Token>,
+    private readonly tokenRepository: TokenRepository,
   ) {}
 
   async generateRefreshToken(
@@ -66,13 +63,8 @@ export class RefreshTokenService {
       });
 
       // Check if token exists in database and is not expired or revoked
-      const tokenEntity = await this.tokenRepository.findOne({
-        where: {
-          refreshToken,
-          isRevoked: false,
-          expiresAt: MoreThan(new Date()),
-        },
-      });
+      const tokenEntity =
+        await this.tokenRepository.findActiveToken(refreshToken);
 
       if (!tokenEntity) {
         return null;
@@ -82,18 +74,6 @@ export class RefreshTokenService {
     } catch (error) {
       console.error('Error validating refresh token:', error);
       return null;
-    }
-  }
-
-  /**
-   * Revoke a refresh token
-   */
-  async revokeRefreshToken(refreshToken: string): Promise<void> {
-    try {
-      await this.tokenRepository.update({ refreshToken }, { isRevoked: true });
-    } catch (error) {
-      console.error('Error revoking refresh token:', error);
-      throw error;
     }
   }
 
@@ -114,9 +94,7 @@ export class RefreshTokenService {
    */
   async cleanupExpiredTokens(): Promise<void> {
     try {
-      await this.tokenRepository.delete({
-        expiresAt: LessThan(new Date()),
-      });
+      await this.tokenRepository.deleteExpiredTokens();
     } catch (error) {
       console.error('Error cleaning up expired tokens:', error);
       throw error;
@@ -128,13 +106,7 @@ export class RefreshTokenService {
    */
   async getUserTokens(userId: string): Promise<Token[]> {
     try {
-      return this.tokenRepository.find({
-        where: {
-          userId,
-          isRevoked: false,
-          expiresAt: MoreThan(new Date()),
-        },
-      });
+      return this.tokenRepository.findUserTokens(userId);
     } catch (error) {
       console.log(error);
       throw error;

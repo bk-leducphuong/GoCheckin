@@ -7,6 +7,8 @@ import { GuestCheckin } from './entities/guest-checkin.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { S3Service } from 'src/common/services/s3.service';
+import { GuestRepository } from '../repositories/guest.repository';
+import { GuestCheckinRepository } from '../repositories/guest-checkin.repository';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { S3Service } from 'src/common/services/s3.service';
     }),
   ],
   controllers: [GuestController],
-  providers: [GuestService, S3Service],
+  providers: [GuestService, S3Service, GuestRepository, GuestCheckinRepository],
   exports: [GuestService],
 })
 export class GuestModule {}

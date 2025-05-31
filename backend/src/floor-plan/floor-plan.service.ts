@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FloorPlanRepository } from '../repositories/floor-plan.repository';
 import { FloorPlan } from './entities/floor-plan.entity';
 import { FloorPlanDto } from './dto/floor-plan.dto';
 import { S3Service } from 'src/common/services/s3.service';
@@ -9,17 +8,15 @@ import { PocService } from 'src/poc/poc.service';
 @Injectable()
 export class FloorPlanService {
   constructor(
-    @InjectRepository(FloorPlan)
-    private readonly floorPlanRepository: Repository<FloorPlan>,
+    private readonly floorPlanRepository: FloorPlanRepository,
     private readonly s3Service: S3Service,
     private readonly pocService: PocService,
   ) {}
 
   async getFloorPlanByEventCode(eventCode: string): Promise<FloorPlan> {
     try {
-      const floorPlan = await this.floorPlanRepository.findOne({
-        where: { eventCode },
-      });
+      const floorPlan =
+        await this.floorPlanRepository.findByEventCode(eventCode);
 
       if (!floorPlan) {
         throw new NotFoundException('Floor plan not found');
@@ -53,9 +50,8 @@ export class FloorPlanService {
     try {
       const { eventCode, floorPlanImageUrl } = floorPlanDto;
 
-      const floorPlan = await this.floorPlanRepository.findOne({
-        where: { eventCode: eventCode },
-      });
+      const floorPlan =
+        await this.floorPlanRepository.findByEventCode(eventCode);
       if (floorPlan) {
         await this.removeFloorPlan(eventCode);
       }
@@ -73,9 +69,8 @@ export class FloorPlanService {
 
   async getFloorPlanImage(eventCode: string): Promise<string> {
     try {
-      const floorPlan = await this.floorPlanRepository.findOne({
-        where: { eventCode },
-      });
+      const floorPlan =
+        await this.floorPlanRepository.findByEventCode(eventCode);
 
       if (!floorPlan) {
         throw new NotFoundException('Floor plan not found');
@@ -91,9 +86,8 @@ export class FloorPlanService {
 
   async removeFloorPlan(eventCode: string): Promise<void> {
     try {
-      const floorPlan = await this.floorPlanRepository.findOne({
-        where: { eventCode },
-      });
+      const floorPlan =
+        await this.floorPlanRepository.findByEventCode(eventCode);
 
       if (floorPlan) {
         await this.pocService.removePocLocations(floorPlan.floorPlanId); // hard delete

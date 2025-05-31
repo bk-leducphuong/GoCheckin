@@ -1,21 +1,17 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
-import { Otp } from './entities/otp.entity';
-import { ResetToken } from './entities/reset-token.entity';
+import { OtpRepository } from '../repositories/otp.repository';
+import { ResetTokenRepository } from '../repositories/reset-token.repository';
 import { hash, compare } from 'bcrypt';
 import { randomInt, randomBytes } from 'crypto';
-import { AccountService } from 'src/account/account.service';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { AccountRepository } from 'src/repositories/account.repository';
 
 @Injectable()
 export class OtpService {
   constructor(
-    @InjectRepository(Otp)
-    private readonly otpRepository: Repository<Otp>,
-    @InjectRepository(ResetToken)
-    private readonly resetTokenRepository: Repository<ResetToken>,
-    private readonly accountService: AccountService,
+    private readonly otpRepository: OtpRepository,
+    private readonly resetTokenRepository: ResetTokenRepository,
+    private readonly accountRepository: AccountRepository,
   ) {}
 
   async generateOtp(userId: string): Promise<string> {
@@ -41,17 +37,16 @@ export class OtpService {
     verifyOtpDto: VerifyOtpDto,
   ): Promise<{ resetToken: string; userId: string }> {
     try {
-      const account = await this.accountService.findByEmail(verifyOtpDto.email);
+      const account = await this.accountRepository.findByEmail(
+        verifyOtpDto.email,
+      );
       if (!account) {
         throw new BadRequestException('Invalid or expired code');
       }
 
-      const otpRecord = await this.otpRepository.findOne({
-        where: {
-          userId: account.userId,
-          expriedAt: MoreThan(new Date()),
-        },
-      });
+      const otpRecord = await this.otpRepository.findByUserIdNotExpired(
+        account.userId,
+      );
 
       if (!otpRecord) {
         throw new BadRequestException('Invalid or expired code');
