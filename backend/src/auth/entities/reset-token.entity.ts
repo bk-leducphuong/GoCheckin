@@ -1,4 +1,10 @@
-import { PrimaryGeneratedColumn, Column, Entity, ManyToOne } from 'typeorm';
+import {
+  PrimaryGeneratedColumn,
+  Column,
+  Entity,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Account } from 'src/account/entities/account.entity';
 
 @Entity('reset_tokens')
@@ -15,6 +21,10 @@ export class ResetToken {
   @Column({ name: 'exprised_at' })
   expriedAt: Date;
 
-  @ManyToOne(() => Account, (account) => account.resetTokens)
+  // Relations
+  @ManyToOne(() => Account, (account) => account.resetTokens, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_id' })
   account: Account;
 }

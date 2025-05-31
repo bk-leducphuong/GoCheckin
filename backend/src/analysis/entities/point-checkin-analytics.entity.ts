@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Event } from '../../event/entities/event.entity'; // Adjust the import path as necessary
 import { PointOfCheckin } from '../../poc/entities/poc.entity'; // Adjust the import path as necessary
 
@@ -28,13 +34,16 @@ export class PointCheckinAnalytics {
   @Column({ name: 'updated_at' })
   updatedAt: Date;
 
+  // Relations
   @ManyToOne(() => Event, (event) => event.pointCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
-  event: Event; // Assuming you have an Event entity defined somewhere
+  @JoinColumn({ name: 'event_code' })
+  event: Event;
 
   @ManyToOne(() => PointOfCheckin, (point) => point.pointCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
-  point: PointOfCheckin; // Assuming you have a PointCheckinAnalytics entity defined somewhere
+  @JoinColumn({ name: 'point_code' })
+  point: PointOfCheckin;
 }

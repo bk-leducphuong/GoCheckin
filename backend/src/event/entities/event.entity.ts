@@ -8,12 +8,15 @@ import {
   JoinColumn,
   OneToMany,
   OneToOne,
+  Check,
 } from 'typeorm';
 import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Guest } from '../../guest/entities/guest.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 import { EventCheckinAnalytics } from '../../analysis/entities/event-checkin-analytics.entity';
 import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
+import { PocInvite } from 'src/poc/entities/poc-invite';
+import { GuestCheckin } from 'src/guest/entities/guest-checkin.entity';
 
 export enum AccessType {
   PUBLIC = 'public',
@@ -71,6 +74,7 @@ export class Event {
   venueAddress: string;
 
   @Column({ nullable: true })
+  @Check('check_capacity_non_negative', 'capacity >= 0')
   capacity: number;
 
   @Column({
@@ -104,25 +108,48 @@ export class Event {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.events)
+  // Relations
+  @ManyToOne(() => Tenant, (tenant) => tenant.events, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_code', referencedColumnName: 'tenantCode' })
   tenant: Tenant;
 
-  @OneToMany(() => Guest, (guest) => guest.event)
+  @OneToMany(() => Guest, (guest) => guest.event, {
+    cascade: true,
+  })
   guests: Guest[];
 
   @OneToMany(
     () => PointCheckinAnalytics,
     (pointCheckinAnalytics) => pointCheckinAnalytics.event,
+    {
+      cascade: true,
+    },
   )
   pointCheckinAnalytics: PointCheckinAnalytics[];
 
   @OneToMany(
     () => EventCheckinAnalytics,
     (eventCheckinAnalytics) => eventCheckinAnalytics.event,
+    {
+      cascade: true,
+    },
   )
   eventCheckinAnalytics: EventCheckinAnalytics[];
 
-  @OneToOne(() => FloorPlan, (floorPlan) => floorPlan.event)
+  @OneToOne(() => FloorPlan, (floorPlan) => floorPlan.event, {
+    cascade: true,
+  })
   floorPlan: FloorPlan;
+
+  @OneToMany(() => PocInvite, (pocInvite) => pocInvite.event, {
+    cascade: true,
+  })
+  pocInvites: PocInvite[];
+
+  @OneToMany(() => GuestCheckin, (guestCheckin) => guestCheckin.event, {
+    cascade: true,
+  })
+  guestCheckins: GuestCheckin[];
 }

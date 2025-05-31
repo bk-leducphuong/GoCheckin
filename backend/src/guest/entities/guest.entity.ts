@@ -75,11 +75,15 @@ export class Guest {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => Event, (event) => event.guests)
+  // Relations
+  @ManyToOne(() => Event, (event) => event.guests, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
   event: Event;
 
-  // Relations
-  @OneToMany(() => GuestCheckin, (checkin) => checkin.guest)
+  @OneToMany(() => GuestCheckin, (checkin) => checkin.guest, {
+    cascade: true,
+  })
   checkins: GuestCheckin[];
 }

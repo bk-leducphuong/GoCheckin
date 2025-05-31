@@ -23,11 +23,14 @@ export class AccountTenant {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => Account)
+  // Relations
+  @ManyToOne(() => Account, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
   account: Account;
 
-  @ManyToOne(() => Tenant)
+  @ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenant_code', referencedColumnName: 'tenantCode' })
   tenant: Tenant;
 }

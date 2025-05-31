@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 import { Account } from '../../account/entities/account.entity';
 
@@ -34,6 +35,10 @@ export class Token {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => Account, (account) => account.refreshTokens)
+  // Relations
+  @ManyToOne(() => Account, (account) => account.refreshTokens, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_id' })
   user: Account;
 }

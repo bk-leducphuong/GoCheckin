@@ -13,6 +13,8 @@ import { Event } from '../../event/entities/event.entity';
 import { Account } from '../../account/entities/account.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 import { PocLocation } from '../entities/poc-location.entity';
+import { PocInvite } from './poc-invite';
+import { GuestCheckin } from 'src/guest/entities/guest-checkin.entity';
 
 export enum PointStatus {
   ACTIVE = 'active',
@@ -60,20 +62,40 @@ export class PointOfCheckin {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToOne(() => Event)
+  @ManyToOne(() => Event, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
   event: Event;
 
-  @ManyToOne(() => Account)
+  @ManyToOne(() => Account, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
   account: Account;
 
   @OneToMany(
     () => PointCheckinAnalytics,
     (pointCheckinAnalytics) => pointCheckinAnalytics.point,
+    {
+      cascade: true,
+    },
   )
   pointCheckinAnalytics: PointCheckinAnalytics[];
 
-  @OneToOne(() => PocLocation, (floorPlan) => floorPlan.poc)
+  // Relations
+  @OneToOne(() => PocLocation, (floorPlan) => floorPlan.poc, {
+    cascade: true,
+  })
   location: PocLocation;
+
+  @OneToMany(() => PocInvite, (pocInvite) => pocInvite.point, {
+    cascade: true,
+  })
+  pocInvites: PocInvite[];
+
+  @OneToMany(() => GuestCheckin, (guestCheckin) => guestCheckin.point, {
+    cascade: true,
+  })
+  guestCheckins: GuestCheckin[];
 }

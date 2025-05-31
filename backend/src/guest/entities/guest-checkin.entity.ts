@@ -7,6 +7,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Guest } from './guest.entity';
+import { PointOfCheckin } from 'src/poc/entities/poc.entity';
+import { Event } from 'src/event/entities/event.entity';
 
 @Entity('guest_checkins')
 export class GuestCheckin {
@@ -32,7 +34,21 @@ export class GuestCheckin {
   checkinTime: Date;
 
   // Relations
-  @ManyToOne(() => Guest, (guest) => guest.checkins)
+  @ManyToOne(() => Guest, (guest) => guest.checkins, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'guest_id' })
   guest: Guest;
+
+  @ManyToOne(() => PointOfCheckin, (point) => point.guestCheckins, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'point_code' })
+  point: PointOfCheckin;
+
+  @ManyToOne(() => Event, (event) => event.guestCheckins, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'event_code' })
+  event: Event;
 }

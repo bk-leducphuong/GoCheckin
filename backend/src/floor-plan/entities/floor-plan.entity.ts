@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { Event } from '../../event/entities/event.entity';
 import { PocLocation } from '../../poc/entities/poc-location.entity';
@@ -25,9 +26,15 @@ export class FloorPlan {
   @Column({ name: 'updated_at', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
-  @OneToOne(() => Event, (event) => event.floorPlan)
+  // Relations
+  @OneToOne(() => Event, (event) => event.floorPlan, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'event_code' })
   event: Event;
 
-  @OneToMany(() => PocLocation, (pocLocation) => pocLocation.floorPlan)
+  @OneToMany(() => PocLocation, (pocLocation) => pocLocation.floorPlan, {
+    cascade: true,
+  })
   locations: PocLocation[];
 }

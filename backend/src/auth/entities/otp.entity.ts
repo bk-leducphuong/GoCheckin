@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Account } from 'src/account/entities/account.entity';
 
 @Entity('otp')
@@ -18,6 +24,10 @@ export class Otp {
   @Column({ name: 'attempts' })
   attempts: number;
 
-  @ManyToOne(() => Account, (account) => account.otp)
+  // Relations
+  @ManyToOne(() => Account, (account) => account.otp, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'user_id' })
   account: Account;
 }

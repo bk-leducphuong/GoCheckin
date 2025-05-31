@@ -4,7 +4,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
   OneToMany,
 } from 'typeorm';
 import { Token } from '../../auth/entities/token.entity';
@@ -46,12 +45,19 @@ export class Account {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @ManyToMany(() => Token, (token) => token.user)
+  // Relations
+  @OneToMany(() => Token, (token) => token.user, {
+    cascade: true,
+  })
   refreshTokens: Token[];
 
-  @OneToMany(() => Token, (token) => token.user)
+  @OneToMany(() => Token, (token) => token.user, {
+    cascade: true,
+  })
   otp: Otp[];
 
-  @OneToMany(() => ResetToken, (resetToken) => resetToken.account)
+  @OneToMany(() => ResetToken, (resetToken) => resetToken.account, {
+    cascade: true,
+  })
   resetTokens: ResetToken[];
 }

@@ -37,10 +37,16 @@ export class PocLocation {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToOne(() => PointOfCheckin, (poc) => poc.location)
+  // Relations
+  @OneToOne(() => PointOfCheckin, (poc) => poc.location, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'poc_id' })
   poc: PointOfCheckin;
 
-  @ManyToOne(() => FloorPlan, (floorPlan) => floorPlan.locations)
+  @ManyToOne(() => FloorPlan, (floorPlan) => floorPlan.locations, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'floor_plan_id' })
   floorPlan: FloorPlan;
 }

@@ -49,12 +49,14 @@ export class Tenant {
   })
   contactEmail: string;
 
-  @OneToMany(() => Event, (event) => event.tenant)
-  events: Event[];
-
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
+
+  @OneToMany(() => Event, (event) => event.tenant, {
+    cascade: true,
+  })
+  events: Event[];
 }

@@ -4,7 +4,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Event } from 'src/event/entities/event.entity';
+import { PointOfCheckin } from './poc.entity';
 
 export enum PocInviteStatus {
   PENDING = 'pending',
@@ -37,4 +41,17 @@ export class PocInvite {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  // Relations
+  @ManyToOne(() => Event, (event) => event.pocInvites, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'event_code' })
+  event: Event;
+
+  @ManyToOne(() => PointOfCheckin, (point) => point.pocInvites, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'point_code' })
+  point: PointOfCheckin;
 }
