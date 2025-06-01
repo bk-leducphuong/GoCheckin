@@ -7,6 +7,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { S3Service } from 'src/common/services/s3.service';
 import { PocModule } from 'src/poc/poc.module';
+import { FloorPlanRepository } from '../repositories/floor-plan.repository';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { PocModule } from 'src/poc/poc.module';
     forwardRef(() => PocModule),
   ],
   controllers: [FloorPlanController],
-  providers: [FloorPlanService, S3Service],
+  providers: [FloorPlanService, S3Service, FloorPlanRepository],
   exports: [FloorPlanService],
 })
 export class FloorPlanModule {}

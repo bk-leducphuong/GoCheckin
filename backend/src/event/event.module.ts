@@ -9,6 +9,8 @@ import { PocModule } from 'src/poc/poc.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { S3Service } from 'src/common/services/s3.service';
+import { EventRepository } from '../repositories/event.repository';
+import { AccountTenantRepository } from '../repositories/account-tenant.repository';
 
 @Module({
   imports: [
@@ -26,7 +28,12 @@ import { S3Service } from 'src/common/services/s3.service';
     }),
   ],
   controllers: [EventController],
-  providers: [EventService, S3Service],
+  providers: [
+    EventService,
+    S3Service,
+    EventRepository,
+    AccountTenantRepository,
+  ],
   exports: [EventService],
 })
 export class EventModule {}

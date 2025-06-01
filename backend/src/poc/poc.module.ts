@@ -9,6 +9,9 @@ import { PocLocation } from './entities/poc-location.entity';
 import { FloorPlanModule } from 'src/floor-plan/floor-plan.module';
 import { MailModule } from 'src/mail/mail.module';
 import { PocInvite } from './entities/poc-invite';
+import { PocRepository } from '../repositories/poc.repository';
+import { PocLocationRepository } from '../repositories/poc-location.repository';
+import { PocInviteRepository } from '../repositories/poc-invite.repository';
 
 @Module({
   imports: [
@@ -19,7 +22,12 @@ import { PocInvite } from './entities/poc-invite';
     forwardRef(() => MailModule),
   ],
   controllers: [PocController],
-  providers: [PocService],
+  providers: [
+    PocService,
+    PocRepository,
+    PocLocationRepository,
+    PocInviteRepository,
+  ],
   exports: [PocService],
 })
 export class PocModule {}

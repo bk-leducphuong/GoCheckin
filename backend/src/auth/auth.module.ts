@@ -17,6 +17,9 @@ import { OtpService } from './otp.service';
 import { ResetToken } from './entities/reset-token.entity';
 import { GoogleService } from './google.service';
 import { HttpModule } from '@nestjs/axios';
+import { OtpRepository } from '../repositories/otp.repository';
+import { TokenRepository } from '../repositories/token.repository';
+import { ResetTokenRepository } from '../repositories/reset-token.repository';
 
 @Module({
   imports: [
@@ -37,6 +40,9 @@ import { HttpModule } from '@nestjs/axios';
     RefreshTokenGuard,
     OtpService,
     GoogleService,
+    OtpRepository,
+    TokenRepository,
+    ResetTokenRepository,
   ],
   exports: [AuthService, RefreshTokenService, OtpService, GoogleService],
 })

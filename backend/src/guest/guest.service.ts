@@ -4,8 +4,8 @@ import {
   ConflictException,
   //   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { GuestRepository } from '../repositories/guest.repository';
+import { GuestCheckinRepository } from '../repositories/guest-checkin.repository';
 import { Guest, IdentityType } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
 import { CheckinDto } from './dto/checkin.dto';
@@ -14,22 +14,19 @@ import { S3Service } from 'src/common/services/s3.service';
 @Injectable()
 export class GuestService {
   constructor(
-    @InjectRepository(Guest)
-    private guestRepository: Repository<Guest>,
-    @InjectRepository(GuestCheckin)
-    private guestCheckinRepository: Repository<GuestCheckin>,
+    private readonly guestRepository: GuestRepository,
+    private readonly guestCheckinRepository: GuestCheckinRepository,
     private readonly s3Service: S3Service,
   ) {}
 
   async checkin(checkinDto: CheckinDto): Promise<GuestResponse> {
     try {
       // Check if guest has already checked in
-      const existingCheckin = await this.guestCheckinRepository.findOne({
-        where: {
-          guestCode: checkinDto.guestCode,
-          pointCode: checkinDto.pointCode,
-        },
-      });
+      const existingCheckin =
+        await this.guestCheckinRepository.findExistingCheckin(
+          checkinDto.guestCode,
+          checkinDto.pointCode,
+        );
       if (existingCheckin) {
         throw new ConflictException(
           `Guest with code ${checkinDto.guestCode} has already checked in for this event`,
@@ -37,12 +34,10 @@ export class GuestService {
       }
 
       // Check if guest exists with the provided guest code and event code
-      let checkinGuest = await this.guestRepository.findOne({
-        where: {
-          guestCode: checkinDto.guestCode,
-          eventCode: checkinDto.eventCode,
-        },
-      });
+      let checkinGuest = await this.guestRepository.findByGuestCodeAndEventCode(
+        checkinDto.guestCode,
+        checkinDto.eventCode,
+      );
       if (!checkinGuest) {
         // Create a new guest record
         const newGuest = this.guestRepository.create({
@@ -94,17 +89,17 @@ export class GuestService {
     pointCode: string,
   ): Promise<GuestResponse[]> {
     try {
-      const checkins = await this.guestCheckinRepository.find({
-        where: { pointCode, eventCode },
-        order: { checkinTime: 'DESC' },
-      });
+      const checkins = await this.guestCheckinRepository.findByPointAndEvent(
+        pointCode,
+        eventCode,
+      );
 
       const guestResponses = await Promise.all(
         checkins.map(async (checkin) => {
           const response = new GuestResponse();
-          const guestDetails = await this.guestRepository.findOne({
-            where: { guestId: checkin.guestId },
-          });
+          const guestDetails = await this.guestRepository.findByIdEnabled(
+            checkin.guestId,
+          );
           if (!guestDetails) return null;
 
           if (guestDetails.imageUrl) {
@@ -131,17 +126,14 @@ export class GuestService {
 
   async getAllGuestsOfEvent(eventCode: string): Promise<GuestResponse[]> {
     try {
-      const checkins = await this.guestCheckinRepository.find({
-        where: { eventCode },
-        order: { checkinTime: 'DESC' },
-      });
+      const checkins = await this.guestCheckinRepository.findByEvent(eventCode);
 
       const guestResponses = await Promise.all(
         checkins.map(async (checkin) => {
           const response = new GuestResponse();
-          const guestDetails = await this.guestRepository.findOne({
-            where: { guestId: checkin.guestId },
-          });
+          const guestDetails = await this.guestRepository.findByIdEnabled(
+            checkin.guestId,
+          );
           if (!guestDetails) return null;
 
           if (guestDetails.imageUrl) {
@@ -166,10 +158,7 @@ export class GuestService {
 
   async findOne(id: string): Promise<Guest> {
     try {
-      const guest = await this.guestRepository.findOne({
-        where: { guestId: id },
-        relations: ['checkins', 'checkins.pointOfCheckin'],
-      });
+      const guest = await this.guestRepository.findByIdWithRelations(id);
 
       if (!guest) {
         throw new NotFoundException(`Guest with ID ${id} not found`);
@@ -188,9 +177,7 @@ export class GuestService {
 
   async getAllCheckinsByEvent(eventCode: string): Promise<GuestCheckin[]> {
     try {
-      return this.guestCheckinRepository.find({
-        where: { eventCode },
-      });
+      return this.guestCheckinRepository.findAllByEvent(eventCode);
     } catch (error) {
       console.error('Error getting all checkins by event:', error);
       throw error;

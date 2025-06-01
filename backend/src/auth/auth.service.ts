@@ -20,9 +20,7 @@ import { RequestResetPassword } from './dto/request-reset-password';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from './otp.service';
-import { ResetToken } from './entities/reset-token.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { ResetTokenRepository } from '../repositories/reset-token.repository';
 import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
 import { GoogleAdminLoginDto } from './dto/google-admin-login.dto';
 import { GoogleAdminRegisterDto } from './dto/google-admin-register.dto';
@@ -32,6 +30,8 @@ import { GoogleService } from './google.service';
 import { AccountTenantService } from 'src/account/account-tenant.service';
 import { GoogleTokenResponse } from './dto/google-token-response';
 import { GoogleUserInfo } from './dto/google-user-info';
+import { AccountRepository } from 'src/repositories/account.repository';
+import { TokenRepository } from 'src/repositories/token.repository';
 
 @Injectable()
 export class AuthService {
@@ -44,17 +44,18 @@ export class AuthService {
     private refreshTokenService: RefreshTokenService,
     private mailService: MailService,
     private otpService: OtpService,
-    @InjectRepository(ResetToken)
-    private readonly resetTokenRepository: Repository<ResetToken>,
+    private readonly resetTokenRepository: ResetTokenRepository,
     private readonly googleService: GoogleService,
+    private readonly accountRepository: AccountRepository,
+    private readonly tokenRepository: TokenRepository,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
     try {
-      const user = await this.accountService.findByEmail(loginDto.email);
+      const user = await this.accountRepository.findByEmail(loginDto.email);
 
       // Check if user is an admin
-      if (user.role !== UserRole.ADMIN) {
+      if (!user || user.role !== UserRole.ADMIN) {
         throw new UnauthorizedException('Account is not valid');
       }
 
@@ -86,10 +87,10 @@ export class AuthService {
 
   async pocLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
     try {
-      const user = await this.accountService.findByEmail(loginDto.email);
+      const user = await this.accountRepository.findByEmail(loginDto.email);
 
       // Check if user is a POC
-      if (user.role !== UserRole.POC) {
+      if (!user || user.role !== UserRole.POC) {
         throw new UnauthorizedException('Account is not valid');
       }
 
@@ -123,7 +124,7 @@ export class AuthService {
   ): Promise<AuthLoginResponseDto> {
     try {
       // Check if email already exists
-      const existingUser = await this.accountService.findByEmail(
+      const existingUser = await this.accountRepository.findByEmail(
         registerDto.email,
       );
       if (existingUser) {
@@ -138,7 +139,7 @@ export class AuthService {
 
       /* Create account */
       const hashedPassword = await hash(registerDto.password, 10);
-      const newUser = await this.accountService.create({
+      const newUser = await this.accountRepository.create({
         ...registerDto,
         role: UserRole.ADMIN,
         password: hashedPassword,
@@ -173,7 +174,7 @@ export class AuthService {
     registerDto: AuthPocRegisterDto,
   ): Promise<AuthLoginResponseDto> {
     try {
-      const existingUser = await this.accountService.findByEmail(
+      const existingUser = await this.accountRepository.findByEmail(
         registerDto.email,
       );
 
@@ -182,7 +183,7 @@ export class AuthService {
       }
 
       const hashedPassword = await hash(registerDto.password, 10);
-      const newUser = await this.accountService.create({
+      const newUser = await this.accountRepository.create({
         ...registerDto,
         role: UserRole.POC,
         password: hashedPassword,
@@ -209,7 +210,7 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     try {
-      const user = await this.accountService.findByEmail(email);
+      const user = await this.accountRepository.findByEmail(email);
       if (user && (await compare(password, user.password))) {
         const { password, ...result } = user;
         return result;
@@ -255,7 +256,7 @@ export class AuthService {
 
   async logout(refreshToken: string): Promise<{ success: boolean }> {
     try {
-      await this.refreshTokenService.revokeRefreshToken(refreshToken);
+      await this.tokenRepository.update({ refreshToken }, { isRevoked: true });
       return { success: true };
     } catch (error) {
       console.log(error);
@@ -265,7 +266,7 @@ export class AuthService {
 
   async logoutAll(userId: string): Promise<{ success: boolean }> {
     try {
-      await this.refreshTokenService.revokeAllUserTokens(userId);
+      await this.tokenRepository.update({ userId }, { isRevoked: true });
       return { success: true };
     } catch (error) {
       console.log(error);
@@ -275,7 +276,7 @@ export class AuthService {
 
   async getUserSessions(userId: string): Promise<any[]> {
     try {
-      const tokens = await this.refreshTokenService.getUserTokens(userId);
+      const tokens = await this.tokenRepository.findUserTokens(userId);
       return tokens.map((token) => ({
         id: token.id,
         deviceInfo: token.deviceInfo,
@@ -293,15 +294,16 @@ export class AuthService {
     tokenId: string,
   ): Promise<{ success: boolean }> {
     try {
-      const token = await this.refreshTokenService.getUserTokens(userId);
+      const token = await this.tokenRepository.findUserTokens(userId);
       const validToken = token.find((t) => t.id === tokenId);
 
       if (!validToken) {
         throw new NotFoundException('Session not found');
       }
 
-      await this.refreshTokenService.revokeRefreshToken(
-        validToken.refreshToken,
+      await this.tokenRepository.update(
+        { refreshToken: validToken.refreshToken },
+        { isRevoked: true },
       );
       return { success: true };
     } catch (error) {
@@ -312,7 +314,7 @@ export class AuthService {
 
   async requestResetPassword(requestResetPasswordDto: RequestResetPassword) {
     try {
-      const account = await this.accountService.findByEmail(
+      const account = await this.accountRepository.findByEmail(
         requestResetPasswordDto.email,
       );
 
@@ -334,9 +336,8 @@ export class AuthService {
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     try {
       const { userId, resetToken, password } = resetPasswordDto;
-      const resetTokenRecord = await this.resetTokenRepository.findOne({
-        where: { userId: userId, expriedAt: MoreThan(new Date()) },
-      });
+      const resetTokenRecord =
+        await this.resetTokenRepository.findByUserIdNotExpired(userId);
 
       if (!resetTokenRecord) {
         throw new BadRequestException('Invalid or expired code');
@@ -355,16 +356,16 @@ export class AuthService {
 
       // Update password
       const hashedPassword = await hash(password, 10);
-      const account = await this.accountService.updateAccount(userId, {
+      await this.accountRepository.update(userId, {
         userId: userId,
         password: hashedPassword,
       });
 
       // Revoke all sessions
-      await this.refreshTokenService.revokeAllUserTokens(userId);
+      await this.tokenRepository.update({ userId }, { isRevoked: true });
 
       // send confirmation email
-      await this.mailService.sendPasswordChangedMail(account);
+      await this.mailService.sendPasswordChangedMail(userId);
     } catch (error) {
       console.log(error);
       throw error;
@@ -382,7 +383,7 @@ export class AuthService {
       );
 
       // Check if user already exists
-      const existingUser = await this.accountService.findByEmail(
+      const existingUser = await this.accountRepository.findByEmail(
         userInfo.email,
       );
       if (!existingUser || existingUser.role !== UserRole.ADMIN) {
@@ -421,7 +422,7 @@ export class AuthService {
       );
 
       // Check if email already exists
-      const existingUser = await this.accountService.findByEmail(
+      const existingUser = await this.accountRepository.findByEmail(
         userInfo.email,
       );
       if (existingUser) {
@@ -435,7 +436,7 @@ export class AuthService {
       });
 
       /* Create account */
-      const newUser = await this.accountService.create({
+      const newUser = await this.accountRepository.create({
         role: UserRole.ADMIN,
         password: '',
         username: userInfo.given_name,
@@ -480,7 +481,7 @@ export class AuthService {
       );
 
       // Check if user already exists
-      const existingUser = await this.accountService.findByEmail(
+      const existingUser = await this.accountRepository.findByEmail(
         userInfo.email,
       );
       if (!existingUser || existingUser.role !== UserRole.POC) {
@@ -519,7 +520,7 @@ export class AuthService {
       );
 
       // Check if user already exists
-      const existingUser = await this.accountService.findByEmail(
+      const existingUser = await this.accountRepository.findByEmail(
         userInfo.email,
       );
       if (existingUser) {
@@ -527,7 +528,7 @@ export class AuthService {
       }
 
       // Create user
-      const newUser = await this.accountService.create({
+      const newUser = await this.accountRepository.create({
         username: userInfo.given_name,
         email: userInfo.email,
         password: '',

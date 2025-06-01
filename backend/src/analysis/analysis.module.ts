@@ -7,6 +7,8 @@ import { PointCheckinAnalytics } from './entities/point-checkin-analytics.entity
 import { GuestModule } from 'src/guest/guest.module';
 import { EventModule } from 'src/event/event.module';
 import { PocModule } from 'src/poc/poc.module';
+import { EventCheckinAnalysisRepository } from '../repositories/event-checkin-analysis.repository';
+import { PointCheckinAnalysisRepository } from '../repositories/point-checkin-analysis.repository';
 
 @Module({
   imports: [
@@ -16,7 +18,11 @@ import { PocModule } from 'src/poc/poc.module';
     PocModule,
   ],
   controllers: [AnalysisController],
-  providers: [AnalysisService],
+  providers: [
+    AnalysisService,
+    EventCheckinAnalysisRepository,
+    PointCheckinAnalysisRepository,
+  ],
   exports: [AnalysisService],
 })
 export class AnalysisModule {}
