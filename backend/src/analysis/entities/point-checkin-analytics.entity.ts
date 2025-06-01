@@ -13,12 +13,6 @@ export class PointCheckinAnalytics {
   @PrimaryGeneratedColumn('uuid')
   analyticsId: string;
 
-  @Column({ name: 'point_code', type: 'varchar' })
-  pointCode: string;
-
-  @Column({ name: 'event_code', type: 'varchar', unique: true })
-  eventCode: string;
-
   @Column({ name: 'time_interval' })
   timeInterval: Date;
 
@@ -34,16 +28,22 @@ export class PointCheckinAnalytics {
   @Column({ name: 'updated_at' })
   updatedAt: Date;
 
+  @Column({ name: 'event_code', type: 'varchar' })
+  eventCode: string;
+
+  @Column({ name: 'point_code', type: 'varchar' })
+  pointCode: string;
+
   // Relations
   @ManyToOne(() => Event, (event) => event.pointCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code' })
+  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
   event: Event;
 
   @ManyToOne(() => PointOfCheckin, (point) => point.pointCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'point_code' })
+  @JoinColumn({ name: 'point_code', referencedColumnName: 'pointCode' })
   point: PointOfCheckin;
 }

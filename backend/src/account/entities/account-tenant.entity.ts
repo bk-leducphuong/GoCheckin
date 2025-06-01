@@ -14,7 +14,7 @@ export class AccountTenant {
   @PrimaryColumn({ name: 'user_id' })
   userId: string;
 
-  @PrimaryColumn({ name: 'tenant_code', unique: true })
+  @PrimaryColumn({ name: 'tenant_code' })
   tenantCode: string;
 
   @CreateDateColumn({ name: 'created_at' })

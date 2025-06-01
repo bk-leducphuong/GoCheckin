@@ -14,9 +14,6 @@ export class FloorPlan {
   @PrimaryGeneratedColumn('uuid', { name: 'floor_plan_id' })
   floorPlanId: string;
 
-  @Column({ name: 'event_code', unique: true })
-  eventCode: string;
-
   @Column({ name: 'floor_plan_image_url' })
   floorPlanImageUrl: string;
 
@@ -26,11 +23,14 @@ export class FloorPlan {
   @Column({ name: 'updated_at', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
+  @Column({ name: 'event_code', type: 'varchar' })
+  eventCode: string;
+
   // Relations
   @OneToOne(() => Event, (event) => event.floorPlan, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code' })
+  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
   event: Event;
 
   @OneToMany(() => PocLocation, (pocLocation) => pocLocation.floorPlan, {

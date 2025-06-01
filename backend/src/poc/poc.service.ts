@@ -85,7 +85,7 @@ export class PocService {
   ): Promise<boolean> {
     try {
       const poc = await this.pocRepository.findOne({
-        where: { eventCode, pointCode, enabled: true },
+        where: { eventCode, pointCode },
         relations: ['account', 'event'],
       });
       return !!poc;
@@ -98,7 +98,7 @@ export class PocService {
   async getAllPocs(eventCode: string): Promise<PointOfCheckin[]> {
     try {
       return this.pocRepository.find({
-        where: { eventCode, enabled: true },
+        where: { eventCode },
         relations: ['account'],
       });
     } catch (error) {
@@ -110,7 +110,7 @@ export class PocService {
   async getPocByPocId(pocId: string): Promise<PointOfCheckin> {
     try {
       const poc = await this.pocRepository.findOne({
-        where: { pocId, enabled: true },
+        where: { pocId },
         relations: ['account', 'event'],
       });
 
@@ -152,7 +152,7 @@ export class PocService {
   async getPocsByUserId(userId: string): Promise<PointOfCheckin[]> {
     try {
       const pocs = await this.pocRepository.find({
-        where: { userId, enabled: true },
+        where: { userId },
       });
 
       return pocs.length > 0 ? pocs : [];
@@ -186,9 +186,6 @@ export class PocService {
   async remove(id: string): Promise<void> {
     try {
       const poc = await this.getPocByPocId(id);
-
-      // Soft delete - just set enabled to false
-      poc.enabled = false;
       await this.pocRepository.save(poc);
     } catch (error) {
       console.error('Error removing POC:', error);
@@ -208,7 +205,7 @@ export class PocService {
       const userId = user.userId;
 
       const poc = await this.pocRepository.findOne({
-        where: { userId, eventCode, pointCode, enabled: true },
+        where: { userId, eventCode, pointCode },
       });
       if (!poc) {
         throw new NotFoundException('Not found poc!');

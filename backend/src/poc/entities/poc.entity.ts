@@ -36,12 +36,6 @@ export class PointOfCheckin {
   @Column({ name: 'point_note', type: 'text', nullable: true })
   pointNote: string;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
-
-  @Column({ name: 'user_id', type: 'varchar', nullable: true })
-  userId: string;
-
   @Column({ type: 'integer', nullable: true })
   capacity: number;
 
@@ -62,6 +56,13 @@ export class PointOfCheckin {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @Column({ name: 'event_code', type: 'varchar' })
+  eventCode: string;
+
+  @Column({ name: 'user_id', type: 'varchar' })
+  userId: string;
+
+  // Relations
   @ManyToOne(() => Event, {
     onDelete: 'CASCADE',
   })
@@ -83,7 +84,6 @@ export class PointOfCheckin {
   )
   pointCheckinAnalytics: PointCheckinAnalytics[];
 
-  // Relations
   @OneToOne(() => PocLocation, (floorPlan) => floorPlan.poc, {
     cascade: true,
   })

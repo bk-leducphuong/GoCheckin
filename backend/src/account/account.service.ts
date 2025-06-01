@@ -42,11 +42,7 @@ export class AccountService {
         email: account.email,
         fullName: account.fullName,
         phoneNumber: account.phoneNumber,
-        active: account.active,
         role: account.role,
-        companyName: account.companyName,
-        lastLogin: account.lastLogin,
-        enabled: account.enabled,
         createdAt: account.createdAt,
         updatedAt: account.updatedAt,
       };
@@ -108,7 +104,6 @@ export class AccountService {
       if (updateDto.email) updateData.email = updateDto.email;
       if (updateDto.fullName) updateData.fullName = updateDto.fullName;
       if (updateDto.phoneNumber) updateData.phoneNumber = updateDto.phoneNumber;
-      if (updateDto.companyName) updateData.companyName = updateDto.companyName;
       if (updateDto.password) updateData.password = updateDto.password;
 
       await this.accountRepository.update(userId, updateData);
@@ -119,11 +114,7 @@ export class AccountService {
         email: account.email,
         fullName: account.fullName,
         phoneNumber: account.phoneNumber,
-        active: account.active,
         role: account.role,
-        companyName: account.companyName,
-        lastLogin: account.lastLogin,
-        enabled: account.enabled,
         createdAt: account.createdAt,
         updatedAt: account.updatedAt,
       };
@@ -142,15 +133,6 @@ export class AccountService {
       if (!account) {
         throw new NotFoundException('Account not found');
       }
-
-      // Soft delete by disabling the account
-      await this.accountRepository.update(userId, {
-        active: false,
-        enabled: false,
-      });
-
-      // If you want to completely remove the account, use this instead:
-      // await this.accountRepository.remove(account);
     } catch (error) {
       console.log(error);
       throw error;

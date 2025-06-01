@@ -12,9 +12,6 @@ export class Otp {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @Column({ name: 'user_id' })
-  userId: string;
-
   @Column({ name: 'hashed_otp' })
   hashedOtp: string;
 
@@ -24,10 +21,13 @@ export class Otp {
   @Column({ name: 'attempts' })
   attempts: number;
 
+  @Column({ name: 'user_id' })
+  userId: string;
+
   // Relations
   @ManyToOne(() => Account, (account) => account.otp, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
   account: Account;
 }

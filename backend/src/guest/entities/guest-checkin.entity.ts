@@ -21,17 +21,17 @@ export class GuestCheckin {
   @Column({ name: 'guest_code', type: 'varchar' })
   guestCode: string;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
-
-  @Column({ name: 'point_code', type: 'varchar' })
-  pointCode: string;
-
   @CreateDateColumn({
     name: 'checkin_time',
     default: () => 'CURRENT_TIMESTAMP',
   })
   checkinTime: Date;
+
+  @Column({ name: 'event_code', type: 'varchar' })
+  eventCode: string;
+
+  @Column({ name: 'point_code', type: 'varchar' })
+  pointCode: string;
 
   // Relations
   @ManyToOne(() => Guest, (guest) => guest.checkins, {
@@ -43,12 +43,12 @@ export class GuestCheckin {
   @ManyToOne(() => PointOfCheckin, (point) => point.guestCheckins, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'point_code' })
+  @JoinColumn({ name: 'point_code', referencedColumnName: 'pointCode' })
   point: PointOfCheckin;
 
   @ManyToOne(() => Event, (event) => event.guestCheckins, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code' })
+  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
   event: Event;
 }

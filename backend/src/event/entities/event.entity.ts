@@ -47,9 +47,6 @@ export class Event {
   @Column({ name: 'event_name', length: 255, unique: true })
   eventName: string;
 
-  @Column({ name: 'tenant_code', length: 50, unique: true })
-  tenantCode: string;
-
   @Column({ name: 'event_description', type: 'text', nullable: true })
   eventDescription: string;
 
@@ -107,6 +104,9 @@ export class Event {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @Column({ name: 'tenant_code', type: 'varchar' })
+  tenantCode: string;
 
   // Relations
   @ManyToOne(() => Tenant, (tenant) => tenant.events, {

@@ -21,12 +21,6 @@ export class PocInvite {
   @PrimaryGeneratedColumn('uuid', { name: 'invite_id' })
   inviteId: string;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
-
-  @Column({ name: 'point_code', type: 'varchar' })
-  pointCode: string;
-
   @Column({ name: 'email', type: 'varchar' })
   email: string;
 
@@ -42,16 +36,22 @@ export class PocInvite {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @Column({ name: 'event_code', type: 'varchar' })
+  eventCode: string;
+
+  @Column({ name: 'point_code', type: 'varchar' })
+  pointCode: string;
+
   // Relations
   @ManyToOne(() => Event, (event) => event.pocInvites, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code' })
+  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
   event: Event;
 
   @ManyToOne(() => PointOfCheckin, (point) => point.pocInvites, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'point_code' })
+  @JoinColumn({ name: 'point_code', referencedColumnName: 'pointCode' })
   point: PointOfCheckin;
 }

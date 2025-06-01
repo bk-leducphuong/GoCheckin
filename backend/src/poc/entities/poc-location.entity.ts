@@ -16,12 +16,6 @@ export class PocLocation {
   @PrimaryGeneratedColumn('uuid', { name: 'poc_location_id' })
   pocLocationId: string;
 
-  @Column({ name: 'floor_plan_id', type: 'uuid' })
-  floorPlanId: string;
-
-  @Column({ name: 'poc_id', type: 'uuid' })
-  pocId: string;
-
   @Column({ name: 'label', type: 'varchar' })
   label: string;
 
@@ -37,16 +31,22 @@ export class PocLocation {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @Column({ name: 'floor_plan_id', type: 'uuid' })
+  floorPlanId: string;
+
+  @Column({ name: 'poc_id', type: 'uuid' })
+  pocId: string;
+
   // Relations
   @OneToOne(() => PointOfCheckin, (poc) => poc.location, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'poc_id' })
+  @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
   poc: PointOfCheckin;
 
   @ManyToOne(() => FloorPlan, (floorPlan) => floorPlan.locations, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'floor_plan_id' })
+  @JoinColumn({ name: 'floor_plan_id', referencedColumnName: 'floorPlanId' })
   floorPlan: FloorPlan;
 }

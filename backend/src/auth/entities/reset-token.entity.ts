@@ -12,19 +12,19 @@ export class ResetToken {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 
-  @Column({ name: 'user_id' })
-  userId: string;
-
   @Column({ name: 'hashed_reset_token' })
   hashedResetToken: string;
 
   @Column({ name: 'exprised_at' })
   expriedAt: Date;
 
+  @Column({ name: 'user_id' })
+  userId: string;
+
   // Relations
   @ManyToOne(() => Account, (account) => account.resetTokens, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
   account: Account;
 }

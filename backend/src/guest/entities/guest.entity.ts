@@ -33,14 +33,6 @@ export class Guest {
   @Column({ name: 'guest_code', type: 'varchar', length: 255, nullable: false })
   guestCode: string;
 
-  @Column({
-    name: 'event_code',
-    type: 'varchar',
-    length: 255,
-    nullable: false,
-  })
-  eventCode: string;
-
   @Column({ name: 'image_url', type: 'varchar', length: 255, nullable: true })
   imageUrl: string;
 
@@ -74,6 +66,9 @@ export class Guest {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @Column({ name: 'event_code', type: 'varchar' })
+  eventCode: string;
 
   // Relations
   @ManyToOne(() => Event, (event) => event.guests, {

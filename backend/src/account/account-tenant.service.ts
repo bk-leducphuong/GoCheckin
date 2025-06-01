@@ -36,14 +36,14 @@ export class AccountTenantService {
     }
   }
 
-  async findTenantsByUserId(userId: string): Promise<AccountTenant> {
-    const accountTenant = await this.accountTenantRepository.findOne({
+  async findTenantsByUserId(userId: string): Promise<AccountTenant[]> {
+    const accountTenants = await this.accountTenantRepository.find({
       where: { userId },
       relations: ['tenant'],
     });
-    if (!accountTenant) {
-      throw new NotFoundException('No tenant found for user');
+    if (!accountTenants || accountTenants.length === 0) {
+      throw new NotFoundException('No tenants found for user');
     }
-    return accountTenant;
+    return accountTenants;
   }
 }

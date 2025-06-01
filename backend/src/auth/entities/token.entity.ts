@@ -14,9 +14,6 @@ export class Token {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'user_id' })
-  userId: string;
-
   @Column({ name: 'refresh_token', length: 500 })
   refreshToken: string;
 
@@ -35,10 +32,13 @@ export class Token {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  // @Column({ name: 'user_id' })
+  // userId: string;
+
   // Relations
   @ManyToOne(() => Account, (account) => account.refreshTokens, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
   user: Account;
 }

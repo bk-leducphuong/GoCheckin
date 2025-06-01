@@ -22,7 +22,6 @@ export class RefreshTokenService {
   ): Promise<string> {
     try {
       await this.cleanupExpiredTokens();
-      // Revoke existing tokens for the user
       await this.tokenRepository.update(
         { userId, deviceInfo },
         { isRevoked: true },

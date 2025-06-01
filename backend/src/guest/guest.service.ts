@@ -28,7 +28,6 @@ export class GuestService {
         where: {
           guestCode: checkinDto.guestCode,
           pointCode: checkinDto.pointCode,
-          active: true,
         },
       });
       if (existingCheckin) {
@@ -96,7 +95,7 @@ export class GuestService {
   ): Promise<GuestResponse[]> {
     try {
       const checkins = await this.guestCheckinRepository.find({
-        where: { pointCode, eventCode, active: true },
+        where: { pointCode, eventCode },
         order: { checkinTime: 'DESC' },
       });
 
@@ -104,7 +103,7 @@ export class GuestService {
         checkins.map(async (checkin) => {
           const response = new GuestResponse();
           const guestDetails = await this.guestRepository.findOne({
-            where: { guestId: checkin.guestId, enabled: true },
+            where: { guestId: checkin.guestId },
           });
           if (!guestDetails) return null;
 
@@ -133,7 +132,7 @@ export class GuestService {
   async getAllGuestsOfEvent(eventCode: string): Promise<GuestResponse[]> {
     try {
       const checkins = await this.guestCheckinRepository.find({
-        where: { eventCode, active: true },
+        where: { eventCode },
         order: { checkinTime: 'DESC' },
       });
 
@@ -141,7 +140,7 @@ export class GuestService {
         checkins.map(async (checkin) => {
           const response = new GuestResponse();
           const guestDetails = await this.guestRepository.findOne({
-            where: { guestId: checkin.guestId, enabled: true },
+            where: { guestId: checkin.guestId },
           });
           if (!guestDetails) return null;
 
@@ -168,7 +167,7 @@ export class GuestService {
   async findOne(id: string): Promise<Guest> {
     try {
       const guest = await this.guestRepository.findOne({
-        where: { guestId: id, enabled: true },
+        where: { guestId: id },
         relations: ['checkins', 'checkins.pointOfCheckin'],
       });
 

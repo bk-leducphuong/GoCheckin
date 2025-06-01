@@ -51,7 +51,7 @@ export class TenantService {
       await this.accountTenantService.findTenantsByUserId(userId);
 
     const tenant = await this.tenantRepository.findOne({
-      where: { tenantCode: accountTenants.tenantCode },
+      where: { tenantCode: accountTenants[0].tenantCode },
     });
 
     if (!tenant) {
@@ -69,7 +69,7 @@ export class TenantService {
       await this.accountTenantService.findTenantsByUserId(userId);
 
     const tenant = await this.tenantRepository.findOne({
-      where: { tenantCode: accountTenants.tenantCode },
+      where: { tenantCode: accountTenants[0].tenantCode },
     });
 
     if (!tenant) {
