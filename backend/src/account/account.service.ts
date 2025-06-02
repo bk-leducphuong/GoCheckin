@@ -14,7 +14,9 @@ export class AccountService {
   }
 
   async getAccountInformation(userId: string): Promise<AccountDto> {
-    const account = await this.accountRepository.findByUserId(userId);
+    const account = await this.accountRepository.findOne({
+      userId: userId,
+    });
 
     if (!account) {
       throw new NotFoundException('Account not found');
@@ -36,12 +38,6 @@ export class AccountService {
     userId: string,
     updateDto: UpdateAccountDto,
   ): Promise<AccountDto> {
-    const account = await this.accountRepository.findByUserId(userId);
-
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
-
     const updateData: Partial<Account> = {};
     if (updateDto.username) updateData.username = updateDto.username;
     if (updateDto.email) updateData.email = updateDto.email;
@@ -49,10 +45,12 @@ export class AccountService {
     if (updateDto.phoneNumber) updateData.phoneNumber = updateDto.phoneNumber;
     if (updateDto.password) updateData.password = updateDto.password;
 
-    await this.accountRepository.update(userId, updateData);
+    await this.accountRepository.update({ userId: userId }, updateData);
 
     // Fetch updated account
-    const updatedAccount = await this.accountRepository.findByUserId(userId);
+    const updatedAccount = await this.accountRepository.findOne({
+      userId: userId,
+    });
 
     if (!updatedAccount) {
       throw new NotFoundException('Account not found after update');
@@ -71,16 +69,6 @@ export class AccountService {
   }
 
   async deleteAccount(userId: string): Promise<void> {
-    const account = await this.accountRepository.findByUserId(userId);
-
-    if (!account) {
-      throw new NotFoundException('Account not found');
-    }
-
-    // Soft delete by disabling the account
-    await this.accountRepository.softDelete(userId);
-
-    // If you want to completely remove the account, use this instead:
-    // await this.accountRepository.remove(account);
+    await this.accountRepository.delete({ userId: userId });
   }
 }

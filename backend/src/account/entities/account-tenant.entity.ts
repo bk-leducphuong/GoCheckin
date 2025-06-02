@@ -14,8 +14,8 @@ export class AccountTenant {
   @PrimaryColumn({ name: 'user_id' })
   userId: string;
 
-  @PrimaryColumn({ name: 'tenant_code' })
-  tenantCode: string;
+  @PrimaryColumn({ name: 'tenant_id' })
+  tenantId: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -31,6 +31,6 @@ export class AccountTenant {
   account: Account;
 
   @ManyToOne(() => Tenant, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'tenant_code', referencedColumnName: 'tenantCode' })
+  @JoinColumn({ name: 'tenant_id', referencedColumnName: 'tenantId' })
   tenant: Tenant;
 }

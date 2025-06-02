@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PocInvite, PocInviteStatus } from '../poc/entities/poc-invite';
+import { FindOptionsWhere, Repository } from 'typeorm';
+import { PocInvite } from '../poc/entities/poc-invite';
 
 @Injectable()
 export class PocInviteRepository {
@@ -10,15 +10,9 @@ export class PocInviteRepository {
     private readonly pocInviteRepository: Repository<PocInvite>,
   ) {}
 
-  async findByEventPointAndEmail(
-    eventCode: string,
-    pointCode: string,
-    email: string,
-  ): Promise<PocInvite | null> {
+  async findOne(where: FindOptionsWhere<PocInvite>): Promise<PocInvite | null> {
     try {
-      return await this.pocInviteRepository.findOne({
-        where: { eventCode, pointCode, email },
-      });
+      return await this.pocInviteRepository.findOne({ where });
     } catch (error) {
       console.log(error);
       throw error;
@@ -43,40 +37,12 @@ export class PocInviteRepository {
     }
   }
 
-  async findByInviteCodeAndStatus(
-    inviteCode: string,
-    status: PocInviteStatus,
-  ): Promise<PocInvite | null> {
-    try {
-      return await this.pocInviteRepository.findOne({
-        where: { inviteCode, status },
-      });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
   async update(
     conditions: Partial<PocInvite>,
     data: Partial<PocInvite>,
   ): Promise<void> {
     try {
       await this.pocInviteRepository.update(conditions, data);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByEventAndPoint(
-    eventCode: string,
-    pointCode: string,
-  ): Promise<PocInvite | null> {
-    try {
-      return await this.pocInviteRepository.findOne({
-        where: { eventCode, pointCode },
-      });
     } catch (error) {
       console.log(error);
       throw error;

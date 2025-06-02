@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThan } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { Otp } from '../auth/entities/otp.entity';
 
 @Injectable()
@@ -9,6 +9,24 @@ export class OtpRepository {
     @InjectRepository(Otp)
     private readonly otpRepository: Repository<Otp>,
   ) {}
+
+  async findOne(where: FindOptionsWhere<Otp>): Promise<Otp | null> {
+    try {
+      return await this.otpRepository.findOne({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async findAll(where: FindOptionsWhere<Otp>): Promise<Otp[]> {
+    try {
+      return await this.otpRepository.find({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 
   create(data: Partial<Otp>): Otp {
     try {
@@ -22,20 +40,6 @@ export class OtpRepository {
   async save(otp: Otp): Promise<Otp> {
     try {
       return await this.otpRepository.save(otp);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByUserIdNotExpired(userId: string): Promise<Otp | null> {
-    try {
-      return await this.otpRepository.findOne({
-        where: {
-          userId: userId,
-          expriedAt: MoreThan(new Date()),
-        },
-      });
     } catch (error) {
       console.log(error);
       throw error;

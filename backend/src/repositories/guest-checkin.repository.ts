@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { GuestCheckin } from '../guest/entities/guest-checkin.entity';
 
 @Injectable()
@@ -10,17 +10,22 @@ export class GuestCheckinRepository {
     private readonly guestCheckinRepository: Repository<GuestCheckin>,
   ) {}
 
-  async findExistingCheckin(
-    guestCode: string,
-    pointCode: string,
+  async findOne(
+    where: FindOptionsWhere<GuestCheckin>,
   ): Promise<GuestCheckin | null> {
     try {
-      return await this.guestCheckinRepository.findOne({
-        where: {
-          guestCode: guestCode,
-          pointCode: pointCode,
-        },
-      });
+      return await this.guestCheckinRepository.findOne({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async findAll(
+    where: FindOptionsWhere<GuestCheckin>,
+  ): Promise<GuestCheckin[]> {
+    try {
+      return await this.guestCheckinRepository.find({ where });
     } catch (error) {
       console.log(error);
       throw error;
@@ -39,44 +44,6 @@ export class GuestCheckinRepository {
   async save(checkin: GuestCheckin): Promise<GuestCheckin> {
     try {
       return await this.guestCheckinRepository.save(checkin);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByPointAndEvent(
-    pointCode: string,
-    eventCode: string,
-  ): Promise<GuestCheckin[]> {
-    try {
-      return await this.guestCheckinRepository.find({
-        where: { pointCode, eventCode },
-        order: { checkinTime: 'DESC' },
-      });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByEvent(eventCode: string): Promise<GuestCheckin[]> {
-    try {
-      return await this.guestCheckinRepository.find({
-        where: { eventCode },
-        order: { checkinTime: 'DESC' },
-      });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findAllByEvent(eventCode: string): Promise<GuestCheckin[]> {
-    try {
-      return await this.guestCheckinRepository.find({
-        where: { eventCode },
-      });
     } catch (error) {
       console.log(error);
       throw error;

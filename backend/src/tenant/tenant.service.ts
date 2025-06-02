@@ -18,18 +18,18 @@ export class TenantService {
 
   async createTenant(createTenantDto: CreateTenantDto): Promise<Tenant> {
     try {
-      const isTenantCodeExist = await this.tenantRepository.findByTenantCode(
-        createTenantDto.tenantCode,
-      );
+      const isTenantCodeExist = await this.tenantRepository.findOne({
+        tenantCode: createTenantDto.tenantCode,
+      });
       if (isTenantCodeExist) {
         throw new ConflictException(
           `Tenant with code ${createTenantDto.tenantCode} already exists`,
         );
       }
 
-      const isTenantNameExist = await this.tenantRepository.findByTenantName(
-        createTenantDto.tenantName,
-      );
+      const isTenantNameExist = await this.tenantRepository.findOne({
+        tenantName: createTenantDto.tenantName,
+      });
       if (isTenantNameExist) {
         throw new ConflictException(
           `Tenant with name ${createTenantDto.tenantName} already exists`,
@@ -44,13 +44,13 @@ export class TenantService {
     }
   }
 
-  async getTenantInformation(userId: string): Promise<Tenant> {
+  async getTenantInformationByUserId(userId: string): Promise<Tenant> {
     const accountTenants =
       await this.accountTenantService.findTenantsByUserId(userId);
 
-    const tenant = await this.tenantRepository.findByTenantCode(
-      accountTenants.tenantCode,
-    );
+    const tenant = await this.tenantRepository.findOne({
+      tenantId: accountTenants.tenantId,
+    });
 
     if (!tenant) {
       throw new NotFoundException('No tenant found for user');
@@ -66,9 +66,9 @@ export class TenantService {
     const accountTenants =
       await this.accountTenantService.findTenantsByUserId(userId);
 
-    const tenant = await this.tenantRepository.findByTenantCode(
-      accountTenants.tenantCode,
-    );
+    const tenant = await this.tenantRepository.findOne({
+      tenantId: accountTenants.tenantId,
+    });
 
     if (!tenant) {
       throw new NotFoundException('No tenant found for user');

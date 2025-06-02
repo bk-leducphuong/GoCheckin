@@ -14,8 +14,8 @@ export class TenantController {
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.POC)
-  getTenantInformation(@CurrentUser() user: JwtPayload) {
-    return this.tenantService.getTenantInformation(user.userId);
+  getTenantInformationByUserId(@CurrentUser() user: JwtPayload) {
+    return this.tenantService.getTenantInformationByUserId(user.userId);
   }
 
   @Put()

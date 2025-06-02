@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Guest } from '../guest/entities/guest.entity';
 
 @Injectable()
@@ -10,17 +10,18 @@ export class GuestRepository {
     private readonly guestRepository: Repository<Guest>,
   ) {}
 
-  async findByGuestCodeAndEventCode(
-    guestCode: string,
-    eventCode: string,
-  ): Promise<Guest | null> {
+  async findOne(where: FindOptionsWhere<Guest>): Promise<Guest | null> {
     try {
-      return await this.guestRepository.findOne({
-        where: {
-          guestCode: guestCode,
-          eventCode: eventCode,
-        },
-      });
+      return await this.guestRepository.findOne({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async findAll(where: FindOptionsWhere<Guest>): Promise<Guest[]> {
+    try {
+      return await this.guestRepository.find({ where });
     } catch (error) {
       console.log(error);
       throw error;
@@ -39,29 +40,6 @@ export class GuestRepository {
   async save(guest: Guest): Promise<Guest> {
     try {
       return await this.guestRepository.save(guest);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByIdEnabled(guestId: string): Promise<Guest | null> {
-    try {
-      return await this.guestRepository.findOne({
-        where: { guestId: guestId },
-      });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByIdWithRelations(id: string): Promise<Guest | null> {
-    try {
-      return await this.guestRepository.findOne({
-        where: { guestId: id },
-        relations: ['checkins', 'checkins.pointOfCheckin'],
-      });
     } catch (error) {
       console.log(error);
       throw error;

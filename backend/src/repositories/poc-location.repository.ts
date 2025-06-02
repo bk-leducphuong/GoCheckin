@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { PocLocation } from '../poc/entities/poc-location.entity';
 
 @Injectable()
@@ -10,9 +10,35 @@ export class PocLocationRepository {
     private readonly pocLocationRepository: Repository<PocLocation>,
   ) {}
 
-  async saveMultiple(
-    locations: Partial<PocLocation>[],
-  ): Promise<PocLocation[]> {
+  async findOne(
+    where: FindOptionsWhere<PocLocation>,
+  ): Promise<PocLocation | null> {
+    try {
+      return await this.pocLocationRepository.findOne({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  async findAll(where: FindOptionsWhere<PocLocation>): Promise<PocLocation[]> {
+    try {
+      return await this.pocLocationRepository.find({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  create(data: Partial<PocLocation>): PocLocation {
+    try {
+      return this.pocLocationRepository.create(data);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+  async save(locations: Partial<PocLocation>[]): Promise<PocLocation[]> {
     try {
       return await this.pocLocationRepository.save(locations);
     } catch (error) {
@@ -21,20 +47,9 @@ export class PocLocationRepository {
     }
   }
 
-  async findByFloorPlanId(floorPlanId: string): Promise<PocLocation[]> {
+  async delete(where: FindOptionsWhere<PocLocation>): Promise<void> {
     try {
-      return await this.pocLocationRepository.find({
-        where: { floorPlanId: floorPlanId },
-      });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async deleteByFloorPlanId(floorPlanId: string): Promise<void> {
-    try {
-      await this.pocLocationRepository.delete({ floorPlanId });
+      await this.pocLocationRepository.delete(where);
     } catch (error) {
       console.log(error);
       throw error;

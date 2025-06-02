@@ -56,8 +56,8 @@ export class PointOfCheckin {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
+  @Column({ name: 'event_id', type: 'varchar' })
+  eventId: string;
 
   @Column({ name: 'user_id', type: 'varchar' })
   userId: string;
@@ -66,7 +66,7 @@ export class PointOfCheckin {
   @ManyToOne(() => Event, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
+  @JoinColumn({ name: 'event_id', referencedColumnName: 'eventId' })
   event: Event;
 
   @ManyToOne(() => Account, {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { FloorPlan } from '../floor-plan/entities/floor-plan.entity';
 
 @Injectable()
@@ -10,11 +10,9 @@ export class FloorPlanRepository {
     private readonly floorPlanRepository: Repository<FloorPlan>,
   ) {}
 
-  async findByEventCode(eventCode: string): Promise<FloorPlan | null> {
+  async findOne(where: FindOptionsWhere<FloorPlan>): Promise<FloorPlan | null> {
     try {
-      return await this.floorPlanRepository.findOne({
-        where: { eventCode },
-      });
+      return await this.floorPlanRepository.findOne({ where });
     } catch (error) {
       console.log(error);
       throw error;

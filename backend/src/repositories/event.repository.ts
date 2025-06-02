@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
-import { Event, EventStatus } from '../event/entities/event.entity';
+import { Event } from '../event/entities/event.entity';
 
 @Injectable()
 export class EventRepository {
@@ -10,23 +10,19 @@ export class EventRepository {
     private readonly eventRepository: Repository<Event>,
   ) {}
 
-  async findByEventCode(eventCode: string): Promise<Event | null> {
+  async findOne(where: FindOptionsWhere<Event>): Promise<Event | null> {
     try {
-      return await this.eventRepository.findOne({
-        where: { eventCode },
-      });
+      return await this.eventRepository.findOne({ where });
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  async findByConstraints(
-    whereConditions: FindOptionsWhere<Event>,
-  ): Promise<Event[]> {
+  async findAll(where: FindOptionsWhere<Event>): Promise<Event[]> {
     try {
       return await this.eventRepository.find({
-        where: whereConditions,
+        where,
       });
     } catch (error) {
       console.log(error);
@@ -55,28 +51,6 @@ export class EventRepository {
   async saveMultiple(events: Event[]): Promise<Event[]> {
     try {
       return await this.eventRepository.save(events);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByTenantCode(tenantCode: string): Promise<Event[]> {
-    try {
-      return await this.eventRepository.find({
-        where: { tenantCode },
-      });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByStatusRange(statuses: EventStatus[]): Promise<Event[]> {
-    try {
-      return await this.eventRepository.find({
-        where: statuses.map((status) => ({ eventStatus: status })),
-      });
     } catch (error) {
       console.log(error);
       throw error;

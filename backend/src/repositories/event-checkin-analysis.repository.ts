@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { EventCheckinAnalytics } from '../analysis/entities/event-checkin-analytics.entity';
-import { Event } from 'src/event/entities/event.entity';
 
 @Injectable()
 export class EventCheckinAnalysisRepository {
@@ -11,19 +10,22 @@ export class EventCheckinAnalysisRepository {
     private readonly eventCheckinAnalyticsRepository: Repository<EventCheckinAnalytics>,
   ) {}
 
-  async findByEventCode(eventCode: string): Promise<EventCheckinAnalytics[]> {
+  async findOne(
+    where: FindOptionsWhere<EventCheckinAnalytics>,
+  ): Promise<EventCheckinAnalytics | null> {
     try {
-      const analytics = await this.eventCheckinAnalyticsRepository
-        .createQueryBuilder('event_checkin_analytics')
-        .leftJoin(
-          Event,
-          'event',
-          'event.eventCode = event_checkin_analytics.event_code',
-        )
-        .where('event.eventCode = :eventCode', { eventCode })
-        .getMany();
+      return await this.eventCheckinAnalyticsRepository.findOne({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 
-      return analytics;
+  async findAll(
+    where: FindOptionsWhere<EventCheckinAnalytics>,
+  ): Promise<EventCheckinAnalytics[]> {
+    try {
+      return await this.eventCheckinAnalyticsRepository.find({ where });
     } catch (error) {
       console.log(error);
       throw error;
@@ -31,13 +33,13 @@ export class EventCheckinAnalysisRepository {
   }
 
   create(
-    eventCode: string,
+    eventId: string,
     data: Partial<EventCheckinAnalytics>,
   ): EventCheckinAnalytics {
     try {
       return this.eventCheckinAnalyticsRepository.create({
         ...data,
-        event: { eventCode },
+        eventId: eventId,
       });
     } catch (error) {
       console.log(error);

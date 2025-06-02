@@ -36,22 +36,22 @@ export class PocInvite {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
+  @Column({ name: 'event_id', type: 'varchar' })
+  eventId: string;
 
-  @Column({ name: 'point_code', type: 'varchar' })
-  pointCode: string;
+  @Column({ name: 'poc_id', type: 'varchar' })
+  pocId: string;
 
   // Relations
   @ManyToOne(() => Event, (event) => event.pocInvites, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
+  @JoinColumn({ name: 'event_id', referencedColumnName: 'eventId' })
   event: Event;
 
-  @ManyToOne(() => PointOfCheckin, (point) => point.pocInvites, {
+  @ManyToOne(() => PointOfCheckin, (poc) => poc.pocInvites, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'point_code', referencedColumnName: 'pointCode' })
+  @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
   point: PointOfCheckin;
 }

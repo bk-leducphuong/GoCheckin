@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { AccountTenant } from '../account/entities/account-tenant.entity';
 
 @Injectable()
@@ -10,41 +10,24 @@ export class AccountTenantRepository {
     private readonly accountTenantRepository: Repository<AccountTenant>,
   ) {}
 
-  async findByUserIdAndTenantCode(
-    userId: string,
-    tenantCode: string,
+  async findOne(
+    where: FindOptionsWhere<AccountTenant>,
   ): Promise<AccountTenant | null> {
     try {
-      const accountTenant = await this.accountTenantRepository.findOne({
-        where: { userId: userId, tenantCode: tenantCode },
-      });
-      return accountTenant;
+      return await this.accountTenantRepository.findOne({ where });
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  async create(userId: string, tenantCode: string): Promise<AccountTenant> {
+  async create(userId: string, tenantId: string): Promise<AccountTenant> {
     try {
       const newAccountTenant = this.accountTenantRepository.create({
         userId: userId,
-        tenantCode: tenantCode,
+        tenantId: tenantId,
       });
       return await this.accountTenantRepository.save(newAccountTenant);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findTenantsByUserId(userId: string): Promise<AccountTenant | null> {
-    try {
-      const accountTenant = await this.accountTenantRepository.findOne({
-        where: { userId },
-        relations: ['tenant'],
-      });
-      return accountTenant;
     } catch (error) {
       console.log(error);
       throw error;

@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { PointCheckinAnalytics } from '../analysis/entities/point-checkin-analytics.entity';
-import { Event } from 'src/event/entities/event.entity';
 
 @Injectable()
 export class PointCheckinAnalysisRepository {
@@ -11,36 +10,31 @@ export class PointCheckinAnalysisRepository {
     private readonly pointCheckinAnalyticsRepository: Repository<PointCheckinAnalytics>,
   ) {}
 
-  async findByEventCode(eventCode: string): Promise<PointCheckinAnalytics[]> {
+  async findOne(
+    where: FindOptionsWhere<PointCheckinAnalytics>,
+  ): Promise<PointCheckinAnalytics | null> {
     try {
-      const analytics = await this.pointCheckinAnalyticsRepository
-        .createQueryBuilder('point_checkin_analytics')
-        .leftJoin(
-          Event,
-          'event',
-          'event.eventCode = point_checkin_analytics.event_code',
-        )
-        .where('event.eventCode = :eventCode', { eventCode })
-        .getMany();
-
-      return analytics;
+      return await this.pointCheckinAnalyticsRepository.findOne({ where });
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  create(
-    eventCode: string,
-    pointCode: string,
-    data: Partial<PointCheckinAnalytics>,
-  ): PointCheckinAnalytics {
+  async findAll(
+    where: FindOptionsWhere<PointCheckinAnalytics>,
+  ): Promise<PointCheckinAnalytics[]> {
     try {
-      return this.pointCheckinAnalyticsRepository.create({
-        ...data,
-        event: { eventCode },
-        point: { pointCode },
-      });
+      return await this.pointCheckinAnalyticsRepository.find({ where });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  create(data: Partial<PointCheckinAnalytics>): PointCheckinAnalytics {
+    try {
+      return this.pointCheckinAnalyticsRepository.create(data);
     } catch (error) {
       console.log(error);
       throw error;

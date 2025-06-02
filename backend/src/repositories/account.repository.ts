@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Account } from '../account/entities/account.entity';
 import { AccountTenant } from '../account/entities/account-tenant.entity';
 import { CreateAccountDto } from '../account/dto/create-account.dto';
@@ -24,65 +24,30 @@ export class AccountRepository {
     }
   }
 
-  async findByUserId(userId: string): Promise<Account | null> {
+  async findOne(where: FindOptionsWhere<Account>): Promise<Account | null> {
     try {
-      const account = await this.accountRepository.findOne({
-        where: { userId: userId },
-      });
-      return account;
+      return await this.accountRepository.findOne({ where });
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  async findByEmail(email: string): Promise<Account | null> {
+  async update(
+    where: FindOptionsWhere<Account>,
+    updateData: Partial<Account>,
+  ): Promise<void> {
     try {
-      const account = await this.accountRepository.findOne({
-        where: { email },
-      });
-      return account;
+      await this.accountRepository.update(where, updateData);
     } catch (error) {
       console.log(error);
       throw error;
     }
   }
 
-  async findById(userId: string): Promise<Account | null> {
+  async delete(where: FindOptionsWhere<Account>): Promise<void> {
     try {
-      const account = await this.accountRepository.findOne({
-        where: { userId },
-      });
-      return account;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async update(userId: string, updateData: Partial<Account>): Promise<void> {
-    try {
-      await this.accountRepository.update(userId, updateData);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async softDelete(userId: string): Promise<void> {
-    try {
-      // await this.accountRepository.update(userId, {
-      //   enabled: false,
-      // });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async remove(account: Account): Promise<void> {
-    try {
-      await this.accountRepository.remove(account);
+      await this.accountRepository.delete(where);
     } catch (error) {
       console.log(error);
       throw error;

@@ -105,14 +105,14 @@ export class Event {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'tenant_code', type: 'varchar' })
-  tenantCode: string;
+  @Column({ name: 'tenant_id', type: 'varchar' })
+  tenantId: string;
 
   // Relations
   @ManyToOne(() => Tenant, (tenant) => tenant.events, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'tenant_code', referencedColumnName: 'tenantCode' })
+  @JoinColumn({ name: 'tenant_id', referencedColumnName: 'tenantId' })
   tenant: Tenant;
 
   @OneToMany(() => Guest, (guest) => guest.event, {

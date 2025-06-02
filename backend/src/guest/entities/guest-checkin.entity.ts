@@ -27,11 +27,11 @@ export class GuestCheckin {
   })
   checkinTime: Date;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
+  @Column({ name: 'event_id', type: 'uuid' })
+  eventId: string;
 
-  @Column({ name: 'point_code', type: 'varchar' })
-  pointCode: string;
+  @Column({ name: 'poc_id', type: 'uuid' })
+  pocId: string;
 
   // Relations
   @ManyToOne(() => Guest, (guest) => guest.checkins, {
@@ -43,12 +43,12 @@ export class GuestCheckin {
   @ManyToOne(() => PointOfCheckin, (point) => point.guestCheckins, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'point_code', referencedColumnName: 'pointCode' })
-  point: PointOfCheckin;
+  @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
+  poc: PointOfCheckin;
 
   @ManyToOne(() => Event, (event) => event.guestCheckins, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
+  @JoinColumn({ name: 'event_id', referencedColumnName: 'eventId' })
   event: Event;
 }

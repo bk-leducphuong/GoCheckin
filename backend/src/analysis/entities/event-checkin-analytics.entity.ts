@@ -27,10 +27,13 @@ export class EventCheckinAnalytics {
   @Column({ name: 'updated_at', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
+  @Column({ name: 'event_id', type: 'uuid' })
+  eventId: string;
+
   // Relations
   @ManyToOne(() => Event, (event) => event.eventCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
+  @JoinColumn({ name: 'event_id', referencedColumnName: 'eventId' })
   event: Event;
 }

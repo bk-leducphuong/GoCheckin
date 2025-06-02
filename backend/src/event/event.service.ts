@@ -5,7 +5,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
-import { FindOptionsWhere } from 'typeorm';
+import { FindOptionsWhere, In } from 'typeorm';
 import { Event } from './entities/event.entity';
 import { EventRepository } from '../repositories/event.repository';
 import { AccountTenantRepository } from '../repositories/account-tenant.repository';
@@ -33,7 +33,9 @@ export class EventService {
   private readonly logger = new Logger('EventService');
 
   async validateEventCode(eventCode: string): Promise<boolean> {
-    const event = await this.eventRepository.findByEventCode(eventCode);
+    const event = await this.eventRepository.findOne({
+      eventCode: eventCode,
+    });
     return !!event;
   }
 
@@ -51,8 +53,7 @@ export class EventService {
         whereConditions.eventType = constraints.eventType;
       }
 
-      const events =
-        await this.eventRepository.findByConstraints(whereConditions);
+      const events = await this.eventRepository.findAll(whereConditions);
       return events.map((event) => {
         if (event.images) {
           event.images = event.images.map((key) =>
@@ -73,16 +74,16 @@ export class EventService {
   ): Promise<Event> {
     try {
       // get tenant code from user
-      const tenant = await this.accountTenantRepository.findTenantsByUserId(
-        user.userId,
-      );
+      const tenant = await this.accountTenantRepository.findOne({
+        userId: user.userId,
+      });
       if (!tenant) {
         throw new NotFoundException('Tenant not found');
       }
 
       const newEvent = this.eventRepository.create({
         ...newEventData,
-        tenantCode: tenant.tenantCode,
+        tenantId: tenant.tenantId,
         eventStatus: EventStatus.PUBLISHED,
       });
       return this.eventRepository.save(newEvent);
@@ -95,16 +96,16 @@ export class EventService {
   async getAllManagedEvents(user: JwtPayload): Promise<Event[]> {
     try {
       // get tenant code from user
-      const tenant = await this.accountTenantRepository.findTenantsByUserId(
-        user.userId,
-      );
+      const tenant = await this.accountTenantRepository.findOne({
+        userId: user.userId,
+      });
       if (!tenant) {
         throw new NotFoundException('Tenant not found');
       }
 
-      const events = await this.eventRepository.findByTenantCode(
-        tenant.tenantCode,
-      );
+      const events = await this.eventRepository.findAll({
+        tenantId: tenant.tenantId,
+      });
       return events.map((event) => {
         if (event.images) {
           event.images = event.images.map((key) =>
@@ -121,7 +122,9 @@ export class EventService {
 
   async getEventByCode(eventCode: string): Promise<Event> {
     try {
-      const event = await this.eventRepository.findByEventCode(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
 
       if (!event) {
         throw new NotFoundException(`Event with ID ${eventCode} not found`);
@@ -194,10 +197,9 @@ export class EventService {
   @Cron(CronExpression.EVERY_30_MINUTES)
   async updateEventStatus() {
     try {
-      const events = await this.eventRepository.findByStatusRange([
-        EventStatus.ACTIVE,
-        EventStatus.PUBLISHED,
-      ]);
+      const events = await this.eventRepository.findAll({
+        eventStatus: In([EventStatus.ACTIVE, EventStatus.PUBLISHED]),
+      });
 
       for (const event of events) {
         const startTime = new Date(event.startTime).getTime();

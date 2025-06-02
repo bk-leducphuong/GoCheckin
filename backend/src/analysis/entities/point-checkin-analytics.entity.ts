@@ -28,16 +28,22 @@ export class PointCheckinAnalytics {
   @Column({ name: 'updated_at' })
   updatedAt: Date;
 
+  @Column({ name: 'poc_id', type: 'uuid' })
+  pocId: string;
+
+  @Column({ name: 'event_id', type: 'uuid' })
+  eventId: string;
+
   // Relations
   @ManyToOne(() => Event, (event) => event.pointCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'event_code', referencedColumnName: 'eventCode' })
+  @JoinColumn({ name: 'event_id', referencedColumnName: 'eventId' })
   event: Event;
 
   @ManyToOne(() => PointOfCheckin, (point) => point.pointCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'point_code', referencedColumnName: 'pointCode' })
+  @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
   point: PointOfCheckin;
 }

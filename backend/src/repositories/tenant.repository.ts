@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { Tenant } from '../tenant/entities/tenant.entity';
 
 @Injectable()
@@ -10,22 +10,9 @@ export class TenantRepository {
     private readonly tenantRepository: Repository<Tenant>,
   ) {}
 
-  async findByTenantCode(tenantCode: string): Promise<Tenant | null> {
+  async findOne(where: FindOptionsWhere<Tenant>): Promise<Tenant | null> {
     try {
-      return await this.tenantRepository.findOne({
-        where: { tenantCode: tenantCode },
-      });
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async findByTenantName(tenantName: string): Promise<Tenant | null> {
-    try {
-      return await this.tenantRepository.findOne({
-        where: { tenantName: tenantName },
-      });
+      return await this.tenantRepository.findOne({ where });
     } catch (error) {
       console.log(error);
       throw error;

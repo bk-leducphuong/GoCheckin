@@ -1,22 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventCheckinAnalysisRepository } from '../repositories/event-checkin-analysis.repository';
 import { PointCheckinAnalysisRepository } from '../repositories/point-checkin-analysis.repository';
 import { EventCheckinAnalytics } from './entities/event-checkin-analytics.entity';
 import { PointCheckinAnalytics } from './entities/point-checkin-analytics.entity';
-import { GuestService } from 'src/guest/guest.service';
-import { EventService } from 'src/event/event.service';
-import { PocService } from 'src/poc/poc.service';
-import { GuestCheckin } from 'src/guest/entities/guest-checkin.entity';
 import { EventStatus } from 'src/event/entities/event.entity';
+import { EventRepository } from 'src/repositories/event.repository';
+import { GuestCheckinRepository } from 'src/repositories/guest-checkin.repository';
 
 @Injectable()
 export class AnalysisService {
   constructor(
     private readonly eventCheckinAnalyticsRepository: EventCheckinAnalysisRepository,
     private readonly pointCheckinAnalyticsRepository: PointCheckinAnalysisRepository,
-    private guestService: GuestService,
-    private eventService: EventService,
-    private pocService: PocService,
+    private readonly eventRepository: EventRepository,
+    private readonly guestCheckinRepository: GuestCheckinRepository,
   ) {}
 
   async analyzeEventCheckin(
@@ -24,19 +21,28 @@ export class AnalysisService {
     intervalDuration: 'hourly' | '15min' | '30min' | 'daily' = 'hourly',
   ): Promise<EventCheckinAnalytics[]> {
     try {
-      const eventStatus = await this.eventService.getEventStatus(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
+      if (!event) {
+        throw new NotFoundException('Event not found');
+      }
 
-      if (eventStatus == EventStatus.COMPLETED) {
+      if (event.eventStatus == EventStatus.COMPLETED) {
         // Check if analytics already exist
-        const oldAnalytics =
-          await this.eventCheckinAnalyticsRepository.findByEventCode(eventCode);
+        const oldAnalytics = await this.eventCheckinAnalyticsRepository.findAll(
+          {
+            eventId: event.eventId,
+          },
+        );
         if (oldAnalytics.length > 0) {
           return oldAnalytics;
         }
       }
 
-      const transactions =
-        await this.guestService.getAllCheckinsByEvent(eventCode);
+      const transactions = await this.guestCheckinRepository.findAll({
+        eventId: event.eventId,
+      });
       if (transactions.length === 0) return [];
 
       const intervalMap = new Map<string, GuestCheckin[]>();
