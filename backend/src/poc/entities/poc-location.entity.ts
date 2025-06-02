@@ -16,7 +16,7 @@ export class PocLocation {
   @PrimaryGeneratedColumn('uuid', { name: 'poc_location_id' })
   pocLocationId: string;
 
-  @Column({ name: 'label', type: 'varchar' })
+  @Column({ name: 'label', type: 'varchar', nullable: true })
   label: string;
 
   @Column({ name: 'x_coordinate', type: 'float', nullable: true })

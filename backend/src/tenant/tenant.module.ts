@@ -10,6 +10,6 @@ import { TenantRepository } from '../repositories/tenant.repository';
   imports: [TypeOrmModule.forFeature([Tenant]), AccountModule],
   controllers: [TenantController],
   providers: [TenantService, TenantRepository],
-  exports: [TenantService],
+  exports: [TenantService, TenantRepository],
 })
 export class TenantModule {}

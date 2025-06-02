@@ -19,7 +19,6 @@ export class GuestCheckinRepository {
         where: {
           guestCode: guestCode,
           pointCode: pointCode,
-          active: true,
         },
       });
     } catch (error) {
@@ -52,7 +51,7 @@ export class GuestCheckinRepository {
   ): Promise<GuestCheckin[]> {
     try {
       return await this.guestCheckinRepository.find({
-        where: { pointCode, eventCode, active: true },
+        where: { pointCode, eventCode },
         order: { checkinTime: 'DESC' },
       });
     } catch (error) {
@@ -64,7 +63,7 @@ export class GuestCheckinRepository {
   async findByEvent(eventCode: string): Promise<GuestCheckin[]> {
     try {
       return await this.guestCheckinRepository.find({
-        where: { eventCode, active: true },
+        where: { eventCode },
         order: { checkinTime: 'DESC' },
       });
     } catch (error) {

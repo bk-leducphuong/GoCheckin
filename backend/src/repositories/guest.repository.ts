@@ -48,7 +48,7 @@ export class GuestRepository {
   async findByIdEnabled(guestId: string): Promise<Guest | null> {
     try {
       return await this.guestRepository.findOne({
-        where: { guestId: guestId, enabled: true },
+        where: { guestId: guestId },
       });
     } catch (error) {
       console.log(error);
@@ -59,7 +59,7 @@ export class GuestRepository {
   async findByIdWithRelations(id: string): Promise<Guest | null> {
     try {
       return await this.guestRepository.findOne({
-        where: { guestId: id, enabled: true },
+        where: { guestId: id },
         relations: ['checkins', 'checkins.pointOfCheckin'],
       });
     } catch (error) {

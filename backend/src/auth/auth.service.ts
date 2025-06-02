@@ -266,7 +266,7 @@ export class AuthService {
 
   async logoutAll(userId: string): Promise<{ success: boolean }> {
     try {
-      await this.tokenRepository.update({ userId }, { isRevoked: true });
+      await this.tokenRepository.updateByUserId(userId, { isRevoked: true });
       return { success: true };
     } catch (error) {
       console.log(error);
@@ -276,7 +276,7 @@ export class AuthService {
 
   async getUserSessions(userId: string): Promise<any[]> {
     try {
-      const tokens = await this.tokenRepository.findUserTokens(userId);
+      const tokens = await this.tokenRepository.findByUserId(userId);
       return tokens.map((token) => ({
         id: token.id,
         deviceInfo: token.deviceInfo,
@@ -294,7 +294,7 @@ export class AuthService {
     tokenId: string,
   ): Promise<{ success: boolean }> {
     try {
-      const token = await this.tokenRepository.findUserTokens(userId);
+      const token = await this.tokenRepository.findByUserId(userId);
       const validToken = token.find((t) => t.id === tokenId);
 
       if (!validToken) {
@@ -362,10 +362,10 @@ export class AuthService {
       });
 
       // Revoke all sessions
-      await this.tokenRepository.update({ userId }, { isRevoked: true });
+      await this.tokenRepository.updateByUserId(userId, { isRevoked: true });
 
-      // send confirmation email
-      await this.mailService.sendPasswordChangedMail(userId);
+      // TODO: send confirmation email
+      // await this.mailService.sendPasswordChangedMail(userId);
     } catch (error) {
       console.log(error);
       throw error;

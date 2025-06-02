@@ -28,12 +28,6 @@ export class PointCheckinAnalytics {
   @Column({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
-
-  @Column({ name: 'point_code', type: 'varchar' })
-  pointCode: string;
-
   // Relations
   @ManyToOne(() => Event, (event) => event.pointCheckinAnalytics, {
     onDelete: 'CASCADE',

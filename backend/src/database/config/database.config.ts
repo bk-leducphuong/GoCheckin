@@ -3,22 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from 'typeorm';
-import { Account } from '../../account/entities/account.entity';
-import { AccountTenant } from '../../account/entities/account-tenant.entity';
-import { Tenant } from '../../tenant/entities/tenant.entity';
-import { Event } from '../../event/entities/event.entity';
-import { PointOfCheckin } from '../../poc/entities/poc.entity';
-import { Guest } from '../../guest/entities/guest.entity';
-import { Token } from 'src/auth/entities/token.entity';
-import { EventCheckinAnalytics } from 'src/analysis/entities/event-checkin-analytics.entity';
-import { PointCheckinAnalytics } from 'src/analysis/entities/point-checkin-analytics.entity';
-import { Otp } from 'src/auth/entities/otp.entity';
-import { ResetToken } from 'src/auth/entities/reset-token.entity';
-import { FloorPlan } from 'src/floor-plan/entities/floor-plan.entity';
-import { PocLocation } from '../../poc/entities/poc-location.entity';
-import { PocInvite } from 'src/poc/entities/poc-invite';
 
-// Ensure logs directory exists
 const logsDir = path.join(__dirname, '../../../logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
@@ -61,32 +46,22 @@ class CustomLogger implements Logger {
 
 export const getDatabaseConfig = (
   configService: ConfigService,
-): TypeOrmModuleOptions => ({
-  type: 'postgres', // Specifies we're using PostgreSQL database
-  host: configService.get('DATABASE_HOST', 'localhost'),
-  port: configService.get('DATABASE_PORT', 5432),
-  username: configService.get('DATABASE_USER', 'postgres'),
-  password: configService.get('DATABASE_PASSWORD', ''),
-  database: configService.get('DATABASE_NAME', 'go_checkin'),
-  entities: [
-    Account,
-    AccountTenant,
-    Tenant,
-    Event,
-    PointOfCheckin,
-    Guest,
-    Token,
-    EventCheckinAnalytics,
-    PointCheckinAnalytics,
-    Otp,
-    ResetToken,
-    FloorPlan,
-    PocLocation,
-    PocInvite,
-  ],
-  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'], // looks for migration files in the migrations directory
-  synchronize: configService.get('NODE_ENV') === 'development', // automatically updates database schema
-  logging: true, // Enable logging for all environments
-  logger: new CustomLogger(),
-  maxQueryExecutionTime: 1000, // Log queries that take more than 1 second
-});
+): TypeOrmModuleOptions => {
+  const isProduction = configService.get('NODE_ENV') === 'production';
+
+  return {
+    type: 'postgres',
+    host: configService.get('DATABASE_HOST', 'localhost'),
+    port: configService.get('DATABASE_PORT', 5432),
+    username: configService.get('DATABASE_USER', 'postgres'),
+    password: configService.get('DATABASE_PASSWORD', ''),
+    database: configService.get('DATABASE_NAME', 'go_checkin'),
+    entities: ['dist/**/*.entity{.js}'],
+    migrations: ['dist/src/database/migrations/*.js'],
+    migrationsRun: isProduction,
+    synchronize: false,
+    logging: !isProduction,
+    logger: new CustomLogger(),
+    maxQueryExecutionTime: 1000,
+  };
+};

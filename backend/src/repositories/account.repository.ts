@@ -71,10 +71,9 @@ export class AccountRepository {
 
   async softDelete(userId: string): Promise<void> {
     try {
-      await this.accountRepository.update(userId, {
-        active: false,
-        enabled: false,
-      });
+      // await this.accountRepository.update(userId, {
+      //   enabled: false,
+      // });
     } catch (error) {
       console.log(error);
       throw error;

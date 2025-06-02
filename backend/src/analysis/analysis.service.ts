@@ -76,14 +76,16 @@ export class AnalysisService {
         const intervalStart = new Date(intervalKey);
         const checkinCount = transactions.length;
 
-        const analytic = this.eventCheckinAnalyticsRepository.create({
+        const analytic = this.eventCheckinAnalyticsRepository.create(
           eventCode,
-          timeInterval: intervalStart,
-          intervalDuration,
-          checkinCount,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+          {
+            timeInterval: intervalStart,
+            intervalDuration,
+            checkinCount,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        );
 
         if (eventStatus == EventStatus.COMPLETED) {
           await this.eventCheckinAnalyticsRepository.save(analytic);
@@ -163,15 +165,17 @@ export class AnalysisService {
 
         // Count check-ins
         const checkinCount = transactions.length;
-        const analytic = this.pointCheckinAnalyticsRepository.create({
+        const analytic = this.pointCheckinAnalyticsRepository.create(
           eventCode,
           pointCode,
-          timeInterval: new Date(timeInterval),
-          intervalDuration,
-          checkinCount,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+          {
+            timeInterval: new Date(timeInterval),
+            intervalDuration,
+            checkinCount,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        );
 
         if (eventStatus == EventStatus.COMPLETED) {
           await this.pointCheckinAnalyticsRepository.save(analytic);

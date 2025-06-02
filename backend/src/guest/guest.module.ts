@@ -25,6 +25,6 @@ import { GuestCheckinRepository } from '../repositories/guest-checkin.repository
   ],
   controllers: [GuestController],
   providers: [GuestService, S3Service, GuestRepository, GuestCheckinRepository],
-  exports: [GuestService],
+  exports: [GuestService, GuestRepository, GuestCheckinRepository],
 })
 export class GuestModule {}

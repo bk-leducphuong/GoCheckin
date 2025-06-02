@@ -27,9 +27,6 @@ export class EventCheckinAnalytics {
   @Column({ name: 'updated_at', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 
-  @Column({ name: 'event_code', type: 'varchar' })
-  eventCode: string;
-
   // Relations
   @ManyToOne(() => Event, (event) => event.eventCheckinAnalytics, {
     onDelete: 'CASCADE',

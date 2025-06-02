@@ -28,6 +28,11 @@ import { PocInviteRepository } from '../repositories/poc-invite.repository';
     PocLocationRepository,
     PocInviteRepository,
   ],
-  exports: [PocService],
+  exports: [
+    PocService,
+    PocRepository,
+    PocLocationRepository,
+    PocInviteRepository,
+  ],
 })
 export class PocModule {}

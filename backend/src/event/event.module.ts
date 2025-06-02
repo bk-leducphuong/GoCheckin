@@ -34,6 +34,6 @@ import { AccountTenantRepository } from '../repositories/account-tenant.reposito
     EventRepository,
     AccountTenantRepository,
   ],
-  exports: [EventService],
+  exports: [EventService, EventRepository],
 })
 export class EventModule {}

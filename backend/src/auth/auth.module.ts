@@ -44,6 +44,14 @@ import { ResetTokenRepository } from '../repositories/reset-token.repository';
     TokenRepository,
     ResetTokenRepository,
   ],
-  exports: [AuthService, RefreshTokenService, OtpService, GoogleService],
+  exports: [
+    AuthService,
+    RefreshTokenService,
+    OtpService,
+    GoogleService,
+    TokenRepository,
+    ResetTokenRepository,
+    OtpRepository,
+  ],
 })
 export class AuthModule {}

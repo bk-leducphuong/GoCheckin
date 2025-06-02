@@ -25,6 +25,6 @@ import { FloorPlanRepository } from '../repositories/floor-plan.repository';
   ],
   controllers: [FloorPlanController],
   providers: [FloorPlanService, S3Service, FloorPlanRepository],
-  exports: [FloorPlanService],
+  exports: [FloorPlanService, FloorPlanRepository],
 })
 export class FloorPlanModule {}

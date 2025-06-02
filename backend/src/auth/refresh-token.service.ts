@@ -19,10 +19,13 @@ export class RefreshTokenService {
   ): Promise<string> {
     try {
       await this.cleanupExpiredTokens();
-      await this.tokenRepository.update(
-        { userId, deviceInfo },
+
+      await this.tokenRepository.updateByUserIdAndDeviceInfo(
+        userId,
+        deviceInfo,
         { isRevoked: true },
       );
+
       // Generate JWT refresh token
       const refreshToken = this.jwtService.sign(
         { userId },
@@ -39,8 +42,7 @@ export class RefreshTokenService {
       const expiresAt = this.calculateExpirationDate(expiresIn);
 
       // Save the refresh token to the database
-      await this.tokenRepository.save({
-        userId,
+      await this.tokenRepository.saveByUserId(userId, {
         refreshToken,
         deviceInfo,
         expiresAt,
@@ -81,7 +83,7 @@ export class RefreshTokenService {
    */
   async revokeAllUserTokens(userId: string): Promise<void> {
     try {
-      await this.tokenRepository.update({ userId }, { isRevoked: true });
+      await this.tokenRepository.updateByUserId(userId, { isRevoked: true });
     } catch (error) {
       console.error('Error revoking all tokens for user:', error);
       throw error;
@@ -105,7 +107,7 @@ export class RefreshTokenService {
    */
   async getUserTokens(userId: string): Promise<Token[]> {
     try {
-      return this.tokenRepository.findUserTokens(userId);
+      return await this.tokenRepository.findByUserId(userId);
     } catch (error) {
       console.log(error);
       throw error;

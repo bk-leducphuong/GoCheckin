@@ -32,9 +32,9 @@ export class PocService {
     private readonly pocRepository: PocRepository,
     private readonly pocLocationRepository: PocLocationRepository,
     private readonly pocInviteRepository: PocInviteRepository,
+    private readonly accountRepository: AccountRepository,
     @Inject(forwardRef(() => EventService))
     private eventService: EventService,
-    private accountRepository: AccountRepository,
     @Inject(forwardRef(() => FloorPlanService))
     private floorPlanService: FloorPlanService,
     @Inject(forwardRef(() => MailService))

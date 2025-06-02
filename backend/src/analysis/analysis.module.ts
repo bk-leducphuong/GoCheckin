@@ -23,6 +23,10 @@ import { PointCheckinAnalysisRepository } from '../repositories/point-checkin-an
     EventCheckinAnalysisRepository,
     PointCheckinAnalysisRepository,
   ],
-  exports: [AnalysisService],
+  exports: [
+    AnalysisService,
+    EventCheckinAnalysisRepository,
+    PointCheckinAnalysisRepository,
+  ],
 })
 export class AnalysisModule {}

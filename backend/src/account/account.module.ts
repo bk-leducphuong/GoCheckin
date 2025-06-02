@@ -17,6 +17,11 @@ import { AccountTenantRepository } from '../repositories/account-tenant.reposito
     AccountRepository,
     AccountTenantRepository,
   ],
-  exports: [AccountService, AccountTenantService],
+  exports: [
+    AccountService,
+    AccountTenantService,
+    AccountRepository,
+    AccountTenantRepository,
+  ],
 })
 export class AccountModule {}
