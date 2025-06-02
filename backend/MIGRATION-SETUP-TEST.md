@@ -100,7 +100,7 @@ To test generating a new migration:
 
 ```bash
 # This should work if entities are correctly configured
-npm run migration:generate -- src/database/migrations/TestMigration
+npm run migration:generate --name=TestMigration
 ```
 
 ## Troubleshooting
