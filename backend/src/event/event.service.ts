@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  Logger,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { FindOptionsWhere, In } from 'typeorm';
 import { Event } from './entities/event.entity';
 import { EventRepository } from '../repositories/event.repository';
@@ -25,7 +19,6 @@ export class EventService {
     private readonly eventRepository: EventRepository,
     private readonly accountTenantRepository: AccountTenantRepository,
     private readonly floorPlanService: FloorPlanService,
-    @Inject(forwardRef(() => PocService))
     private readonly pocService: PocService,
     private readonly s3Service: S3Service,
   ) {}

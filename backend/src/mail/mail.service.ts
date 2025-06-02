@@ -1,25 +1,17 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Account } from 'src/account/entities/account.entity';
 import { AccountDto } from 'src/account/dto/account.dto';
-import { EventService } from 'src/event/event.service';
-import { PocService } from 'src/poc/poc.service';
 import { ConfigService } from '@nestjs/config';
+import { EventRepository, PocRepository } from 'src/repositories';
 
 @Injectable()
 export class MailService {
   constructor(
     private readonly mailerService: MailerService,
-    @Inject(forwardRef(() => EventService))
-    private readonly eventService: EventService,
-    @Inject(forwardRef(() => PocService))
-    private readonly pocService: PocService,
     private readonly configService: ConfigService,
+    private readonly eventRepository: EventRepository,
+    private readonly pocRepository: PocRepository,
   ) {}
 
   async sendOtpMail(account: Account, otp: string) {
@@ -94,12 +86,17 @@ export class MailService {
     inviteCode: string,
   ) {
     try {
-      const event = await this.eventService.getEventByCode(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
       if (!event) {
         throw new NotFoundException('Event not found');
       }
 
-      const poc = await this.pocService.getPocByPocCode(eventCode, pointCode);
+      const poc = await this.pocRepository.findOne({
+        eventId: event.eventId,
+        pocCode: pointCode,
+      });
       if (!poc) {
         throw new NotFoundException('POC not found');
       }

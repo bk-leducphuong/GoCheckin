@@ -1,17 +1,13 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { FloorPlanService } from './floor-plan.service';
 import { FloorPlanController } from './floor-plan.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { FloorPlan } from './entities/floor-plan.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { S3Service } from 'src/common/services/s3.service';
-import { PocModule } from 'src/poc/poc.module';
-import { FloorPlanRepository } from '../repositories/floor-plan.repository';
+import { RepositoryModule } from 'src/repositories/repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([FloorPlan]),
     MulterModule.register({
       storage: memoryStorage(),
       fileFilter: (req, file, callback) => {
@@ -21,10 +17,10 @@ import { FloorPlanRepository } from '../repositories/floor-plan.repository';
         callback(null, true);
       },
     }),
-    forwardRef(() => PocModule),
+    RepositoryModule,
   ],
   controllers: [FloorPlanController],
-  providers: [FloorPlanService, S3Service, FloorPlanRepository],
-  exports: [FloorPlanService, FloorPlanRepository],
+  providers: [FloorPlanService, S3Service],
+  exports: [FloorPlanService],
 })
 export class FloorPlanModule {}

@@ -9,7 +9,7 @@ export class AuthLoginResponseDto {
 
   @IsString()
   @IsOptional()
-  pointCode?: string;
+  pocCode?: string;
 
   @IsString()
   @IsOptional()

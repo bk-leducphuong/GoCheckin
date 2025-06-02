@@ -6,7 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Event } from '../../event/entities/event.entity'; // Adjust the import path as necessary
-import { PointOfCheckin } from '../../poc/entities/poc.entity'; // Adjust the import path as necessary
+import { Poc } from '../../poc/entities/poc.entity'; // Adjust the import path as necessary
 
 @Entity('point_checkin_analytics')
 export class PointCheckinAnalytics {
@@ -41,9 +41,9 @@ export class PointCheckinAnalytics {
   @JoinColumn({ name: 'event_id', referencedColumnName: 'eventId' })
   event: Event;
 
-  @ManyToOne(() => PointOfCheckin, (point) => point.pointCheckinAnalytics, {
+  @ManyToOne(() => Poc, (poc) => poc.pointCheckinAnalytics, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
-  point: PointOfCheckin;
+  poc: Poc;
 }

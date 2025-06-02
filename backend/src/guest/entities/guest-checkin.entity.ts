@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Guest } from './guest.entity';
-import { PointOfCheckin } from 'src/poc/entities/poc.entity';
+import { Poc } from 'src/poc/entities/poc.entity';
 import { Event } from 'src/event/entities/event.entity';
 
 @Entity('guest_checkins')
@@ -40,11 +40,11 @@ export class GuestCheckin {
   @JoinColumn({ name: 'guest_id' })
   guest: Guest;
 
-  @ManyToOne(() => PointOfCheckin, (point) => point.guestCheckins, {
+  @ManyToOne(() => Poc, (poc) => poc.guestCheckins, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
-  poc: PointOfCheckin;
+  poc: Poc;
 
   @ManyToOne(() => Event, (event) => event.guestCheckins, {
     onDelete: 'CASCADE',

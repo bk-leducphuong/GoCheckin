@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { AccountTenantRepository } from '../repositories/account-tenant.repository';
 import { AccountTenant } from './entities/account-tenant.entity';
-import { TenantRepository } from 'src/repositories/tenant.repository';
+import { AccountTenantRepository, TenantRepository } from 'src/repositories';
 
 @Injectable()
 export class AccountTenantService {

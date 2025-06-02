@@ -1,18 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { PointOfCheckin } from '../poc/entities/poc.entity';
+import { Poc } from '../poc/entities/poc.entity';
 
 @Injectable()
 export class PocRepository {
   constructor(
-    @InjectRepository(PointOfCheckin)
-    private readonly pocRepository: Repository<PointOfCheckin>,
+    @InjectRepository(Poc)
+    private readonly pocRepository: Repository<Poc>,
   ) {}
 
-  async findOne(
-    where: FindOptionsWhere<PointOfCheckin>,
-  ): Promise<PointOfCheckin | null> {
+  async findOne(where: FindOptionsWhere<Poc>): Promise<Poc | null> {
     try {
       return await this.pocRepository.findOne({ where });
     } catch (error) {
@@ -21,9 +19,7 @@ export class PocRepository {
     }
   }
 
-  async findAll(
-    where: FindOptionsWhere<PointOfCheckin>,
-  ): Promise<PointOfCheckin[]> {
+  async findAll(where: FindOptionsWhere<Poc>): Promise<Poc[]> {
     try {
       return await this.pocRepository.find({ where });
     } catch (error) {
@@ -32,7 +28,7 @@ export class PocRepository {
     }
   }
 
-  create(data: Partial<PointOfCheckin>): PointOfCheckin {
+  create(data: Partial<Poc>): Poc {
     try {
       return this.pocRepository.create(data);
     } catch (error) {
@@ -41,7 +37,7 @@ export class PocRepository {
     }
   }
 
-  async save(poc: PointOfCheckin): Promise<PointOfCheckin> {
+  async save(poc: Poc): Promise<Poc> {
     try {
       return await this.pocRepository.save(poc);
     } catch (error) {
@@ -50,10 +46,7 @@ export class PocRepository {
     }
   }
 
-  async update(
-    conditions: Partial<PointOfCheckin>,
-    data: Partial<PointOfCheckin>,
-  ): Promise<void> {
+  async update(conditions: Partial<Poc>, data: Partial<Poc>): Promise<void> {
     try {
       await this.pocRepository.update(conditions, data);
     } catch (error) {
@@ -62,7 +55,7 @@ export class PocRepository {
     }
   }
 
-  async delete(where: FindOptionsWhere<PointOfCheckin>): Promise<void> {
+  async delete(where: FindOptionsWhere<Poc>): Promise<void> {
     try {
       await this.pocRepository.delete(where);
     } catch (error) {

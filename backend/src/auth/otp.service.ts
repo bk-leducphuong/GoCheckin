@@ -5,6 +5,7 @@ import { hash, compare } from 'bcrypt';
 import { randomInt, randomBytes } from 'crypto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { AccountRepository } from 'src/repositories/account.repository';
+import { MoreThan } from 'typeorm';
 
 @Injectable()
 export class OtpService {
@@ -37,16 +38,17 @@ export class OtpService {
     verifyOtpDto: VerifyOtpDto,
   ): Promise<{ resetToken: string; userId: string }> {
     try {
-      const account = await this.accountRepository.findByEmail(
-        verifyOtpDto.email,
-      );
+      const account = await this.accountRepository.findOne({
+        email: verifyOtpDto.email,
+      });
       if (!account) {
         throw new BadRequestException('Invalid or expired code');
       }
 
-      const otpRecord = await this.otpRepository.findByUserIdNotExpired(
-        account.userId,
-      );
+      const otpRecord = await this.otpRepository.findOne({
+        userId: account.userId,
+        expriedAt: MoreThan(new Date()),
+      });
 
       if (!otpRecord) {
         throw new BadRequestException('Invalid or expired code');

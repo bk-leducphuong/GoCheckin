@@ -69,7 +69,7 @@ export class SocketGateway
   @SubscribeMessage('heartbeat')
   async handleHeartbeat(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { eventCode: string; pointCode: string },
+    @MessageBody() data: { eventCode: string; pocCode: string },
   ) {
     await this.checkinHandler.handleHeartbeat(this.server, data);
   }

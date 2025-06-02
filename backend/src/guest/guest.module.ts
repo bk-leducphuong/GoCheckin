@@ -1,18 +1,13 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { GuestController } from './guest.controller';
 import { GuestService } from './guest.service';
-import { Guest } from './entities/guest.entity';
-import { GuestCheckin } from './entities/guest-checkin.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { S3Service } from 'src/common/services/s3.service';
-import { GuestRepository } from '../repositories/guest.repository';
-import { GuestCheckinRepository } from '../repositories/guest-checkin.repository';
+import { RepositoryModule } from 'src/repositories/repository.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Guest, GuestCheckin]),
     MulterModule.register({
       storage: memoryStorage(),
       fileFilter: (req, file, callback) => {
@@ -22,9 +17,10 @@ import { GuestCheckinRepository } from '../repositories/guest-checkin.repository
         callback(null, true);
       },
     }),
+    RepositoryModule,
   ],
   controllers: [GuestController],
-  providers: [GuestService, S3Service, GuestRepository, GuestCheckinRepository],
-  exports: [GuestService, GuestRepository, GuestCheckinRepository],
+  providers: [GuestService, S3Service],
+  exports: [GuestService],
 })
 export class GuestModule {}

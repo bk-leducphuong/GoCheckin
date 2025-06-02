@@ -10,5 +10,5 @@ export class ValidatePocDto {
   @ApiProperty({ description: 'Point of check-in ID or code' })
   @IsString()
   @IsNotEmpty()
-  pointCode: string;
+  pocCode: string;
 }

@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsNumber, IsEnum, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { PointStatus } from '../entities/poc.entity';
+import { PocStatus } from '../entities/poc.entity';
 
 export class UpdatePocDto {
   @IsString()
@@ -16,7 +16,7 @@ export class UpdatePocDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({ description: 'Additional notes about the point' })
-  pointNote?: string;
+  description?: string;
 
   @IsNumber()
   @IsOptional()
@@ -24,13 +24,13 @@ export class UpdatePocDto {
   @ApiPropertyOptional({ description: 'Capacity of the point' })
   capacity?: number;
 
-  @IsEnum(PointStatus)
+  @IsEnum(PocStatus)
   @IsOptional()
   @ApiPropertyOptional({
     description: 'Status of the point',
-    enum: PointStatus,
+    enum: PocStatus,
   })
-  status?: PointStatus;
+  status?: PocStatus;
 
   @IsString()
   @IsOptional()

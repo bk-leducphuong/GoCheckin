@@ -32,6 +32,9 @@ export class Token {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @Column({ name: 'user_id', type: 'uuid', nullable: false })
+  userId: string;
+
   // Relations
   @ManyToOne(() => Account, (account) => account.refreshTokens, {
     onDelete: 'CASCADE',

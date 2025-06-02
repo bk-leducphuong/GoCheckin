@@ -22,27 +22,27 @@ export class SocketService {
 
   async handleHeartbeat(
     server: Server,
-    data: { eventCode: string; pointCode: string },
+    data: { eventCode: string; pocCode: string },
   ): Promise<void> {
     const expiryTime = Date.now() + 1000 * 60 * 1; // 1 minute
     await this.redisService.hset(
       data.eventCode,
-      data.pointCode,
+      data.pocCode,
       expiryTime.toString(),
     );
-    this.logger.log(`Heartbeat received from POC ${data.pointCode}`);
+    this.logger.log(`Heartbeat received from POC ${data.pocCode}`);
   }
 
   handleNewCheckin(
     server: Server,
     checkinData: GuestResponse,
   ): { success: boolean; message: string } {
-    const eventCode = checkinData.guestInfo.eventCode;
-    const adminSocketId = this.adminList[eventCode];
-    if (adminSocketId) {
-      server.to(adminSocketId).emit('new_checkin_received', checkinData);
-    }
-    this.logger.log(`New checkin: ${JSON.stringify(checkinData)}`);
+    // const eventCode = checkinData.guestInfo.pocId;
+    // const adminSocketId = this.adminList[eventCode];
+    // if (adminSocketId) {
+    //   server.to(adminSocketId).emit('new_checkin_received', checkinData);
+    // }
+    // this.logger.log(`New checkin: ${JSON.stringify(checkinData)}`);
     return { success: true, message: `New checkin received` };
   }
 

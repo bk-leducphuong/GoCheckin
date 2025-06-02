@@ -13,28 +13,28 @@ import { Event } from '../../event/entities/event.entity';
 import { Account } from '../../account/entities/account.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 import { PocLocation } from '../entities/poc-location.entity';
-import { PocInvite } from './poc-invite';
+import { PocInvite } from './poc-invite.entity';
 import { GuestCheckin } from 'src/guest/entities/guest-checkin.entity';
 
-export enum PointStatus {
+export enum PocStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
   MAINTENANCE = 'maintenance',
 }
 
-@Entity('points_of_checkin')
-export class PointOfCheckin {
+@Entity()
+export class Poc {
   @PrimaryGeneratedColumn('uuid', { name: 'poc_id' })
   pocId: string;
 
-  @Column({ name: 'point_code', type: 'varchar' })
-  pointCode: string;
+  @Column({ name: 'poc_code', type: 'varchar' })
+  pocCode: string;
 
-  @Column({ name: 'point_name', type: 'varchar' })
+  @Column({ name: 'poc_name', type: 'varchar' })
   pointName: string;
 
-  @Column({ name: 'point_note', type: 'text', nullable: true })
-  pointNote: string;
+  @Column({ name: 'description', type: 'text', nullable: true })
+  description: string;
 
   @Column({ type: 'integer', nullable: true })
   capacity: number;
@@ -42,10 +42,10 @@ export class PointOfCheckin {
   @Column({
     name: 'status',
     type: 'enum',
-    enum: PointStatus,
-    default: PointStatus.ACTIVE,
+    enum: PocStatus,
+    default: PocStatus.ACTIVE,
   })
-  status: PointStatus;
+  status: PocStatus;
 
   @Column({ name: 'location_description', type: 'text', nullable: true })
   locationDescription: string;
@@ -77,7 +77,7 @@ export class PointOfCheckin {
 
   @OneToMany(
     () => PointCheckinAnalytics,
-    (pointCheckinAnalytics) => pointCheckinAnalytics.point,
+    (pointCheckinAnalytics) => pointCheckinAnalytics.poc,
     {
       cascade: true,
     },
@@ -89,12 +89,12 @@ export class PointOfCheckin {
   })
   location: PocLocation;
 
-  @OneToMany(() => PocInvite, (pocInvite) => pocInvite.point, {
+  @OneToMany(() => PocInvite, (pocInvite) => pocInvite.poc, {
     cascade: true,
   })
   pocInvites: PocInvite[];
 
-  @OneToMany(() => GuestCheckin, (guestCheckin) => guestCheckin.point, {
+  @OneToMany(() => GuestCheckin, (guestCheckin) => guestCheckin.poc, {
     cascade: true,
   })
   guestCheckins: GuestCheckin[];

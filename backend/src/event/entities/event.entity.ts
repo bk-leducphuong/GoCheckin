@@ -15,7 +15,7 @@ import { Guest } from '../../guest/entities/guest.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 import { EventCheckinAnalytics } from '../../analysis/entities/event-checkin-analytics.entity';
 import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
-import { PocInvite } from 'src/poc/entities/poc-invite';
+import { PocInvite } from 'src/poc/entities/poc-invite.entity';
 import { GuestCheckin } from 'src/guest/entities/guest-checkin.entity';
 
 export enum AccessType {

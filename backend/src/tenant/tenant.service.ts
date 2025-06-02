@@ -3,17 +3,16 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { TenantRepository } from '../repositories/tenant.repository';
 import { Tenant } from './entities/tenant.entity';
 import { CreateTenantDto } from './dto/create-tenant.dto';
-import { AccountTenantService } from 'src/account/account-tenant.service';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { TenantRepository, AccountTenantRepository } from 'src/repositories';
 
 @Injectable()
 export class TenantService {
   constructor(
     private readonly tenantRepository: TenantRepository,
-    private accountTenantService: AccountTenantService,
+    private readonly accountTenantRepository: AccountTenantRepository,
   ) {}
 
   async createTenant(createTenantDto: CreateTenantDto): Promise<Tenant> {
@@ -36,8 +35,8 @@ export class TenantService {
         );
       }
 
-      const newTenant = this.tenantRepository.create(createTenantDto);
-      return this.tenantRepository.save(newTenant);
+      const newTenant = await this.tenantRepository.create(createTenantDto);
+      return await this.tenantRepository.save(newTenant);
     } catch (error) {
       console.error('Error creating tenant:', error);
       throw error;
@@ -45,8 +44,13 @@ export class TenantService {
   }
 
   async getTenantInformationByUserId(userId: string): Promise<Tenant> {
-    const accountTenants =
-      await this.accountTenantService.findTenantsByUserId(userId);
+    const accountTenants = await this.accountTenantRepository.findOne({
+      userId: userId,
+    });
+
+    if (!accountTenants) {
+      throw new NotFoundException('No tenant found for user');
+    }
 
     const tenant = await this.tenantRepository.findOne({
       tenantId: accountTenants.tenantId,
@@ -63,8 +67,12 @@ export class TenantService {
     userId: string,
     updateTenantDto: UpdateTenantDto,
   ) {
-    const accountTenants =
-      await this.accountTenantService.findTenantsByUserId(userId);
+    const accountTenants = await this.accountTenantRepository.findOne({
+      userId: userId,
+    });
+    if (!accountTenants) {
+      throw new NotFoundException('No tenant found for user');
+    }
 
     const tenant = await this.tenantRepository.findOne({
       tenantId: accountTenants.tenantId,

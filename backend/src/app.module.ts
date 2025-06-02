@@ -16,6 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { SocketModule } from './gateways/socket.module';
 import { RedisModule } from './redis/redis.module';
 import { HealthModule } from './health/health.module';
+import { RepositoryModule } from './repositories/repository.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { HealthModule } from './health/health.module';
       }),
       inject: [ConfigService], // The inject array lists providers that Nest will resolve and pass as arguments to the factory function.
     }),
+    RepositoryModule,
   ],
   controllers: [],
   providers: [],

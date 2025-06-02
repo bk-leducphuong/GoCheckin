@@ -2,13 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  forwardRef,
-  Inject,
 } from '@nestjs/common';
-import { PocRepository } from '../repositories/poc.repository';
-import { PocLocationRepository } from '../repositories/poc-location.repository';
-import { PocInviteRepository } from '../repositories/poc-invite.repository';
-import { PointOfCheckin } from './entities/poc.entity';
+import { Poc } from './entities/poc.entity';
 import { CreatePocDto } from './dto/create-poc.dto';
 import { UpdatePocDto } from './dto/update-poc.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
@@ -16,14 +11,19 @@ import { ValidatePocDto } from './dto/validate-poc.dto';
 import { PocManagerDto } from './dto/poc-manager.dto';
 import { PocLocationsDto } from './dto/poc-locations.dto';
 import { PocLocation } from './entities/poc-location.entity';
-import { FloorPlanService } from 'src/floor-plan/floor-plan.service';
 import { RegisterPocUserDto } from './dto/register-poc-user.dto';
 import { MailService } from 'src/mail/mail.service';
 import { InvitePocUserDto } from './dto/invite-poc-user.dto';
-import { PocInvite, PocInviteStatus } from './entities/poc-invite';
+import { PocInvite, PocInviteStatus } from './entities/poc-invite.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { AccountRepository } from 'src/repositories/account.repository';
-import { EventRepository } from 'src/repositories/event.repository';
+import {
+  PocRepository,
+  PocLocationRepository,
+  PocInviteRepository,
+  AccountRepository,
+  EventRepository,
+  FloorPlanRepository,
+} from 'src/repositories';
 
 @Injectable()
 export class PocService {
@@ -33,16 +33,11 @@ export class PocService {
     private readonly pocInviteRepository: PocInviteRepository,
     private readonly accountRepository: AccountRepository,
     private readonly eventRepository: EventRepository,
-    @Inject(forwardRef(() => FloorPlanService))
-    private floorPlanService: FloorPlanService,
-    @Inject(forwardRef(() => MailService))
-    private mailService: MailService,
+    private readonly floorPlanRepository: FloorPlanRepository,
+    private readonly mailService: MailService,
   ) {}
 
-  async create(
-    eventCode: string,
-    createPocDto: CreatePocDto,
-  ): Promise<PointOfCheckin> {
+  async create(eventCode: string, createPocDto: CreatePocDto): Promise<Poc> {
     try {
       const event = await this.eventRepository.findOne({
         eventCode: eventCode,
@@ -64,7 +59,7 @@ export class PocService {
 
   async validatePointCode(
     eventCode: string,
-    pointCode: string,
+    pocCode: string,
   ): Promise<boolean> {
     try {
       const event = await this.eventRepository.findOne({
@@ -76,7 +71,7 @@ export class PocService {
 
       const poc = await this.pocRepository.findOne({
         eventId: event.eventId,
-        pointCode: pointCode,
+        pocCode: pocCode,
       });
       return !!poc;
     } catch (error) {
@@ -85,7 +80,7 @@ export class PocService {
     }
   }
 
-  async getAllPocs(eventCode: string): Promise<PointOfCheckin[]> {
+  async getAllPocs(eventCode: string): Promise<Poc[]> {
     try {
       const event = await this.eventRepository.findOne({
         eventCode: eventCode,
@@ -100,7 +95,7 @@ export class PocService {
     }
   }
 
-  async getPocByPocId(pocId: string): Promise<PointOfCheckin> {
+  async getPocByPocId(pocId: string): Promise<Poc> {
     try {
       const poc = await this.pocRepository.findOne({
         pocId: pocId,
@@ -119,10 +114,7 @@ export class PocService {
     }
   }
 
-  async getPocByPocCode(
-    eventCode: string,
-    pointCode: string,
-  ): Promise<PointOfCheckin> {
+  async getPocByPocCode(eventCode: string, pocCode: string): Promise<Poc> {
     try {
       const event = await this.eventRepository.findOne({
         eventCode: eventCode,
@@ -132,12 +124,12 @@ export class PocService {
       }
       const poc = await this.pocRepository.findOne({
         eventId: event.eventId,
-        pointCode: pointCode,
+        pocCode: pocCode,
       });
 
       if (!poc) {
         throw new NotFoundException(
-          `Point of Check-in with code ${pointCode} not found`,
+          `Point of Check-in with code ${pocCode} not found`,
         );
       }
 
@@ -148,7 +140,7 @@ export class PocService {
     }
   }
 
-  async getPocsByUserId(userId: string): Promise<PointOfCheckin[]> {
+  async getPocsByUserId(userId: string): Promise<Poc[]> {
     try {
       const pocs = await this.pocRepository.findAll({ userId: userId });
       return pocs.length > 0 ? pocs : [];
@@ -158,10 +150,7 @@ export class PocService {
     }
   }
 
-  async update(
-    pocId: string,
-    updatePocDto: UpdatePocDto,
-  ): Promise<PointOfCheckin> {
+  async update(pocId: string, updatePocDto: UpdatePocDto): Promise<Poc> {
     try {
       const poc = await this.getPocByPocId(pocId);
       if (!poc) {
@@ -191,9 +180,9 @@ export class PocService {
   async validatePoc(
     user: JwtPayload,
     validatePocDto: ValidatePocDto,
-  ): Promise<PointOfCheckin> {
+  ): Promise<Poc> {
     try {
-      const { eventCode, pointCode } = validatePocDto;
+      const { eventCode, pocCode } = validatePocDto;
       const event = await this.eventRepository.findOne({
         eventCode: eventCode,
       });
@@ -204,7 +193,7 @@ export class PocService {
       const poc = await this.pocRepository.findOne({
         userId: user.userId,
         eventId: event.eventId,
-        pointCode: pointCode,
+        pocCode: pocCode,
       });
       if (!poc) {
         throw new NotFoundException('Not found poc!');
@@ -219,7 +208,9 @@ export class PocService {
 
   async getPocManager(userId: string): Promise<PocManagerDto | null> {
     try {
-      const pocManager = await this.accountRepository.findById(userId);
+      const pocManager = await this.accountRepository.findOne({
+        userId: userId,
+      });
       if (!pocManager) {
         return null;
       }
@@ -232,7 +223,7 @@ export class PocService {
 
   async updatePocManager(
     eventCode: string,
-    pointCode: string,
+    pocCode: string,
     userId: string,
   ): Promise<void> {
     try {
@@ -244,7 +235,7 @@ export class PocService {
       }
 
       await this.pocRepository.update(
-        { eventId: event.eventId, pointCode: pointCode },
+        { eventId: event.eventId, pocCode: pocCode },
         { userId: userId },
       );
     } catch (error) {
@@ -271,14 +262,21 @@ export class PocService {
   async savePocLocation(pocLocations: PocLocationsDto): Promise<void> {
     try {
       const { eventCode, locations } = pocLocations;
-      const floorPlan =
-        await this.floorPlanService.getFloorPlanByEventCode(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
+      if (!event) {
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
+      }
+      const floorPlan = await this.floorPlanRepository.findOne({
+        eventId: event.eventId,
+      });
       if (!floorPlan) {
         throw new NotFoundException(
           `Floor plan with event code ${eventCode} not found`,
         );
       }
-      await this.pocLocationRepository.saveMultiple(
+      await this.pocLocationRepository.save(
         locations.map((location) => ({
           ...location,
           floorPlanId: floorPlan.floorPlanId,
@@ -292,16 +290,23 @@ export class PocService {
 
   async getPocLocations(eventCode: string): Promise<PocLocation[]> {
     try {
-      const floorPlan =
-        await this.floorPlanService.getFloorPlanByEventCode(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
+      if (!event) {
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
+      }
+      const floorPlan = await this.floorPlanRepository.findOne({
+        eventId: event.eventId,
+      });
       if (!floorPlan) {
         throw new NotFoundException(
           `Floor plan with event code ${eventCode} not found`,
         );
       }
-      return this.pocLocationRepository.findByFloorPlanId(
-        floorPlan.floorPlanId,
-      );
+      return this.pocLocationRepository.findAll({
+        floorPlanId: floorPlan.floorPlanId,
+      });
     } catch (error) {
       console.error('Error getting POC locations:', error);
       throw error;
@@ -310,7 +315,9 @@ export class PocService {
 
   async removePocLocations(floorPlanId: string) {
     try {
-      await this.pocLocationRepository.deleteByFloorPlanId(floorPlanId);
+      await this.pocLocationRepository.delete({
+        floorPlanId: floorPlanId,
+      });
     } catch (error) {
       console.error('Error removing POC locations:', error);
       throw error;
@@ -322,7 +329,7 @@ export class PocService {
     registerPocUserDto: RegisterPocUserDto,
   ): Promise<void> {
     try {
-      const { eventCode, pointCode } = registerPocUserDto;
+      const { eventCode, pocCode } = registerPocUserDto;
       const event = await this.eventRepository.findOne({
         eventCode: eventCode,
       });
@@ -331,7 +338,7 @@ export class PocService {
       }
       const poc = await this.pocRepository.findOne({
         eventId: event.eventId,
-        pointCode: pointCode,
+        pocCode: pocCode,
       });
       if (!poc) {
         throw new NotFoundException('Not found poc!');
@@ -343,7 +350,7 @@ export class PocService {
 
       const userId = user.userId;
       await this.pocRepository.update(
-        { eventId: event.eventId, pointCode: pointCode },
+        { eventId: event.eventId, pocCode: pocCode },
         { userId: userId },
       );
 
@@ -356,7 +363,7 @@ export class PocService {
 
   async invitePocUser(invitePocUserDto: InvitePocUserDto): Promise<void> {
     try {
-      const { eventCode, pointCode, email } = invitePocUserDto;
+      const { eventCode, pocCode, email } = invitePocUserDto;
       const event = await this.eventRepository.findOne({
         eventCode: eventCode,
       });
@@ -366,7 +373,7 @@ export class PocService {
 
       const poc = await this.pocRepository.findOne({
         eventId: event.eventId,
-        pointCode: pointCode,
+        pocCode: pocCode,
       });
       if (!poc) {
         throw new NotFoundException('Not found poc!');
@@ -386,7 +393,7 @@ export class PocService {
       await this.mailService.sendPocInviteMail(
         email,
         eventCode,
-        pointCode,
+        pocCode,
         inviteCode,
       );
     } catch (error) {
@@ -420,7 +427,7 @@ export class PocService {
     }
   }
 
-  async getPocInvite(eventCode: string, pointCode: string): Promise<PocInvite> {
+  async getPocInvite(eventCode: string, pocCode: string): Promise<PocInvite> {
     try {
       const event = await this.eventRepository.findOne({
         eventCode: eventCode,
@@ -431,7 +438,7 @@ export class PocService {
 
       const poc = await this.pocRepository.findOne({
         eventId: event.eventId,
-        pointCode: pointCode,
+        pocCode: pocCode,
       });
       if (!poc) {
         throw new NotFoundException('Not found poc!');

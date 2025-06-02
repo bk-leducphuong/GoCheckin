@@ -11,8 +11,8 @@ export class CheckinSocketHandler {
 
   async handleHeartbeat(
     server: Server,
-    data: { eventCode: string; pointCode: string },
-  ): Promise<void> {
+    data: { eventCode: string; pocCode: string },
+  ) {
     await this.socketService.handleHeartbeat(server, data);
   }
 

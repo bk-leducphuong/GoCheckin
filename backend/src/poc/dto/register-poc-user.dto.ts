@@ -7,5 +7,5 @@ export class RegisterPocUserDto {
 
   @IsString()
   @IsNotEmpty()
-  pointCode: string;
+  pocCode: string;
 }

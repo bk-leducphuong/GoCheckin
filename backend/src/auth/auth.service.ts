@@ -11,48 +11,51 @@ import { AuthLoginResponseDto } from './dto/login-response.dto';
 import { AuthAdminRegisterDto } from './dto/auth-admin-register.dto';
 import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
 import { compare, hash } from 'bcrypt';
-import { AccountService } from 'src/account/account.service';
 import { UserRole } from 'src/account/entities/account.entity';
-import { TenantService } from 'src/tenant/tenant.service';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from './refresh-token.service';
 import { RequestResetPassword } from './dto/request-reset-password';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from './otp.service';
-import { ResetTokenRepository } from '../repositories/reset-token.repository';
 import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
 import { GoogleAdminLoginDto } from './dto/google-admin-login.dto';
 import { GoogleAdminRegisterDto } from './dto/google-admin-register.dto';
 import { GooglePocLoginDto } from './dto/google-poc-login.dto';
 import { GooglePocRegisterDto } from './dto/google-poc-register.dto';
 import { GoogleService } from './google.service';
-import { AccountTenantService } from 'src/account/account-tenant.service';
 import { GoogleTokenResponse } from './dto/google-token-response';
 import { GoogleUserInfo } from './dto/google-user-info';
-import { AccountRepository } from 'src/repositories/account.repository';
-import { TokenRepository } from 'src/repositories/token.repository';
+import { MoreThan } from 'typeorm';
+import {
+  AccountRepository,
+  ResetTokenRepository,
+  TokenRepository,
+  AccountTenantRepository,
+  TenantRepository,
+} from 'src/repositories';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly accountService: AccountService,
-    private readonly accountTenantService: AccountTenantService,
-    private readonly tenantService: TenantService,
-    private config: ConfigService,
-    private refreshTokenService: RefreshTokenService,
-    private mailService: MailService,
-    private otpService: OtpService,
+    private readonly config: ConfigService,
+    private readonly refreshTokenService: RefreshTokenService,
+    private readonly mailService: MailService,
+    private readonly otpService: OtpService,
     private readonly resetTokenRepository: ResetTokenRepository,
     private readonly googleService: GoogleService,
     private readonly accountRepository: AccountRepository,
     private readonly tokenRepository: TokenRepository,
+    private readonly accountTenantRepository: AccountTenantRepository,
+    private readonly tenantRepository: TenantRepository,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
     try {
-      const user = await this.accountRepository.findByEmail(loginDto.email);
+      const user = await this.accountRepository.findOne({
+        email: loginDto.email,
+      });
 
       // Check if user is an admin
       if (!user || user.role !== UserRole.ADMIN) {
@@ -87,7 +90,9 @@ export class AuthService {
 
   async pocLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
     try {
-      const user = await this.accountRepository.findByEmail(loginDto.email);
+      const user = await this.accountRepository.findOne({
+        email: loginDto.email,
+      });
 
       // Check if user is a POC
       if (!user || user.role !== UserRole.POC) {
@@ -124,15 +129,15 @@ export class AuthService {
   ): Promise<AuthLoginResponseDto> {
     try {
       // Check if email already exists
-      const existingUser = await this.accountRepository.findByEmail(
-        registerDto.email,
-      );
+      const existingUser = await this.accountRepository.findOne({
+        email: registerDto.email,
+      });
       if (existingUser) {
         throw new ConflictException('Account already exists');
       }
 
       /* Tenant creation */
-      const newTenant = await this.tenantService.createTenant({
+      const newTenant = await this.tenantRepository.create({
         tenantCode: registerDto.tenantCode,
         tenantName: registerDto.tenantName,
       });
@@ -146,9 +151,9 @@ export class AuthService {
       });
 
       /* Create account and tenant relationship */
-      await this.accountTenantService.createAccountTenantRelation(
+      await this.accountTenantRepository.create(
         newUser.userId,
-        newTenant.tenantCode,
+        newTenant.tenantId,
       );
 
       /* Create refresh and access token */
@@ -174,9 +179,9 @@ export class AuthService {
     registerDto: AuthPocRegisterDto,
   ): Promise<AuthLoginResponseDto> {
     try {
-      const existingUser = await this.accountRepository.findByEmail(
-        registerDto.email,
-      );
+      const existingUser = await this.accountRepository.findOne({
+        email: registerDto.email,
+      });
 
       if (existingUser) {
         throw new ConflictException('Account already exists');
@@ -210,7 +215,9 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<any> {
     try {
-      const user = await this.accountRepository.findByEmail(email);
+      const user = await this.accountRepository.findOne({
+        email: email,
+      });
       if (user && (await compare(password, user.password))) {
         const { password, ...result } = user;
         return result;
@@ -266,7 +273,10 @@ export class AuthService {
 
   async logoutAll(userId: string): Promise<{ success: boolean }> {
     try {
-      await this.tokenRepository.updateByUserId(userId, { isRevoked: true });
+      await this.tokenRepository.update(
+        { userId: userId },
+        { isRevoked: true },
+      );
       return { success: true };
     } catch (error) {
       console.log(error);
@@ -276,7 +286,9 @@ export class AuthService {
 
   async getUserSessions(userId: string): Promise<any[]> {
     try {
-      const tokens = await this.tokenRepository.findByUserId(userId);
+      const tokens = await this.tokenRepository.findAll({
+        userId: userId,
+      });
       return tokens.map((token) => ({
         id: token.id,
         deviceInfo: token.deviceInfo,
@@ -294,7 +306,9 @@ export class AuthService {
     tokenId: string,
   ): Promise<{ success: boolean }> {
     try {
-      const token = await this.tokenRepository.findByUserId(userId);
+      const token = await this.tokenRepository.findAll({
+        userId: userId,
+      });
       const validToken = token.find((t) => t.id === tokenId);
 
       if (!validToken) {
@@ -314,9 +328,9 @@ export class AuthService {
 
   async requestResetPassword(requestResetPasswordDto: RequestResetPassword) {
     try {
-      const account = await this.accountRepository.findByEmail(
-        requestResetPasswordDto.email,
-      );
+      const account = await this.accountRepository.findOne({
+        email: requestResetPasswordDto.email,
+      });
 
       if (account) {
         const otp = await this.otpService.generateOtp(account.userId); // generate and store OTP
@@ -336,8 +350,10 @@ export class AuthService {
   async resetPassword(resetPasswordDto: ResetPasswordDto) {
     try {
       const { userId, resetToken, password } = resetPasswordDto;
-      const resetTokenRecord =
-        await this.resetTokenRepository.findByUserIdNotExpired(userId);
+      const resetTokenRecord = await this.resetTokenRepository.findOne({
+        userId: userId,
+        expriedAt: MoreThan(new Date()),
+      });
 
       if (!resetTokenRecord) {
         throw new BadRequestException('Invalid or expired code');
@@ -356,13 +372,18 @@ export class AuthService {
 
       // Update password
       const hashedPassword = await hash(password, 10);
-      await this.accountRepository.update(userId, {
-        userId: userId,
-        password: hashedPassword,
-      });
+      await this.accountRepository.update(
+        { userId: userId },
+        {
+          password: hashedPassword,
+        },
+      );
 
       // Revoke all sessions
-      await this.tokenRepository.updateByUserId(userId, { isRevoked: true });
+      await this.tokenRepository.update(
+        { userId: userId },
+        { isRevoked: true },
+      );
 
       // TODO: send confirmation email
       // await this.mailService.sendPasswordChangedMail(userId);
@@ -383,9 +404,9 @@ export class AuthService {
       );
 
       // Check if user already exists
-      const existingUser = await this.accountRepository.findByEmail(
-        userInfo.email,
-      );
+      const existingUser = await this.accountRepository.findOne({
+        email: userInfo.email,
+      });
       if (!existingUser || existingUser.role !== UserRole.ADMIN) {
         throw new UnauthorizedException('Account is not registered');
       }
@@ -422,15 +443,15 @@ export class AuthService {
       );
 
       // Check if email already exists
-      const existingUser = await this.accountRepository.findByEmail(
-        userInfo.email,
-      );
+      const existingUser = await this.accountRepository.findOne({
+        email: userInfo.email,
+      });
       if (existingUser) {
         throw new ConflictException('Account is already registered');
       }
 
       /* Tenant creation */
-      const newTenant = await this.tenantService.createTenant({
+      const newTenant = await this.tenantRepository.create({
         tenantCode: googleAdminRegisterDto.tenantCode,
         tenantName: googleAdminRegisterDto.tenantName,
       });
@@ -445,9 +466,9 @@ export class AuthService {
       });
 
       /* Create account and tenant relationship */
-      await this.accountTenantService.createAccountTenantRelation(
+      await this.accountTenantRepository.create(
         newUser.userId,
-        newTenant.tenantCode,
+        newTenant.tenantId,
       );
 
       /* Create refresh and access token */
@@ -481,9 +502,9 @@ export class AuthService {
       );
 
       // Check if user already exists
-      const existingUser = await this.accountRepository.findByEmail(
-        userInfo.email,
-      );
+      const existingUser = await this.accountRepository.findOne({
+        email: userInfo.email,
+      });
       if (!existingUser || existingUser.role !== UserRole.POC) {
         throw new UnauthorizedException('Account is not registered');
       }
@@ -520,9 +541,9 @@ export class AuthService {
       );
 
       // Check if user already exists
-      const existingUser = await this.accountRepository.findByEmail(
-        userInfo.email,
-      );
+      const existingUser = await this.accountRepository.findOne({
+        email: userInfo.email,
+      });
       if (existingUser) {
         throw new ConflictException('Account is already registered');
       }

@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Event } from 'src/event/entities/event.entity';
-import { PointOfCheckin } from './poc.entity';
+import { Poc } from './poc.entity';
 
 export enum PocInviteStatus {
   PENDING = 'pending',
@@ -49,9 +49,9 @@ export class PocInvite {
   @JoinColumn({ name: 'event_id', referencedColumnName: 'eventId' })
   event: Event;
 
-  @ManyToOne(() => PointOfCheckin, (poc) => poc.pocInvites, {
+  @ManyToOne(() => Poc, (poc) => poc.pocInvites, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
-  point: PointOfCheckin;
+  poc: Poc;
 }

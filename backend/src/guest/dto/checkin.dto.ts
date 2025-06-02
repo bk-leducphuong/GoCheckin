@@ -9,9 +9,9 @@ export class CheckinDto {
 
   @IsString()
   @ApiProperty({
-    description: 'Point of check-in code',
+    description: 'POC code',
   })
-  pointCode: string;
+  pocCode: string;
 
   @IsString()
   @IsOptional()

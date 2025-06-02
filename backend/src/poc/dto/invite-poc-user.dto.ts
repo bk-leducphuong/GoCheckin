@@ -7,7 +7,7 @@ export class InvitePocUserDto {
 
   @IsString()
   @IsNotEmpty()
-  pointCode: string;
+  pocCode: string;
 
   @IsString()
   @IsNotEmpty()

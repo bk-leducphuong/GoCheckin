@@ -7,18 +7,18 @@ import {
   Min,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PointStatus } from '../entities/poc.entity';
+import { PocStatus } from '../entities/poc.entity';
 
 export class CreatePocDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: 'Unique code for the point of check-in' })
-  pointCode: string;
+  pocCode: string;
 
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: 'Name of the point of check-in' })
-  pointName: string;
+  pocName: string;
 
   @IsString()
   @IsOptional()
@@ -30,7 +30,7 @@ export class CreatePocDto {
   @IsString()
   @IsOptional()
   @ApiPropertyOptional({ description: 'Additional notes about the point' })
-  pointNote?: string;
+  description?: string;
 
   @IsNumber()
   @IsOptional()
@@ -38,14 +38,14 @@ export class CreatePocDto {
   @ApiPropertyOptional({ description: 'Capacity of the point' })
   capacity?: number;
 
-  @IsEnum(PointStatus)
+  @IsEnum(PocStatus)
   @IsOptional()
   @ApiPropertyOptional({
     description: 'Status of the point',
-    enum: PointStatus,
-    default: PointStatus.ACTIVE,
+    enum: PocStatus,
+    default: PocStatus.ACTIVE,
   })
-  status?: PointStatus;
+  status?: PocStatus;
 
   @IsString()
   @IsOptional()

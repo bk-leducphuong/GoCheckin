@@ -19,9 +19,9 @@ export class TenantRepository {
     }
   }
 
-  create(data: Partial<Tenant>): Tenant {
+  async create(data: Partial<Tenant>): Promise<Tenant> {
     try {
-      return this.tenantRepository.create(data);
+      return await this.tenantRepository.save(data);
     } catch (error) {
       console.log(error);
       throw error;

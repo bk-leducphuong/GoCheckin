@@ -28,7 +28,7 @@ export class AnalysisController {
     @Query('eventCode') eventCode: string,
     @Query('intervalDuration')
     intervalDuration: 'hourly' | '15min' | '30min' | 'daily' = 'hourly',
-  ): Promise<EventCheckinAnalytics[]> {
+  ) {
     return this.analysisService.analyzeEventCheckin(
       eventCode,
       intervalDuration,
@@ -49,7 +49,7 @@ export class AnalysisController {
     @Query('eventCode') eventCode: string,
     @Query('intervalDuration')
     intervalDuration: 'hourly' | '15min' | '30min' | 'daily' = 'hourly',
-  ): Promise<PointCheckinAnalytics[]> {
+  ) {
     return this.analysisService.analyzePointCheckin(
       eventCode,
       intervalDuration,

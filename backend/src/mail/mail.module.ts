@@ -1,10 +1,9 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EventModule } from 'src/event/event.module';
-import { PocModule } from 'src/poc/poc.module';
+import { RepositoryModule } from 'src/repositories/repository.module';
 
 @Module({
   imports: [
@@ -34,9 +33,8 @@ import { PocModule } from 'src/poc/poc.module';
         },
       }),
     }),
-    forwardRef(() => EventModule),
-    forwardRef(() => PocModule),
     ConfigModule,
+    RepositoryModule,
   ],
   providers: [MailService],
   exports: [MailService],

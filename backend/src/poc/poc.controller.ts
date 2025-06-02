@@ -21,12 +21,10 @@ import { UserRole } from 'src/account/entities/account.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
-import { PointOfCheckin } from './entities/poc.entity';
 import { ValidatePocDto } from './dto/validate-poc.dto';
 import { PocLocationsDto } from './dto/poc-locations.dto';
 import { RegisterPocUserDto } from './dto/register-poc-user.dto';
 import { InvitePocUserDto } from './dto/invite-poc-user.dto';
-import { PocInvite } from './entities/poc-invite';
 
 @ApiTags('points-of-checkin')
 @Controller('pocs')
@@ -44,7 +42,7 @@ export class PocController {
   async validatePoc(
     @CurrentUser() user: JwtPayload,
     @Body() validatePocDto: ValidatePocDto,
-  ): Promise<PointOfCheckin> {
+  ) {
     return this.pocService.validatePoc(user, validatePocDto);
   }
 
@@ -232,7 +230,7 @@ export class PocController {
   async getPocInvite(
     @Query('eventCode') eventCode: string,
     @Query('pointCode') pointCode: string,
-  ): Promise<PocInvite> {
+  ) {
     return this.pocService.getPocInvite(eventCode, pointCode);
   }
 }

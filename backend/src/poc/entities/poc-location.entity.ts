@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
 } from 'typeorm';
-import { PointOfCheckin } from 'src/poc/entities/poc.entity';
+import { Poc } from 'src/poc/entities/poc.entity';
 import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
 
 @Entity('poc_locations')
@@ -38,11 +38,11 @@ export class PocLocation {
   pocId: string;
 
   // Relations
-  @OneToOne(() => PointOfCheckin, (poc) => poc.location, {
+  @OneToOne(() => Poc, (poc) => poc.location, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'poc_id', referencedColumnName: 'pocId' })
-  poc: PointOfCheckin;
+  poc: Poc;
 
   @ManyToOne(() => FloorPlan, (floorPlan) => floorPlan.locations, {
     onDelete: 'CASCADE',

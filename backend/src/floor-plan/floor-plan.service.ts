@@ -1,22 +1,33 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FloorPlanRepository } from '../repositories/floor-plan.repository';
 import { FloorPlan } from './entities/floor-plan.entity';
 import { FloorPlanDto } from './dto/floor-plan.dto';
 import { S3Service } from 'src/common/services/s3.service';
-import { PocService } from 'src/poc/poc.service';
+import {
+  FloorPlanRepository,
+  EventRepository,
+  PocLocationRepository,
+} from 'src/repositories';
 
 @Injectable()
 export class FloorPlanService {
   constructor(
     private readonly floorPlanRepository: FloorPlanRepository,
     private readonly s3Service: S3Service,
-    private readonly pocService: PocService,
+    private readonly eventRepository: EventRepository,
+    private readonly pocLocationRepository: PocLocationRepository,
   ) {}
 
   async getFloorPlanByEventCode(eventCode: string): Promise<FloorPlan> {
     try {
-      const floorPlan =
-        await this.floorPlanRepository.findByEventCode(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
+      if (!event) {
+        throw new NotFoundException('Event not found');
+      }
+      const floorPlan = await this.floorPlanRepository.findOne({
+        eventId: event.eventId,
+      });
 
       if (!floorPlan) {
         throw new NotFoundException('Floor plan not found');
@@ -49,15 +60,22 @@ export class FloorPlanService {
   async saveFloorPlan(floorPlanDto: FloorPlanDto) {
     try {
       const { eventCode, floorPlanImageUrl } = floorPlanDto;
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
+      if (!event) {
+        throw new NotFoundException('Event not found');
+      }
 
-      const floorPlan =
-        await this.floorPlanRepository.findByEventCode(eventCode);
+      const floorPlan = await this.floorPlanRepository.findOne({
+        eventId: event.eventId,
+      });
       if (floorPlan) {
         await this.removeFloorPlan(eventCode);
       }
 
       const newFloorPlan = this.floorPlanRepository.create({
-        eventCode: eventCode,
+        eventId: event.eventId,
         floorPlanImageUrl: floorPlanImageUrl,
       });
       await this.floorPlanRepository.save(newFloorPlan);
@@ -69,8 +87,15 @@ export class FloorPlanService {
 
   async getFloorPlanImage(eventCode: string): Promise<string> {
     try {
-      const floorPlan =
-        await this.floorPlanRepository.findByEventCode(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
+      if (!event) {
+        throw new NotFoundException('Event not found');
+      }
+      const floorPlan = await this.floorPlanRepository.findOne({
+        eventId: event.eventId,
+      });
 
       if (!floorPlan) {
         throw new NotFoundException('Floor plan not found');
@@ -86,11 +111,20 @@ export class FloorPlanService {
 
   async removeFloorPlan(eventCode: string): Promise<void> {
     try {
-      const floorPlan =
-        await this.floorPlanRepository.findByEventCode(eventCode);
+      const event = await this.eventRepository.findOne({
+        eventCode: eventCode,
+      });
+      if (!event) {
+        throw new NotFoundException('Event not found');
+      }
+      const floorPlan = await this.floorPlanRepository.findOne({
+        eventId: event.eventId,
+      });
 
       if (floorPlan) {
-        await this.pocService.removePocLocations(floorPlan.floorPlanId); // hard delete
+        await this.pocLocationRepository.delete({
+          floorPlanId: floorPlan.floorPlanId,
+        }); // hard delete
 
         // Delete from S3 instead of local filesystem
         await this.s3Service.deleteFile(floorPlan.floorPlanImageUrl);
