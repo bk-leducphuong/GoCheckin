@@ -16,7 +16,7 @@ export enum PocInviteStatus {
   REJECTED = 'rejected',
 }
 
-@Entity()
+@Entity('poc_invites')
 export class PocInvite {
   @PrimaryGeneratedColumn('uuid', { name: 'invite_id' })
   inviteId: string;

@@ -9,7 +9,7 @@ import {
 import { Event } from '../../event/entities/event.entity';
 import { PocLocation } from '../../poc/entities/poc-location.entity';
 
-@Entity('floor_plan')
+@Entity('floor_plans')
 export class FloorPlan {
   @PrimaryGeneratedColumn('uuid', { name: 'floor_plan_id' })
   floorPlanId: string;

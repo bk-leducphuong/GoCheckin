@@ -22,7 +22,7 @@ export enum PocStatus {
   MAINTENANCE = 'maintenance',
 }
 
-@Entity()
+@Entity('pocs')
 export class Poc {
   @PrimaryGeneratedColumn('uuid', { name: 'poc_id' })
   pocId: string;

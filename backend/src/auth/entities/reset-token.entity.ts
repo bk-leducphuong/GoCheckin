@@ -18,7 +18,7 @@ export class ResetToken {
   @Column({ name: 'exprised_at' })
   expriedAt: Date;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   // Relations

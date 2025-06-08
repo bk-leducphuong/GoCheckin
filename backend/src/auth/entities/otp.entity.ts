@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Account } from 'src/account/entities/account.entity';
 
-@Entity('otp')
+@Entity('otps')
 export class Otp {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
@@ -21,7 +21,7 @@ export class Otp {
   @Column({ name: 'attempts' })
   attempts: number;
 
-  @Column({ name: 'user_id' })
+  @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
   // Relations
