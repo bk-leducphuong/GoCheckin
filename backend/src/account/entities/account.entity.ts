@@ -9,6 +9,7 @@ import {
 import { Token } from '../../auth/entities/token.entity';
 import { Otp } from '../../auth/entities/otp.entity';
 import { ResetToken } from '../../auth/entities/reset-token.entity';
+import { Event } from 'src/event/entities/event.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -60,4 +61,9 @@ export class Account {
     cascade: true,
   })
   resetTokens: ResetToken[];
+
+  @OneToMany(() => Event, (event) => event.account, {
+    cascade: true,
+  })
+  events: Event[];
 }

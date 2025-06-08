@@ -28,9 +28,15 @@ export class AccountController {
     return this.accountService.updateAccount(user.userId, updateAccountDto);
   }
 
+  @Delete('poc')
+  @Roles(UserRole.POC)
+  async deletePocAccount(@CurrentUser() user: JwtPayload) {
+    return this.accountService.deletePocAccount(user.userId);
+  }
+
   @Delete()
-  @Roles(UserRole.ADMIN, UserRole.POC)
-  async deleteAccount(@CurrentUser() user: JwtPayload) {
-    return this.accountService.deleteAccount(user.userId);
+  @Roles(UserRole.ADMIN)
+  async deleteAdminAccount(@CurrentUser() user: JwtPayload) {
+    return this.accountService.deleteAdminAccount(user.userId);
   }
 }

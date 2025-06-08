@@ -36,9 +36,14 @@ export class AuthAdminRegisterDto {
   @IsString()
   phoneNumber: string; // Required for admin
 
-  @ApiProperty({ example: 'ADMIN', description: 'User role' })
+  @ApiProperty({
+    example: 'ADMIN',
+    description: 'User role',
+    enum: UserRole,
+    default: UserRole.ADMIN,
+  })
   @IsEnum(UserRole)
-  role: UserRole = UserRole.ADMIN; // Default to ADMIN
+  role: UserRole;
 
   @ApiProperty({ example: 'ACME Corp', description: 'Company name' })
   @IsNotEmpty()

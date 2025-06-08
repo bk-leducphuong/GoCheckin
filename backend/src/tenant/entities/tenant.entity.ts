@@ -4,9 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
 } from 'typeorm';
-import { Event } from '../../event/entities/event.entity';
 
 @Entity('tenants')
 export class Tenant {
@@ -54,9 +52,4 @@ export class Tenant {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt: Date;
-
-  @OneToMany(() => Event, (event) => event.tenant, {
-    cascade: true,
-  })
-  events: Event[];
 }

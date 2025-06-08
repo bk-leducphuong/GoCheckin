@@ -2,7 +2,6 @@ import {
   Injectable,
   UnauthorizedException,
   NotFoundException,
-  ConflictException,
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,7 +10,7 @@ import { AuthLoginResponseDto } from './dto/login-response.dto';
 import { AuthAdminRegisterDto } from './dto/auth-admin-register.dto';
 import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
 import { compare, hash } from 'bcrypt';
-import { UserRole } from 'src/account/entities/account.entity';
+import { Account, UserRole } from 'src/account/entities/account.entity';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from './refresh-token.service';
 import { RequestResetPassword } from './dto/request-reset-password';
@@ -34,6 +33,9 @@ import {
   AccountTenantRepository,
   TenantRepository,
 } from 'src/repositories';
+import { DataSource } from 'typeorm';
+import { Tenant } from 'src/tenant/entities/tenant.entity';
+import { AccountTenant } from 'src/account/entities/account-tenant.entity';
 
 @Injectable()
 export class AuthService {
@@ -49,6 +51,7 @@ export class AuthService {
     private readonly tokenRepository: TokenRepository,
     private readonly accountTenantRepository: AccountTenantRepository,
     private readonly tenantRepository: TenantRepository,
+    private readonly dataSource: DataSource,
   ) {}
 
   async adminLogin(loginDto: AuthLoginDto): Promise<AuthLoginResponseDto> {
@@ -127,34 +130,37 @@ export class AuthService {
   async registerAdmin(
     registerDto: AuthAdminRegisterDto,
   ): Promise<AuthLoginResponseDto> {
-    try {
-      // Check if email already exists
-      const existingUser = await this.accountRepository.findOne({
-        email: registerDto.email,
-      });
-      if (existingUser) {
-        throw new ConflictException('Account already exists');
-      }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-      /* Tenant creation */
-      const newTenant = await this.tenantRepository.create({
+    try {
+      const newTenant: Tenant = await queryRunner.manager.create('Tenant', {
         tenantCode: registerDto.tenantCode,
         tenantName: registerDto.tenantName,
       });
+      await queryRunner.manager.save(newTenant);
 
       /* Create account */
       const hashedPassword = await hash(registerDto.password, 10);
-      const newUser = await this.accountRepository.create({
+      const newUser: Account = await queryRunner.manager.create('Account', {
         ...registerDto,
         role: UserRole.ADMIN,
         password: hashedPassword,
       });
+      await queryRunner.manager.save(newUser);
 
       /* Create account and tenant relationship */
-      await this.accountTenantRepository.create(
-        newUser.userId,
-        newTenant.tenantId,
+      const newAccountTenant: AccountTenant = await queryRunner.manager.create(
+        'AccountTenant',
+        {
+          accountUserId: newUser.userId,
+          tenantId: newTenant.tenantId,
+        },
       );
+      await queryRunner.manager.save(newAccountTenant);
+
+      await queryRunner.commitTransaction();
 
       /* Create refresh and access token */
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
@@ -171,28 +177,30 @@ export class AuthService {
       };
     } catch (error) {
       console.log(error);
+      await queryRunner.rollbackTransaction();
       throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 
   async registerPoc(
     registerDto: AuthPocRegisterDto,
   ): Promise<AuthLoginResponseDto> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
-      const existingUser = await this.accountRepository.findOne({
-        email: registerDto.email,
-      });
-
-      if (existingUser) {
-        throw new ConflictException('Account already exists');
-      }
-
       const hashedPassword = await hash(registerDto.password, 10);
-      const newUser = await this.accountRepository.create({
+      const newUser: Account = await queryRunner.manager.create('Account', {
         ...registerDto,
         role: UserRole.POC,
         password: hashedPassword,
       });
+      await queryRunner.manager.save(newUser);
+
+      await queryRunner.commitTransaction();
 
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
         newUser.userId,
@@ -209,7 +217,10 @@ export class AuthService {
       };
     } catch (error) {
       console.log(error);
+      await queryRunner.rollbackTransaction();
       throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -432,6 +443,9 @@ export class AuthService {
   }
 
   async googleAdminRegister(googleAdminRegisterDto: GoogleAdminRegisterDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
       // Exchange code for access token and refresh token
       const googleTokens: GoogleTokenResponse =
@@ -442,34 +456,34 @@ export class AuthService {
         googleTokens.access_token,
       );
 
-      // Check if email already exists
-      const existingUser = await this.accountRepository.findOne({
-        email: userInfo.email,
-      });
-      if (existingUser) {
-        throw new ConflictException('Account is already registered');
-      }
-
       /* Tenant creation */
-      const newTenant = await this.tenantRepository.create({
+      const newTenant: Tenant = await queryRunner.manager.create('Tenant', {
         tenantCode: googleAdminRegisterDto.tenantCode,
         tenantName: googleAdminRegisterDto.tenantName,
       });
+      await queryRunner.manager.save(newTenant);
 
       /* Create account */
-      const newUser = await this.accountRepository.create({
+      const newUser: Account = await queryRunner.manager.create('Account', {
         role: UserRole.ADMIN,
         password: '',
         username: userInfo.given_name,
         email: userInfo.email,
         fullName: userInfo.name,
       });
+      await queryRunner.manager.save(newUser);
 
       /* Create account and tenant relationship */
-      await this.accountTenantRepository.create(
-        newUser.userId,
-        newTenant.tenantId,
+      const newAccountTenant: AccountTenant = await queryRunner.manager.create(
+        'AccountTenant',
+        {
+          accountUserId: newUser.userId,
+          tenantId: newTenant.tenantId,
+        },
       );
+      await queryRunner.manager.save(newAccountTenant);
+
+      await queryRunner.commitTransaction();
 
       /* Create refresh and access token */
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
@@ -486,7 +500,10 @@ export class AuthService {
       };
     } catch (error) {
       console.log(error);
+      await queryRunner.rollbackTransaction();
       throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -530,6 +547,9 @@ export class AuthService {
   }
 
   async googlePocRegister(googlePocRegisterDto: GooglePocRegisterDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
       // Exchange code for access token and refresh token
       const googleTokens: GoogleTokenResponse =
@@ -540,22 +560,17 @@ export class AuthService {
         googleTokens.access_token,
       );
 
-      // Check if user already exists
-      const existingUser = await this.accountRepository.findOne({
-        email: userInfo.email,
-      });
-      if (existingUser) {
-        throw new ConflictException('Account is already registered');
-      }
-
       // Create user
-      const newUser = await this.accountRepository.create({
+      const newUser: Account = await queryRunner.manager.create('Account', {
         username: userInfo.given_name,
         email: userInfo.email,
         password: '',
         role: UserRole.POC,
         fullName: userInfo.name,
       });
+      await queryRunner.manager.save(newUser);
+
+      await queryRunner.commitTransaction();
 
       // Create refresh token
       const refreshToken = await this.refreshTokenService.generateRefreshToken(
@@ -576,7 +591,10 @@ export class AuthService {
       };
     } catch (error) {
       console.log(error);
+      await queryRunner.rollbackTransaction();
       throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 }

@@ -10,13 +10,13 @@ import {
   OneToOne,
   Check,
 } from 'typeorm';
-import { Tenant } from '../../tenant/entities/tenant.entity';
 import { Guest } from '../../guest/entities/guest.entity';
 import { PointCheckinAnalytics } from '../../analysis/entities/point-checkin-analytics.entity';
 import { EventCheckinAnalytics } from '../../analysis/entities/event-checkin-analytics.entity';
 import { FloorPlan } from '../../floor-plan/entities/floor-plan.entity';
 import { PocInvite } from 'src/poc/entities/poc-invite.entity';
 import { GuestCheckin } from 'src/guest/entities/guest-checkin.entity';
+import { Account } from 'src/account/entities/account.entity';
 
 export enum AccessType {
   PUBLIC = 'public',
@@ -105,15 +105,15 @@ export class Event {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'tenant_id', type: 'varchar' })
-  tenantId: string;
+  @Column({ name: 'user_id', type: 'uuid' })
+  userId: string;
 
   // Relations
-  @ManyToOne(() => Tenant, (tenant) => tenant.events, {
+  @ManyToOne(() => Account, (account) => account.events, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'tenant_id', referencedColumnName: 'tenantId' })
-  tenant: Tenant;
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'userId' })
+  account: Account;
 
   @OneToMany(() => Guest, (guest) => guest.event, {
     cascade: true,

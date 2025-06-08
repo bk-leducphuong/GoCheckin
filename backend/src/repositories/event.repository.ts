@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
 import { Event } from '../event/entities/event.entity';
@@ -30,17 +30,9 @@ export class EventRepository {
     }
   }
 
-  create(data: Partial<Event>): Event {
+  async create(data: Partial<Event>): Promise<Event> {
     try {
-      return this.eventRepository.create(data);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async save(event: Event): Promise<Event> {
-    try {
+      const event: Event = this.eventRepository.create(data);
       return await this.eventRepository.save(event);
     } catch (error) {
       console.log(error);
@@ -48,18 +40,16 @@ export class EventRepository {
     }
   }
 
-  async saveMultiple(events: Event[]): Promise<Event[]> {
+  async update(eventCode: string, data: Partial<Event>): Promise<Event> {
     try {
-      return await this.eventRepository.save(events);
-    } catch (error) {
-      console.log(error);
-      throw error;
-    }
-  }
-
-  async delete(eventCode: string): Promise<void> {
-    try {
-      await this.eventRepository.delete(eventCode);
+      const updateEvent = await this.eventRepository.update(
+        { eventCode },
+        data,
+      );
+      if (updateEvent.affected === 0) {
+        throw new NotFoundException('Event not found');
+      }
+      return (await this.findOne({ eventCode })) as Event;
     } catch (error) {
       console.log(error);
       throw error;

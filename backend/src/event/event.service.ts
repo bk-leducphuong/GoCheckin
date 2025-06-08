@@ -2,25 +2,21 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { FindOptionsWhere, In } from 'typeorm';
 import { Event } from './entities/event.entity';
 import { EventRepository } from '../repositories/event.repository';
-import { AccountTenantRepository } from '../repositories/account-tenant.repository';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { EventStatus } from './entities/event.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { FloorPlanService } from '../floor-plan/floor-plan.service';
-import { PocService } from 'src/poc/poc.service';
 import { S3Service } from '../common/services/s3.service';
 import { EventConstraintsDto } from './dto/event-constraints';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class EventService {
   constructor(
     private readonly eventRepository: EventRepository,
-    private readonly accountTenantRepository: AccountTenantRepository,
-    private readonly floorPlanService: FloorPlanService,
-    private readonly pocService: PocService,
     private readonly s3Service: S3Service,
+    private readonly dataSource: DataSource,
   ) {}
 
   private readonly logger = new Logger('EventService');
@@ -66,20 +62,12 @@ export class EventService {
     newEventData: CreateEventDto,
   ): Promise<Event> {
     try {
-      // get tenant code from user
-      const tenant = await this.accountTenantRepository.findOne({
-        userId: user.userId,
-      });
-      if (!tenant) {
-        throw new NotFoundException('Tenant not found');
-      }
-
-      const newEvent = this.eventRepository.create({
+      const newEvent: Event = await this.eventRepository.create({
         ...newEventData,
-        tenantId: tenant.tenantId,
+        userId: user.userId,
         eventStatus: EventStatus.PUBLISHED,
       });
-      return this.eventRepository.save(newEvent);
+      return newEvent;
     } catch (error) {
       console.error('Error creating event:', error);
       throw error;
@@ -88,16 +76,8 @@ export class EventService {
 
   async getAllManagedEvents(user: JwtPayload): Promise<Event[]> {
     try {
-      // get tenant code from user
-      const tenant = await this.accountTenantRepository.findOne({
-        userId: user.userId,
-      });
-      if (!tenant) {
-        throw new NotFoundException('Tenant not found');
-      }
-
       const events = await this.eventRepository.findAll({
-        tenantId: tenant.tenantId,
+        userId: user.userId,
       });
       return events.map((event) => {
         if (event.images) {
@@ -141,15 +121,11 @@ export class EventService {
     updateEventDto: UpdateEventDto,
   ): Promise<Event> {
     try {
-      const event = await this.getEventByCode(eventCode);
-      if (!event) {
-        throw new NotFoundException(
-          `Event with event code ${eventCode} not found`,
-        );
-      }
-
-      Object.assign(event, updateEventDto);
-      return this.eventRepository.save(event);
+      const updatedEvent: Event = await this.eventRepository.update(
+        eventCode,
+        updateEventDto,
+      );
+      return updatedEvent;
     } catch (error) {
       console.error('Error updating event:', error);
       throw error;
@@ -157,26 +133,40 @@ export class EventService {
   }
 
   async removeEvent(eventCode: string): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
-      const event = await this.getEventByCode(eventCode);
+      const event = await this.eventRepository.findOne({ eventCode });
       if (!event) {
-        throw new NotFoundException(
-          `Event with event code ${eventCode} not found`,
-        );
+        throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
-      await this.floorPlanService.removeFloorPlan(eventCode); // hard delete
-      await this.pocService.removeAllPocs(eventCode); // hard delete
-      await this.deleteEventImages(event.eventCode); // Delete image files
-      await this.eventRepository.delete(event.eventCode);
+
+      await queryRunner.manager.delete('FloorPlan', { eventId: event.eventId });
+      await queryRunner.manager.delete('PocInvite', { eventId: event.eventId });
+      await queryRunner.manager.delete('GuestCheckin', {
+        eventId: event.eventId,
+      });
+      await queryRunner.manager.delete('PointCheckinAnalytics', {
+        eventId: event.eventId,
+      });
+      await queryRunner.manager.delete('EventCheckinAnalytics', {
+        eventId: event.eventId,
+      });
+      await queryRunner.manager.delete('Event', { eventId: event.eventId });
+      await queryRunner.commitTransaction();
     } catch (error) {
       console.error('Error removing event:', error);
+      await queryRunner.rollbackTransaction();
       throw error;
+    } finally {
+      await queryRunner.release();
     }
   }
 
   async getEventStatus(eventCode: string): Promise<EventStatus> {
     try {
-      const event = await this.getEventByCode(eventCode);
+      const event = await this.eventRepository.findOne({ eventCode });
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
@@ -204,9 +194,10 @@ export class EventService {
         } else if (now > endTime) {
           event.eventStatus = EventStatus.COMPLETED;
         }
+        await this.eventRepository.update(event.eventCode, {
+          eventStatus: event.eventStatus,
+        });
       }
-
-      await this.eventRepository.saveMultiple(events);
     } catch (error) {
       console.error('Error updating event status:', error);
       throw error;
@@ -218,7 +209,7 @@ export class EventService {
     images: Array<Express.Multer.File>,
   ): Promise<string[]> {
     try {
-      const event = await this.getEventByCode(eventCode);
+      const event = await this.eventRepository.findOne({ eventCode });
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
@@ -235,7 +226,7 @@ export class EventService {
 
       // Save the S3 keys to the event
       event.images = [...(event.images || []), ...uploadedImages];
-      await this.eventRepository.save(event);
+      await this.eventRepository.update(eventCode, { images: event.images });
 
       // Return array of URLs if needed
       return uploadedImages;
@@ -248,7 +239,7 @@ export class EventService {
   // Update getEventImages to use S3
   async getEventImages(eventCode: string): Promise<string[]> {
     try {
-      const event = await this.getEventByCode(eventCode);
+      const event = await this.eventRepository.findOne({ eventCode });
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
@@ -263,7 +254,7 @@ export class EventService {
   // Delete image files
   async deleteEventImages(eventCode: string) {
     try {
-      const event = await this.getEventByCode(eventCode);
+      const event = await this.eventRepository.findOne({ eventCode });
       if (!event) {
         throw new NotFoundException(`Event with code ${eventCode} not found`);
       }
@@ -272,8 +263,7 @@ export class EventService {
         await this.s3Service.deleteFile(imageKey);
       }
 
-      event.images = [];
-      await this.eventRepository.save(event);
+      await this.eventRepository.update(eventCode, { images: [] });
     } catch (error) {
       console.error('Error deleting event images:', error);
       throw error;
