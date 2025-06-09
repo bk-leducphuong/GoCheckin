@@ -8,7 +8,7 @@ import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import { EventStatus } from './entities/event.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { S3Service } from '../common/services/s3.service';
-import { EventConstraintsDto } from './dto/event-constraints';
+import { EventConstraintsDto } from './dto/event-constraints.dto';
 import { DataSource } from 'typeorm';
 
 @Injectable()

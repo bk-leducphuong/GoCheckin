@@ -18,7 +18,9 @@ import { UserRole } from 'src/account/entities/account.entity';
 import { AdminSocketHandler } from './handlers/admin.handler';
 import { CheckinSocketHandler } from './handlers/checkin.handler';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('socket')
 @WebSocketGateway({
   cors: process.env.CLIENT_URL || 'https://localhost:3000',
 })
@@ -47,6 +49,11 @@ export class SocketGateway
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
+  @ApiOperation({ summary: 'Register admin' })
+  @ApiResponse({
+    status: 200,
+    description: 'Admin registered successfully',
+  })
   @Roles(UserRole.ADMIN)
   @SubscribeMessage('register_admin')
   handleRegisterAdmin(
@@ -56,6 +63,11 @@ export class SocketGateway
     this.adminHandler.registerAdmin(client.id, eventCode);
   }
 
+  @ApiOperation({ summary: 'Unregister admin' })
+  @ApiResponse({
+    status: 200,
+    description: 'Admin unregistered successfully',
+  })
   @Roles(UserRole.ADMIN)
   @SubscribeMessage('unregister_admin')
   handleUnregisterAdmin(
@@ -65,6 +77,11 @@ export class SocketGateway
     this.adminHandler.unregisterAdmin(client.id, eventCode);
   }
 
+  @ApiOperation({ summary: 'Handle heartbeat' })
+  @ApiResponse({
+    status: 200,
+    description: 'Heartbeat handled successfully',
+  })
   @Roles(UserRole.POC)
   @SubscribeMessage('heartbeat')
   async handleHeartbeat(
@@ -74,6 +91,11 @@ export class SocketGateway
     await this.checkinHandler.handleHeartbeat(this.server, data);
   }
 
+  @ApiOperation({ summary: 'Handle new checkin' })
+  @ApiResponse({
+    status: 200,
+    description: 'New checkin handled successfully',
+  })
   @Roles(UserRole.POC)
   @SubscribeMessage('new_checkin')
   handleNewCheckin(

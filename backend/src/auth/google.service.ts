@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { GoogleTokenResponse } from './dto/google-token-response';
-import { GoogleUserInfo } from './dto/google-user-info';
+import { GoogleTokenResponse, GoogleUserInfo } from './dto';
 
 @Injectable()
 export class GoogleService {

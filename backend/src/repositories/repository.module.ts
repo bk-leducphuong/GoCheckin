@@ -2,21 +2,17 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Import all entities
-import { Account } from '../account/entities/account.entity';
-import { AccountTenant } from '../account/entities/account-tenant.entity';
-import { Event } from '../event/entities/event.entity';
-import { Tenant } from '../tenant/entities/tenant.entity';
-import { Guest } from '../guest/entities/guest.entity';
-import { FloorPlan } from '../floor-plan/entities/floor-plan.entity';
-import { GuestCheckin } from '../guest/entities/guest-checkin.entity';
-import { Otp } from '../auth/entities/otp.entity';
-import { Poc } from '../poc/entities/poc.entity';
-import { PocInvite } from '../poc/entities/poc-invite.entity';
-import { PocLocation } from '../poc/entities/poc-location.entity';
-import { Token } from '../auth/entities/token.entity';
-import { ResetToken } from '../auth/entities/reset-token.entity';
-import { EventCheckinAnalytics } from '../analysis/entities/event-checkin-analytics.entity';
-import { PointCheckinAnalytics } from '../analysis/entities/point-checkin-analytics.entity';
+import { Account, AccountTenant } from '../account/entities';
+import { Event } from '../event/entities';
+import { Tenant } from '../tenant/entities';
+import { Guest, GuestCheckin } from '../guest/entities';
+import { FloorPlan } from '../floor-plan/entities';
+import { Poc, PocInvite, PocLocation } from '../poc/entities';
+import { ResetToken, Token, Otp } from '../auth/entities';
+import {
+  EventCheckinAnalytics,
+  PointCheckinAnalytics,
+} from '../analysis/entities';
 
 // Import all repositories
 import { AccountRepository } from './account.repository';

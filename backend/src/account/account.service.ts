@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Account } from './entities/account.entity';
-import { AccountDto } from './dto/account.dto';
-import { CreateAccountDto } from './dto/create-account.dto';
-import { UpdateAccountDto } from './dto/update-account.dto';
+import { AccountDto, CreateAccountDto, UpdateAccountDto } from './dto';
 import {
   AccountTenantRepository,
   PocRepository,

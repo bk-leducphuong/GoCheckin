@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { Account } from '../account/entities/account.entity';
-import { AccountTenant } from '../account/entities/account-tenant.entity';
-import { CreateAccountDto } from '../account/dto/create-account.dto';
+import { Account } from '../account/entities';
+import { CreateAccountDto } from '../account/dto';
 
 @Injectable()
 export class AccountRepository {
   constructor(
     @InjectRepository(Account)
     private readonly accountRepository: Repository<Account>,
-    @InjectRepository(AccountTenant)
-    private readonly accountTenantRepository: Repository<AccountTenant>,
   ) {}
 
   async create(createAccountDto: CreateAccountDto): Promise<Account> {

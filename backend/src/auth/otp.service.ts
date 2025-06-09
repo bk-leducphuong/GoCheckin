@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { OtpRepository } from '../repositories/otp.repository';
-import { ResetTokenRepository } from '../repositories/reset-token.repository';
+import {
+  OtpRepository,
+  ResetTokenRepository,
+  AccountRepository,
+} from '../repositories';
 import { hash, compare } from 'bcrypt';
 import { randomInt, randomBytes } from 'crypto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
-import { AccountRepository } from 'src/repositories/account.repository';
+import { VerifyOtpDto } from './dto';
 import { MoreThan } from 'typeorm';
 
 @Injectable()

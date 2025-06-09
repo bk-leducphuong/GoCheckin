@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { EventCheckinAnalytics } from '../analysis/entities/event-checkin-analytics.entity';
+import { EventCheckinAnalytics } from '../analysis/entities';
 
 @Injectable()
 export class EventCheckinAnalysisRepository {

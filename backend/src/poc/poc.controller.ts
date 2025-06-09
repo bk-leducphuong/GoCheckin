@@ -7,26 +7,31 @@ import {
   Body,
   UseGuards,
   HttpStatus,
-  HttpCode,
   Query,
   Param,
 } from '@nestjs/common';
 import { PocService } from './poc.service';
-import { CreatePocDto } from './dto/create-poc.dto';
-import { UpdatePocDto } from './dto/update-poc.dto';
+import {
+  CreatePocDto,
+  UpdatePocDto,
+  ValidatePocDto,
+  RegisterPocUserDto,
+  PocLocationsDto,
+  InvitePocUserDto,
+  PocManagerDto,
+  PocLocationDto,
+} from './dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/account/entities/account.entity';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/user.decorator';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
-import { ValidatePocDto } from './dto/validate-poc.dto';
-import { PocLocationsDto } from './dto/poc-locations.dto';
-import { RegisterPocUserDto } from './dto/register-poc-user.dto';
-import { InvitePocUserDto } from './dto/invite-poc-user.dto';
+import { Poc } from './entities/poc.entity';
+import { PocInvite } from './entities/poc-invite.entity';
 
-@ApiTags('points-of-checkin')
+@ApiTags('pocs')
 @Controller('pocs')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PocController {
@@ -37,7 +42,8 @@ export class PocController {
   @ApiOperation({ summary: 'Validate poc account' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Point of check-in validated successfully',
+    description: 'Validate poc account successfully',
+    type: Poc,
   })
   async validatePoc(
     @CurrentUser() user: JwtPayload,
@@ -48,10 +54,11 @@ export class PocController {
 
   @Get('event')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Get all points of check-in for an event' })
+  @ApiOperation({ summary: 'Get all check-in points for an event' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns all points of check-in for the event',
+    description: 'Get all check-in points for the event successfully',
+    type: [Poc],
   })
   async getAllPocs(@Query('eventCode') eventCode: string) {
     return this.pocService.getAllPocs(eventCode);
@@ -59,10 +66,11 @@ export class PocController {
 
   @Post('event')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Create a new point of check-in for an event' })
+  @ApiOperation({ summary: 'Create a new check-in point for an event' })
   @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Point of check-in created successfully',
+    status: HttpStatus.OK,
+    description: 'Create check-in point successfully',
+    type: Poc,
   })
   async createPoc(
     @CurrentUser() user: JwtPayload,
@@ -74,14 +82,11 @@ export class PocController {
 
   @Get('poc')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Get a point of check-in' })
+  @ApiOperation({ summary: 'Get a check-in point' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Point of check-in found successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Point of check-in not found',
+    description: 'Get check-in point successfully',
+    type: Poc,
   })
   async getPoc(
     @Query('pointCode') pointCode: string,
@@ -92,14 +97,11 @@ export class PocController {
 
   @Put('poc')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Update a point of check-in' })
+  @ApiOperation({ summary: 'Update a check-in point' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Point of check-in updated successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Point of check-in not found',
+    description: 'Update check-in point successfully',
+    type: Poc,
   })
   async updatePoc(
     @Query('pocId') pocId: string,
@@ -110,16 +112,10 @@ export class PocController {
 
   @Delete('poc')
   @Roles(UserRole.ADMIN)
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a point of check-in (soft delete)' })
-  @ApiParam({ name: 'pocId', description: 'Point of check-in ID or code' })
+  @ApiOperation({ summary: 'Delete a check-in point' })
   @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Point of check-in deleted successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Point of check-in not found',
+    status: HttpStatus.OK,
+    description: 'Delete check-in point successfully',
   })
   async deletePoc(@Query('pocId') pocId: string) {
     return this.pocService.remove(pocId);
@@ -130,11 +126,8 @@ export class PocController {
   @ApiOperation({ summary: 'Get POC manager' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POC manager found successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'POC manager not found',
+    description: 'Get poc manager successfully',
+    type: PocManagerDto,
   })
   async getPocManager(@Query('userId') userId: string) {
     return this.pocService.getPocManager(userId);
@@ -145,11 +138,7 @@ export class PocController {
   @ApiOperation({ summary: 'Save POC location' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POC location saved successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'POC location not found',
+    description: 'Save poc location successfully',
   })
   async savePocLocation(@Body() pocLocations: PocLocationsDto) {
     return this.pocService.savePocLocation(pocLocations);
@@ -160,11 +149,8 @@ export class PocController {
   @ApiOperation({ summary: 'Get POC locations' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POC locations found successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'POC locations not found',
+    description: 'Get poc locations successfully',
+    type: [PocLocationDto],
   })
   async getPocLocations(@Query('eventCode') eventCode: string) {
     return this.pocService.getPocLocations(eventCode);
@@ -175,7 +161,8 @@ export class PocController {
   @ApiOperation({ summary: 'Get POCs by user ID' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POCs found successfully',
+    description: 'Get pocs by user id successfully',
+    type: [Poc],
   })
   async getPocsByUserId(@Param('userId') userId: string) {
     return this.pocService.getPocsByUserId(userId);
@@ -186,7 +173,7 @@ export class PocController {
   @ApiOperation({ summary: 'Register a new POC user' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POC user registered successfully',
+    description: 'Register poc user successfully',
   })
   async registerPocUser(
     @CurrentUser() user: JwtPayload,
@@ -200,7 +187,7 @@ export class PocController {
   @ApiOperation({ summary: 'Invite a POC user' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POC user invited successfully',
+    description: 'Invite poc user successfully',
   })
   async invitePocUser(@Body() invitePocUserDto: InvitePocUserDto) {
     return this.pocService.invitePocUser(invitePocUserDto);
@@ -211,7 +198,7 @@ export class PocController {
   @ApiOperation({ summary: 'Accept a POC invite' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POC invite accepted successfully',
+    description: 'Accept poc invite successfully',
   })
   async acceptPocInvite(
     @CurrentUser() user: JwtPayload,
@@ -225,7 +212,8 @@ export class PocController {
   @ApiOperation({ summary: 'Get POC invite' })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'POC invite found successfully',
+    description: 'Get poc invite successfully',
+    type: PocInvite,
   })
   async getPocInvite(
     @Query('eventCode') eventCode: string,

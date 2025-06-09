@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { GuestCheckin } from '../guest/entities/guest-checkin.entity';
+import { GuestCheckin } from '../guest/entities';
 
 @Injectable()
 export class GuestCheckinRepository {

@@ -9,30 +9,28 @@ import {
   Delete,
   Param,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { AuthLoginDto } from './dto/auth-login.dto';
-import { AuthAdminRegisterDto } from './dto/auth-admin-register.dto';
-import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
-import { AuthLoginResponseDto } from './dto/login-response.dto';
+import {
+  AuthLoginDto,
+  AuthAdminRegisterDto,
+  AuthPocRegisterDto,
+  AuthLoginResponseDto,
+  RefreshTokenResponseDto,
+  RequestResetPassword,
+  ResetPasswordDto,
+  VerifyOtpDto,
+  GoogleAdminLoginDto,
+  GoogleAdminRegisterDto,
+  GooglePocLoginDto,
+  GooglePocRegisterDto,
+} from './dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
-import { RequestResetPassword } from './dto/request-reset-password';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { OtpService } from './otp.service';
 import { UserRole } from 'src/account/entities/account.entity';
-import { GoogleAdminLoginDto } from './dto/google-admin-login.dto';
-import { GoogleAdminRegisterDto } from './dto/google-admin-register.dto';
-import { GooglePocLoginDto } from './dto/google-poc-login.dto';
-import { GooglePocRegisterDto } from './dto/google-poc-register.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -96,7 +94,7 @@ export class AuthController {
   @ApiResponse({
     status: 200,
     description: 'New access token generated',
-    type: AuthLoginResponseDto,
+    type: RefreshTokenResponseDto,
   })
   @Post('refresh-access-token')
   @UseGuards(RefreshTokenGuard)
@@ -179,7 +177,6 @@ export class AuthController {
     status: 200,
     description: 'List of active sessions',
   })
-  @ApiBearerAuth()
   @Get('sessions')
   @UseGuards(JwtAuthGuard)
   async getSessions(@CurrentUser() user: JwtPayload) {
@@ -199,7 +196,6 @@ export class AuthController {
       },
     },
   })
-  @ApiBearerAuth()
   @Delete('sessions/:id')
   @UseGuards(JwtAuthGuard)
   async revokeSession(
@@ -209,36 +205,93 @@ export class AuthController {
     return this.authService.revokeSession(user.userId, tokenId);
   }
 
+  @ApiOperation({ summary: 'Request reset password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset password request successful',
+    schema: {
+      properties: {
+        message: {
+          type: 'string',
+          example: 'Reset password email sent',
+        },
+      },
+    },
+  })
   @Post('request-reset-password')
   requestResetPassword(@Body() requestResetPasswordDto: RequestResetPassword) {
     return this.authService.requestResetPassword(requestResetPasswordDto);
   }
 
+  @ApiOperation({ summary: 'Reset password' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reset password successful',
+  })
   @Post('reset-password')
   resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
 
+  @ApiOperation({ summary: 'Verify OTP' })
+  @ApiResponse({
+    status: 200,
+    description: 'OTP verified successfully',
+    schema: {
+      properties: {
+        resetToken: {
+          type: 'string',
+        },
+        userId: {
+          type: 'string',
+        },
+      },
+    },
+  })
   @Post('verify-otp')
   verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     return this.otpService.verifyOtp(verifyOtpDto);
   }
 
+  @ApiOperation({ summary: 'Google admin login' })
+  @ApiResponse({
+    status: 200,
+    description: 'Google admin login successful',
+    type: AuthLoginResponseDto,
+  })
   @Post('admin/google/login')
   googleAdminLogin(@Body() googleAdminLoginDto: GoogleAdminLoginDto) {
     return this.authService.googleAdminLogin(googleAdminLoginDto);
   }
 
+  @ApiOperation({ summary: 'Google admin register' })
+  @ApiResponse({
+    status: 200,
+    description: 'Google admin register successful',
+    type: AuthLoginResponseDto,
+  })
   @Post('admin/google/register')
   googleAdminRegister(@Body() googleAdminRegisterDto: GoogleAdminRegisterDto) {
     return this.authService.googleAdminRegister(googleAdminRegisterDto);
   }
 
+  @ApiOperation({ summary: 'Google poc login' })
+  @ApiResponse({
+    status: 200,
+    description: 'Google poc login successful',
+    type: AuthLoginResponseDto,
+  })
   @Post('poc/google/login')
   googlePocLogin(@Body() googlePocLoginDto: GooglePocLoginDto) {
     return this.authService.googlePocLogin(googlePocLoginDto);
   }
 
+  @ApiOperation({ summary: 'Google poc register' })
+  @ApiResponse({
+    status: 200,
+    description: 'Google poc register successful',
+    type: AuthLoginResponseDto,
+  })
   @Post('poc/google/register')
   googlePocRegister(@Body() googlePocRegisterDto: GooglePocRegisterDto) {
     return this.authService.googlePocRegister(googlePocRegisterDto);

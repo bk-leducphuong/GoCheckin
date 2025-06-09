@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
-import { ResetToken } from '../auth/entities/reset-token.entity';
+import { ResetToken } from '../auth/entities';
 
 @Injectable()
 export class ResetTokenRepository {

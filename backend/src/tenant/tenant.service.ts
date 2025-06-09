@@ -4,8 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Tenant } from './entities/tenant.entity';
-import { CreateTenantDto } from './dto/create-tenant.dto';
-import { UpdateTenantDto } from './dto/update-tenant.dto';
+import { CreateTenantDto, UpdateTenantDto } from './dto';
 import { TenantRepository, AccountTenantRepository } from 'src/repositories';
 
 @Injectable()
@@ -66,7 +65,7 @@ export class TenantService {
   async updateTenantInformation(
     userId: string,
     updateTenantDto: UpdateTenantDto,
-  ) {
+  ): Promise<Tenant> {
     const accountTenants = await this.accountTenantRepository.findOne({
       userId: userId,
     });

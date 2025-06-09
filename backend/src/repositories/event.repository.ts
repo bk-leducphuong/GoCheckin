@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOptionsWhere } from 'typeorm';
-import { Event } from '../event/entities/event.entity';
+import { Event } from '../event/entities';
 
 @Injectable()
 export class EventRepository {

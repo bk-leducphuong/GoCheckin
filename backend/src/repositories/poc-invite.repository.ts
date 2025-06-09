@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { PocInvite } from '../poc/entities/poc-invite.entity';
+import { PocInvite } from '../poc/entities';
 
 @Injectable()
 export class PocInviteRepository {

@@ -5,26 +5,28 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthLoginDto } from './dto/auth-login.dto';
-import { AuthLoginResponseDto } from './dto/login-response.dto';
-import { AuthAdminRegisterDto } from './dto/auth-admin-register.dto';
-import { AuthPocRegisterDto } from './dto/auth-poc-register.dto';
+import {
+  AuthLoginDto,
+  AuthLoginResponseDto,
+  AuthAdminRegisterDto,
+  AuthPocRegisterDto,
+  RequestResetPassword,
+  ResetPasswordDto,
+  GoogleAdminLoginDto,
+  GoogleAdminRegisterDto,
+  GooglePocLoginDto,
+  GooglePocRegisterDto,
+  GoogleTokenResponse,
+  GoogleUserInfo,
+  RefreshTokenResponseDto,
+} from './dto';
 import { compare, hash } from 'bcrypt';
 import { Account, UserRole } from 'src/account/entities/account.entity';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenService } from './refresh-token.service';
-import { RequestResetPassword } from './dto/request-reset-password';
-import { ResetPasswordDto } from './dto/reset-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from './otp.service';
-import { RefreshTokenResponseDto } from './dto/refresh-token-response.dto';
-import { GoogleAdminLoginDto } from './dto/google-admin-login.dto';
-import { GoogleAdminRegisterDto } from './dto/google-admin-register.dto';
-import { GooglePocLoginDto } from './dto/google-poc-login.dto';
-import { GooglePocRegisterDto } from './dto/google-poc-register.dto';
 import { GoogleService } from './google.service';
-import { GoogleTokenResponse } from './dto/google-token-response';
-import { GoogleUserInfo } from './dto/google-user-info';
 import { MoreThan } from 'typeorm';
 import {
   AccountRepository,
@@ -337,7 +339,9 @@ export class AuthService {
     }
   }
 
-  async requestResetPassword(requestResetPasswordDto: RequestResetPassword) {
+  async requestResetPassword(
+    requestResetPasswordDto: RequestResetPassword,
+  ): Promise<{ message: string }> {
     try {
       const account = await this.accountRepository.findOne({
         email: requestResetPasswordDto.email,
@@ -358,7 +362,7 @@ export class AuthService {
     }
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
     try {
       const { userId, resetToken, password } = resetPasswordDto;
       const resetTokenRecord = await this.resetTokenRepository.findOne({
@@ -404,7 +408,9 @@ export class AuthService {
     }
   }
 
-  async googleAdminLogin(googleAdminLoginDto: GoogleAdminLoginDto) {
+  async googleAdminLogin(
+    googleAdminLoginDto: GoogleAdminLoginDto,
+  ): Promise<AuthLoginResponseDto> {
     try {
       // Exchange code for access token and refresh token
       const googleTokens: GoogleTokenResponse =
@@ -442,7 +448,9 @@ export class AuthService {
     }
   }
 
-  async googleAdminRegister(googleAdminRegisterDto: GoogleAdminRegisterDto) {
+  async googleAdminRegister(
+    googleAdminRegisterDto: GoogleAdminRegisterDto,
+  ): Promise<AuthLoginResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -507,7 +515,9 @@ export class AuthService {
     }
   }
 
-  async googlePocLogin(googlePocLoginDto: GooglePocLoginDto) {
+  async googlePocLogin(
+    googlePocLoginDto: GooglePocLoginDto,
+  ): Promise<AuthLoginResponseDto> {
     try {
       // Exchange code for access token and refresh token
       const googleTokens: GoogleTokenResponse =
@@ -546,7 +556,9 @@ export class AuthService {
     }
   }
 
-  async googlePocRegister(googlePocRegisterDto: GooglePocRegisterDto) {
+  async googlePocRegister(
+    googlePocRegisterDto: GooglePocRegisterDto,
+  ): Promise<AuthLoginResponseDto> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

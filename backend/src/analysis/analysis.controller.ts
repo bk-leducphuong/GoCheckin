@@ -21,7 +21,7 @@ export class AnalysisController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns all event check-in analytics',
+    description: 'Get all event check-in analytics successfully',
     type: [EventCheckinAnalytics],
   })
   async getAllEventCheckinAnalytics(
@@ -42,7 +42,7 @@ export class AnalysisController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Returns all point check-in analytics',
+    description: 'Get all point check-in analytics successfully',
     type: [PointCheckinAnalytics],
   })
   async getAllPointCheckinAnalytics(

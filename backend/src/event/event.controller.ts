@@ -20,17 +20,23 @@ import { CurrentUser } from '../common/decorators/user.decorator';
 import { JwtPayload } from '../common/interfaces/jwt-payload.interface';
 import { UserRole } from '../account/entities/account.entity';
 import { EventService } from './event.service';
-import { CreateEventDto } from './dto/create-event.dto';
-import { UpdateEventDto } from './dto/update-event.dto';
+import { CreateEventDto, UpdateEventDto, EventConstraintsDto } from './dto';
 import { EventStatus, EventType } from './entities/event.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { EventConstraintsDto } from './dto/event-constraints';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+@ApiTags('events')
 @Controller('events')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
+  @ApiOperation({ summary: 'Get all events by constraints' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all events by constraints',
+    type: [Event],
+  })
   @Get('all')
   @Roles(UserRole.ADMIN, UserRole.POC)
   async getAllEventsByConstraints(
@@ -49,10 +55,22 @@ export class EventController {
 
   @Get()
   @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Get all managed events' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns all managed events',
+    type: [Event],
+  })
   async getAllManagedEvents(@CurrentUser() user: JwtPayload) {
     return this.eventService.getAllManagedEvents(user);
   }
 
+  @ApiOperation({ summary: 'Create event' })
+  @ApiResponse({
+    status: 200,
+    description: 'Event created successfully',
+    type: Event,
+  })
   @Post()
   @Roles(UserRole.ADMIN)
   async createEvent(
@@ -62,11 +80,23 @@ export class EventController {
     return this.eventService.createEvent(user, createEventDto);
   }
 
+  @ApiOperation({ summary: 'Get event by code' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns event by code',
+    type: Event,
+  })
   @Get(':eventCode')
   async getEventByCode(@Param('eventCode') eventCode: string) {
     return await this.eventService.getEventByCode(eventCode);
   }
 
+  @ApiOperation({ summary: 'Update event' })
+  @ApiResponse({
+    status: 200,
+    description: 'Event updated successfully',
+    type: Event,
+  })
   @Put(':eventCode')
   @Roles(UserRole.ADMIN)
   async updateEvent(
@@ -76,17 +106,51 @@ export class EventController {
     return this.eventService.updateEvent(eventCode, updateEventDto);
   }
 
+  @ApiOperation({ summary: 'Get event status' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns event status',
+    schema: {
+      properties: {
+        status: {
+          type: 'string',
+          example: 'COMPLETED',
+        },
+      },
+    },
+  })
   @Get(':eventCode/status')
   async getEventStatus(@Param('eventCode') eventCode: string) {
     return this.eventService.getEventStatus(eventCode);
   }
 
+  @ApiOperation({ summary: 'Delete event' })
+  @ApiResponse({
+    status: 200,
+    description: 'Event deleted successfully',
+  })
   @Delete(':eventCode')
   @Roles(UserRole.ADMIN)
   async deleteEvent(@Param('eventCode') eventCode: string) {
     return this.eventService.removeEvent(eventCode);
   }
 
+  @ApiOperation({ summary: 'Upload event images' })
+  @ApiResponse({
+    status: 200,
+    description: 'Event images uploaded successfully',
+    schema: {
+      properties: {
+        imageUrls: {
+          type: 'array',
+          items: {
+            type: 'string',
+            example: 'https://example.com/image.jpg',
+          },
+        },
+      },
+    },
+  })
   @Post(':eventCode/images/upload')
   @Roles(UserRole.ADMIN)
   @UseInterceptors(FilesInterceptor('images'))
@@ -105,6 +169,22 @@ export class EventController {
     return this.eventService.uploadEventImages(eventCode, images);
   }
 
+  @ApiOperation({ summary: 'Get event images' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns event images',
+    schema: {
+      properties: {
+        imageUrls: {
+          type: 'array',
+          items: {
+            type: 'string',
+            example: 'https://example.com/image.jpg',
+          },
+        },
+      },
+    },
+  })
   @Get(':eventCode/images')
   @Roles(UserRole.ADMIN)
   async getEventImages(@Param('eventCode') eventCode: string) {

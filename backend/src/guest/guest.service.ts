@@ -5,8 +5,7 @@ import {
 } from '@nestjs/common';
 import { Guest, IdentityType } from './entities/guest.entity';
 import { GuestCheckin } from './entities/guest-checkin.entity';
-import { CheckinDto } from './dto/checkin.dto';
-import { GuestResponse } from './dto/get-guests-response.dto';
+import { CheckinDto, GuestResponse } from './dto';
 import { S3Service } from 'src/common/services/s3.service';
 import {
   GuestRepository,

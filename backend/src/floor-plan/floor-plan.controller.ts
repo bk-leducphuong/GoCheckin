@@ -15,10 +15,11 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/account/entities/account.entity';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { FloorPlanService } from './floor-plan.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FloorPlanDto } from './dto/floor-plan.dto';
+import { FloorPlanDto } from './dto';
 
+@ApiTags('floor-plan')
 @Controller('floor-plan')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class FloorPlanController {

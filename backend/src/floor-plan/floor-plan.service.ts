@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FloorPlan } from './entities/floor-plan.entity';
-import { FloorPlanDto } from './dto/floor-plan.dto';
+import { FloorPlanDto } from './dto';
 import { S3Service } from 'src/common/services/s3.service';
 import {
   FloorPlanRepository,
@@ -57,7 +57,7 @@ export class FloorPlanService {
     }
   }
 
-  async saveFloorPlan(floorPlanDto: FloorPlanDto) {
+  async saveFloorPlan(floorPlanDto: FloorPlanDto): Promise<void> {
     try {
       const { eventCode, floorPlanImageUrl } = floorPlanDto;
       const event = await this.eventRepository.findOne({

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { PocLocation } from '../poc/entities/poc-location.entity';
+import { PocLocation } from '../poc/entities';
 
 @Injectable()
 export class PocLocationRepository {

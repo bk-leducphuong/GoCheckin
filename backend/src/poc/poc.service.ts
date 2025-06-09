@@ -4,16 +4,18 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { Poc } from './entities/poc.entity';
-import { CreatePocDto } from './dto/create-poc.dto';
-import { UpdatePocDto } from './dto/update-poc.dto';
+import {
+  CreatePocDto,
+  UpdatePocDto,
+  ValidatePocDto,
+  PocManagerDto,
+  PocLocationsDto,
+  RegisterPocUserDto,
+  InvitePocUserDto,
+} from './dto';
 import { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
-import { ValidatePocDto } from './dto/validate-poc.dto';
-import { PocManagerDto } from './dto/poc-manager.dto';
-import { PocLocationsDto } from './dto/poc-locations.dto';
 import { PocLocation } from './entities/poc-location.entity';
-import { RegisterPocUserDto } from './dto/register-poc-user.dto';
 import { MailService } from 'src/mail/mail.service';
-import { InvitePocUserDto } from './dto/invite-poc-user.dto';
 import { PocInvite, PocInviteStatus } from './entities/poc-invite.entity';
 import { v4 as uuidv4 } from 'uuid';
 import {

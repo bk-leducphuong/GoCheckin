@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { FloorPlan } from '../floor-plan/entities/floor-plan.entity';
+import { FloorPlan } from '../floor-plan/entities';
 
 @Injectable()
 export class FloorPlanRepository {

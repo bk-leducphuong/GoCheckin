@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { Guest } from '../guest/entities/guest.entity';
+import { Guest } from '../guest/entities';
 
 @Injectable()
 export class GuestRepository {

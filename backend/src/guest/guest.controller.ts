@@ -11,16 +11,13 @@ import {
   ParseFilePipeBuilder,
 } from '@nestjs/common';
 import { GuestService } from './guest.service';
-import { CheckinDto } from './dto/checkin.dto';
+import { CheckinDto, GuestResponse } from './dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../account/entities/account.entity';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Guest } from './entities/guest.entity';
-import { GuestCheckin } from './entities/guest-checkin.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { GuestResponse } from './dto/get-guests-response.dto';
 
 @ApiTags('guests')
 @Controller('guests')
@@ -34,13 +31,9 @@ export class GuestController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Guest checked in successfully',
-    type: GuestCheckin,
+    type: GuestResponse,
   })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'Guest not found',
-  })
-  async checkinGuest(@Body() checkinDto: CheckinDto): Promise<GuestResponse> {
+  async checkinGuest(@Body() checkinDto: CheckinDto) {
     return this.guestService.checkin(checkinDto);
   }
 
@@ -77,12 +70,12 @@ export class GuestController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all guests for the event and point of check-in',
-    type: [Guest],
+    type: [GuestResponse],
   })
   async getAllGuestsOfPoc(
     @Query('eventCode') eventCode: string,
     @Query('pointCode') pointCode: string,
-  ): Promise<GuestResponse[]> {
+  ) {
     return this.guestService.getAllGuestsOfPoc(eventCode, pointCode);
   }
 
@@ -94,7 +87,7 @@ export class GuestController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns all guests for the event',
-    type: [Guest],
+    type: [GuestResponse],
   })
   async getAllGuestsOfEvent(@Query('eventCode') eventCode: string) {
     return this.guestService.getAllGuestsOfEvent(eventCode);
